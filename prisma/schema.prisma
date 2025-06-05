@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String          @id @default(uuid())
+  name                   String
+  email                  String          @unique
+  password               String?
+  affiliation            String?
+  profileImage           String?
+  resetToken             String?         @unique
+  resetTokenExpiry       DateTime?
+  isVerified             Boolean         @default(false)
+  userType               UserType        @default(USER)
+  verificationCode       String?
+  verificationCodeExpiry DateTime?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  reviewedPapers         ResearchPaper[] @relation("PaperReviewer")
+  submittedPapers        ResearchPaper[] @relation("PaperAuthor")
+}
+
+model ResearchPaper {
+  id              String   @id @default(uuid())
+  title           String
+  abstract        String
+  filePath        String
+  keywords        String[]
+  coverLetterPath String?
+
+  currentVersion  Int         @default(1)
+  submissionDate  DateTime    @default(now())
+  lastUpdated     DateTime    @updatedAt
+  rejectionRemark String?
+  rejectionDate   DateTime?
+  status          PaperStatus @default(UPLOAD)
+
+  reviewerId String?
+  reviewer   User?   @relation("PaperReviewer", fields: [reviewerId], references: [id])
+
+  authorId String?
+  author   User?   @relation("PaperAuthor", fields: [authorId], references: [id])
+
+  contributors   Json 
+  pointOfContact Json 
+  reviewerStatus ReviewerStatus @default(PENDING)
+}
+enum ReviewerStatus {
+  ACCEPTED
+  REJECTED
+  PENDING
+  NOT_RESPONDED
+}
+
+enum UserType {
+  USER
+  REVIEWER
+  ADMIN
+}
+
+enum PaperStatus {
+  UPLOAD
+  REVIEWER_ALLOCATION
+  ON_REVIEW
+  PUBLISH
+  REJECTED
+}
+
+model UserDetails {
+  id       String   @id @default(uuid())
+  email    String   @unique
+  name     String   @unique
+  userType UserType
+}
+
+model latestNews {
+  id                 String   @id @default(uuid())
+  title              String
+  content            String
+  createdAt          DateTime @default(now())
+  homePageVisibility Boolean  @default(false)
+}
