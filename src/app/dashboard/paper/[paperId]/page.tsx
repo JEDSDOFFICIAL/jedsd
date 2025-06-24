@@ -174,7 +174,7 @@ export default function MultiPagePaperUpdate() {
         }
 
         setPaperData(response.data);
-        console.log("Fetched Paper Data:", response.data);
+        //console.log("Fetched Paper Data:", response.data);
 
         // Set form values only if paperData is not null
         const pd = response.data;

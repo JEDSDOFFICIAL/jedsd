@@ -24,7 +24,7 @@ import { DataTable } from "../data-table";
 import data1 from './data.json'
  function DashboardPaper() {
   const { data: session } = useSession();
-  console.log("Session from PaperList:", session);
+  //console.log("Session from PaperList:", session);
   const [data, setData] = React.useState<ResearchPaper[]>([]);
   const [loading, setLoading] = React.useState(false);
   const params = useSearchParams()

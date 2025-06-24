@@ -76,8 +76,8 @@ export async function GET(req: NextRequest) {
   const titles = searchParams.getAll("title");
   const sortBy = searchParams.get("sortBy") || "submissionDate";
   const order = (searchParams.get("order") || "desc") as "asc" | "desc";
-console.log("status", status);
-console.log("page", page);
+//console.log("status", status);
+//console.log("page", page);
   try {
     const where: any = {
       ...(authorId && { authorId }),

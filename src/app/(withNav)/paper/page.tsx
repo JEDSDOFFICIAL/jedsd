@@ -37,11 +37,11 @@ function PaperPage() {
   useEffect(() => {
     const fetchPapers = async () => {
       try {
-        console.log('Fetching papers with params:', { title, keywords, page });
+        //console.log('Fetching papers with params:', { title, keywords, page });
         setLoading(true);
         const response = await axios.get(`/api/paper?status=PUBLISH&page=${page}${title && `&title=${title}`}${keywords && `&keywords=${keywords}`}`);
 
-        console.log('Papers fetched successfully:', response.data);
+        //console.log('Papers fetched successfully:', response.data);
         setPapers(response.data || []);
       } catch (error) {
         console.error('Error fetching papers:', error);

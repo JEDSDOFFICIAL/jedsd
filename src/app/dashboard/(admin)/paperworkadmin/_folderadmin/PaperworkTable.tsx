@@ -239,7 +239,7 @@ const columns: ColumnDef<ResearchPaper>[] = [
         header: () => <div className="text-left"> Reviewer</div>,
         cell: ({ row }) => {
           const reviewer = row.getValue("reviewer") as { email?: string };
-          console.log("Reviewer data:", reviewer);
+          //console.log("Reviewer data:", reviewer);
           return <div className="lowercase">{reviewer?.email || "++"}</div>;
         },
       },

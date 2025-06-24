@@ -34,49 +34,8 @@ function HomeSecondElementAboutUs() {
 }
 
 export default HomeSecondElementAboutUs;
+import { data } from "./timeline";
 
-const data = [
-  {
-    title: "Create Your Account",
-    description:
-      "Sign up for free to begin publishing your research journals and articles on our platform.",
-    button: "Sign Up",
-    link:"/signup",
-    image: "/onboarding/signup.jpg",
-  },
-  {
-    link:"/signup",
-    title: "Prepare and Submit",
-    description:
-      "Upload your well-researched articles through our easy and intuitive submission process.",
-    button: "Submit Now",
-    image: "/images/onboarding/submit.png",
-  },
-  {
-    link:"/signup",
-    title: "Expert Peer Review",
-    description:
-      "Each submission undergoes a detailed peer review by domain experts to maintain quality and accuracy.",
-    button: "Learn About Review",
-    image: "/images/onboarding/review.png",
-  },
-  {
-    link:"/signup",
-    title: "Get Published",
-    description:
-      "After approval, your article will be published and made available to readers worldwide.",
-    button: "View Publishing Guide",
-    image: "/images/onboarding/publish.png",
-  },
-  {
-    link:"/signup",
-    title: "Share Your Work",
-    description:
-      "Reach a wider audience by sharing your published research across academic and professional networks.",
-    button: "Start Sharing",
-    image: "/images/onboarding/share.png",
-  },
-];
 
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent } from "@/components/ui/card";
@@ -114,7 +73,7 @@ export function Carousel() {
               <div className="absolute inset-0 bg-black bg-opacity-50 z-10 group-hover:bg-opacity-60 bg-cover bg-no-repeat bg-center group-hover:scale-150 duration-500 transition-all"  style={{
                   backgroundImage: `url(${item.image})`,
                 }}/>
-              <CardContent className="relative z-20 h-full flex flex-col justify-end  text-white">
+              <CardContent className="relative z-20 h-full flex flex-col justify-end  text-white ">
                 <h2 className="text-2xl font-bold mb-2">{item.title}</h2>
                 <p className="text-lg mb-4">
                   {item.description}

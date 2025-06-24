@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { email, userType, name } = body;
-console.log("Received data:", { email, userType, name });
+//console.log("Received data:", { email, userType, name });
 
   if (!email || !["REVIEWER", "ADMIN"].includes(userType) || !name) {
     return NextResponse.json({ message: "Invalid input" }, { status: 400 });
@@ -102,7 +102,7 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   const { email, userType, name } = body;
   const normalizedName = name.toLowerCase().trim();
-console.log("Updating user with data:", { email, userType, name });
+//console.log("Updating user with data:", { email, userType, name });
   if (!email || typeof email !== "string") {
     return new Response(JSON.stringify({ message: "Invalid email(s) provided" }), { status: 400 });
   }
@@ -114,7 +114,7 @@ console.log("Updating user with data:", { email, userType, name });
   try {
     // ✅ Check if userDetails exists
     const userDetailsExists = await prisma.userDetails.findUnique({ where: { email } });
-    console.log("User details exists:", userDetailsExists);
+    //console.log("User details exists:", userDetailsExists);
     if (!userDetailsExists) {
       return new Response(JSON.stringify({ message: "userDetails not found" }), { status: 404 });
     }

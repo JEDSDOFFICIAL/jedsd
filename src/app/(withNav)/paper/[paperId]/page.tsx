@@ -82,7 +82,7 @@ export default function PaperDetailsPage({ params }: PaperDetailProps) {
         // Using router.push("/404") is a good practice for not found errors
         router.push("/404");
       } finally {
-        console.log("Paper details fetch attempt completed.");
+        //console.log("Paper details fetch attempt completed.");
       }
     };
 

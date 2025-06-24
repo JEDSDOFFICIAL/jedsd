@@ -30,7 +30,7 @@ export enum PaperStatus {
 export const description = "A pie chart displaying research paper status";
 
 export function ChartPieLabel({ paperData = [] }: { paperData?: ResearchPaper[] }) {
-  console.log("Paper Data from graph:", paperData);
+  //console.log("Paper Data from graph:", paperData);
 
   const statusCounts = paperData.reduce((acc, paper) => {
     acc[paper.status] = (acc[paper.status] || 0) + 1;

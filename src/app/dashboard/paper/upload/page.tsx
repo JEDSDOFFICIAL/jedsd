@@ -177,7 +177,7 @@ export default function MultiPagePaperUpload() {
         setLoading(false);
         return;
       }
-      console.log("Form data submitted:", uploadApi.data);
+      //console.log("Form data submitted:", uploadApi.data);
         return;
       }
 

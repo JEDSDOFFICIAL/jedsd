@@ -10,7 +10,7 @@ import { User2, WorkflowIcon } from "lucide-react";
 import "react-vertical-timeline-component/style.min.css";
 
 // Your onboarding data
-const data = [
+export const data = [
   {
     title: "Create Your Account",
     description:
@@ -25,8 +25,8 @@ const data = [
     description:
       "Upload your well-researched articles through our easy and intuitive submission process.",
     button: "Submit Now",
-    link: "/signup",
-    image: "/images/onboarding/submit.png",
+    link: "/dashboard",
+    image: "/onboarding/sbmit.jpg",
     icon:<User2/>
   },
   {
@@ -34,8 +34,8 @@ const data = [
     description:
       "Each submission undergoes a detailed peer review by domain experts to maintain quality and accuracy.",
     button: "Learn About Review",
-    link: "/signup",
-    image: "/images/onboarding/review.png",
+    link: "/peer-review",
+    image: "/onboarding/peerreview.jpg",
     icon:<User2/>
   },
   {
@@ -44,7 +44,7 @@ const data = [
       "After approval, your article will be published and made available to readers worldwide.",
     button: "View Publishing Guide",
     link: "/signup",
-    image: "/images/onboarding/publish.png",
+    image: "/onboarding/publish.jpg",
     icon:<User2/>
   },
   {
@@ -53,7 +53,7 @@ const data = [
       "Reach a wider audience by sharing your published research across academic and professional networks.",
     button: "Start Sharing",
     link: "/signup",
-    image: "/images/onboarding/share.png",
+    image: "/onboarding/share.jpg",
     icon:<User2/>
   },
 ];

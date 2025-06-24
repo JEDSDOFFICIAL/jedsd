@@ -58,7 +58,7 @@ import {
 
 function FacultyList() {
   const { data: session } = useSession();
-  console.log("Session from FacultyList:", session);
+  //console.log("Session from FacultyList:", session);
   const [data, setData] = React.useState<UserDetails[]>([]);
   const [loading, setLoading] = React.useState(false);
 

@@ -14,7 +14,7 @@ const deleteFileByDownloadURL = async (downloadUrl: string) => {
     const fileRef = ref(storage, filePath);
 
     await deleteObject(fileRef);
-    console.log("File deleted successfully");
+    //console.log("File deleted successfully");
     return true;
   } catch (error) {
     console.error("Failed to delete file:", error);

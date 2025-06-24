@@ -71,7 +71,7 @@ export async function PUT(
   try {
     const { paperId } = await params;
     const body = await request.json();
-    console.log("Request body for updating paper:", body);
+    //console.log("Request body for updating paper:", body);
 
     const allowedUpdates = [
       "title",
@@ -110,7 +110,7 @@ export async function PUT(
       );
     }
 if (dataToUpdate.reviewerId) {
-  console.log("Checking if reviewer exists in DB...");
+  //console.log("Checking if reviewer exists in DB...");
   const reviewerExists = await prisma.user.findUnique({
     where: { id: dataToUpdate.reviewerId },
   });
@@ -144,7 +144,7 @@ if (dataToUpdate.reviewerId) {
       });
       if (fullReviewer) {
         await sendReviewerPaperMail(updatedPaper, fullReviewer);
-        console.log("Reviewer allocation email sent successfully.");
+        //console.log("Reviewer allocation email sent successfully.");
       }
     }
 

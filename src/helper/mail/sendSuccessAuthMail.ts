@@ -8,11 +8,11 @@ export async function sendSuccessAuthMail(
   username: string,
 ) {
   try {
-    console.log('Sending verification email...');
-    console.log('Email:', email);
-    console.log('Username:', username);
+    //console.log('Sending verification email...');
+    //console.log('Email:', email);
+    //console.log('Username:', username);
 
-    console.log('From:', process.env.NEXT_ENV_FROM_MAIL);
+    //console.log('From:', process.env.NEXT_ENV_FROM_MAIL);
     
     await resend.emails.send({
       from: process.env.NEXT_ENV_FROM_MAIL!,
@@ -20,7 +20,7 @@ export async function sendSuccessAuthMail(
       subject: 'JEDSD Successful Authentication',
       react: SuccessAuthentication({username}),
     });
-    console.log('Verification email sent successfully.');
+    //console.log('Verification email sent successfully.');
 
     
     

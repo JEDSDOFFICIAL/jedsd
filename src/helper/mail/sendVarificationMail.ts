@@ -8,11 +8,11 @@ export async function sendVerificationEmail(
   otp: string
 ) {
   try {
-    console.log('Sending verification email...');
-    console.log('Email:', email);
-    console.log('Username:', username);
-    console.log('Verification code:', otp);
-    console.log('From:', process.env.NEXT_ENV_FROM_MAIL);
+    //console.log('Sending verification email...');
+    //console.log('Email:', email);
+    //console.log('Username:', username);
+    //console.log('Verification code:', otp);
+    //console.log('From:', process.env.NEXT_ENV_FROM_MAIL);
     
     await resend.emails.send({
       from: process.env.NEXT_ENV_FROM_MAIL!,
@@ -20,8 +20,8 @@ export async function sendVerificationEmail(
       subject: 'JEDSD Varification Code',
       react: VerificationEmail({ username, otp }),
     });
-    console.log('Verification email sent successfully.');
-    console.log('otp', otp);
+    //console.log('Verification email sent successfully.');
+    //console.log('otp', otp);
     
     
     return { success: true, message: 'Verification email sent successfully.' };

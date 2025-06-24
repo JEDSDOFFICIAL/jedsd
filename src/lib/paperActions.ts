@@ -49,7 +49,7 @@ export async function fetchPapers(
     const url = `/api/paper${queryString ? `?${queryString}` : ""}`;
 
     const res = await axios.get(url);
-    console.log("Fetched papers from the function :", res.data);
+    //console.log("Fetched papers from the function :", res.data);
 
     return res.data; // Return the entire response as expected by the function signature
   } catch (error) {
