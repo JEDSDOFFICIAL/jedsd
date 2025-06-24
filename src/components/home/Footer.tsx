@@ -121,11 +121,6 @@ const aboutus = [
   },
 ];
 
-const footerSections = [
-  { title: "About Us", links: aboutus },
-  { title: "Policies", links: Policies },
-  { title: "Publishing Procedure", links: PublishingModel },
-];
 
 function Footer() {
  
@@ -143,11 +138,11 @@ function Footer() {
 
         {/* Dynamic Sections */}
         <div className="flex flex-1 justify-between flex-wrap gap-6 p-4">
-          {footerSections.map((section) => (
-            <div key={section.title}>
-              <h4 className="text-xs font-semibold text-gray-900 uppercase">{section.title}</h4>
+          {["about us", "Policies", "Publishing Procedure"].map((section) => (
+            <div key={section}>
+              <h4 className="text-xs font-semibold text-gray-900 uppercase">{section}</h4>
               <div className="mt-3 grid space-y-3 text-sm">
-                {(section.links || []).map((link) => (
+                {(section === "about us" ? aboutus : section === "Policies" ? Policies : PublishingModel).map((link) => (
                   <p key={link.href}>
                     <Link
                       className="inline-flex gap-x-2 text-white hover:text-gray-800 focus:outline-none focus:text-gray-800"
