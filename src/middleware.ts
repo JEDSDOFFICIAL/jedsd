@@ -9,15 +9,15 @@ export async function middleware(req: NextRequest) {
 
     // Retrieve the JWT token
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    const isAuthenticated = Boolean(token);
+    const isVarified = token?.id ? true : false;
 
     // Redirect authenticated users away from auth routes
-    if (AUTH_ROUTES.some(route => pathname.startsWith(route)) && isAuthenticated) {
+    if (AUTH_ROUTES.some(route => pathname.startsWith(route)) && isVarified) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
     // Redirect unauthenticated users away from protected routes
-    if (PROTECTED_ROUTES.some(route => pathname.startsWith(route)) && !isAuthenticated) {
+    if (PROTECTED_ROUTES.some(route => pathname.startsWith(route)) && !isVarified) {
         return NextResponse.redirect(new URL('/signin', req.url));
     }
 
