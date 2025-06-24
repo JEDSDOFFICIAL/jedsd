@@ -68,7 +68,7 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible";
 
-const aboutus = [
+export const aboutus = [
   {
     title: "Our Mission and Vision",
     href: "/guides/mission-vision",
@@ -98,7 +98,7 @@ const aboutus = [
   },
 ];
 
-const Policies = [
+export const Policies = [
   {
     title: "Submission Guidelines",
     href: "/guides/submission-guidelines",
@@ -128,7 +128,7 @@ const Policies = [
   },
 ];
 
-const PublishingModel = [
+export const PublishingModel = [
   {
     title: "Publishing Model",
     href: "/guides/publishing-model",
