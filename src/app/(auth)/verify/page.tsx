@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-export default function VerifyPage() {
+ function VerifyPage1() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -77,4 +77,16 @@ export default function VerifyPage() {
       </form>
     </div>
   );
+}
+
+
+import { Suspense } from 'react'
+ 
+export default function VerifyPage() {
+  return (
+    // You could have a loading skeleton as the `fallback` too
+    <Suspense>
+      <VerifyPage1 />
+    </Suspense>
+  )
 }
