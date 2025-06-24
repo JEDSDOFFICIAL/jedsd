@@ -690,7 +690,7 @@ export const data: GuideData[] = [
           </p>
           <ol className="list-decimal list-inside mb-4">
             <li>
-              <strong>Initial Review:</strong> All submitted manuscripts undergo an initial review by the editorial team to ensure they meet the journal's scope and formatting requirements.
+              <strong>Initial Review:</strong> All submitted manuscripts undergo an initial review by the editorial team to ensure they meet the journal&apos;s scope and formatting requirements.
             </li>
             <li>
               <strong>Reviewer Selection:</strong> Manuscripts that pass the initial review are sent to expert reviewers in the field for a thorough evaluation.
@@ -702,7 +702,7 @@ export const data: GuideData[] = [
               <strong>Revisions:</strong> Authors may be required to revise their manuscripts based on reviewer feedback before resubmission.
             </li>
             <li>
-              <strong>Final Decision:</strong> The editorial team makes a final decision on the manuscript based on the reviewers' recommendations and the authors' revisions.
+              <strong>Final Decision:</strong> The editorial team makes a final decision on the manuscript based on the reviewers recommendations and the authors revisions.
             </li>
           </ol>
           <p className="text-gray-600 text-lg leading-relaxed mb-4">
