@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!user.isVerified) return null;
 
-        const userDetails = await prisma.userDetails.findUnique({
+        const userDetails = await prisma.userDetails.findUnique({ // Corrected: Assuming userDetails is on the User model
           where: { email: credentials.email },
         });
 
@@ -40,11 +40,10 @@ export const authOptions: NextAuthOptions = {
             data: {
               userType: userDetails.userType,
               isVerified: true,
-              
             },
           });
         }
-await sendSuccessAuthMail(user.email,user.name);
+        await sendSuccessAuthMail(user.email, user.name);
         return {
           id: user.id,
           email: user.email,
@@ -70,68 +69,50 @@ await sendSuccessAuthMail(user.email,user.name);
   callbacks: {
     async jwt({ token, user, account }) {
       if (user && account?.provider === "google") {
-        let newUser;
+        let currentUser; // Variable to hold the user data that will populate the token
+
+        // Check if user details exist in the userDetails table
         const existingUserDetails = await prisma.userDetails.findUnique({
           where: { email: user.email! },
         });
 
-        if (!existingUserDetails) {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-          });
-          if (!existingUser) {
-            newUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name?.toLowerCase().trim() || "Unnamed",
-                isVerified: true, // Assuming Google logins are verified by default
-                profileImage: user.image,
-              },
-            });
-          } else {
-            // User exists in 'User' table
-            token.id = existingUser.id;
-            token.userType = existingUser.userType;
-            // Ensure name and email are updated from Google if they changed
-            token.email = user.email!;
-            token.name = user.name!;
-          }
-        }
-        else{
-           const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-          });
-          if (!existingUser) {
-            newUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name?.toLowerCase().trim() || "Unnamed",
-                userType: existingUserDetails.userType,
-                isVerified: true, // Assuming Google logins are verified by default
-                profileImage: user.image,
-              },
-            });
-          } else {
-            await prisma.user.update({
-              where: { email: user.email! },
-              data: {
-                name: user.name?.toLowerCase().trim() || "Unnamed",
-                userType: existingUserDetails.userType,
-                isVerified: true, // Assuming Google logins are verified by default
-                profileImage: user.image,
-              },
-            })
-            // User exists in 'User' table
-            token.id = existingUser.id;
-            token.userType = existingUser.userType;
-            // Ensure name and email are updated from Google if they changed
-            token.email = user.email!;
-            token.picture = user.image || "/default-image.jpg"; // Default image if not provided
-            token.name = user.name!;
-          }
+        // Check if user exists in the User table
+        let existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
 
+        if (!existingUser) {
+          // If user doesn't exist in the 'User' table, create them
+          currentUser = await prisma.user.create({
+            data: {
+              email: user.email!,
+              name: user.name?.toLowerCase().trim() || "Unnamed",
+              isVerified: true, // Assuming Google logins are verified by default
+              profileImage: user.image,
+              userType: existingUserDetails?.userType || "USER", // Assign userType if userDetails exists, otherwise default
+            },
+          });
+        } else {
+          // If user exists, update their information from Google, especially if userDetails exists
+          currentUser = await prisma.user.update({
+            where: { email: user.email! },
+            data: {
+              name: user.name?.toLowerCase().trim() || "Unnamed",
+              isVerified: true, // Assuming Google logins are verified by default
+              profileImage: user.image,
+              userType: existingUserDetails?.userType || existingUser.userType, // Keep existing userType or update if userDetails exists
+            },
+          });
         }
-        await sendSuccessAuthMail(user.email!, user.name!);
+
+        // Now, populate the token with the final user data
+        token.id = currentUser.id;
+        token.email = currentUser.email;
+        token.name = currentUser.name;
+        token.userType = currentUser.userType;
+        token.picture = currentUser.profileImage || "/default-image.jpg"; // Use profileImage from currentUser
+
+        await sendSuccessAuthMail(currentUser.email, currentUser.name);
       }
 
       if (user && account?.provider === "credentials") {
@@ -139,7 +120,7 @@ await sendSuccessAuthMail(user.email,user.name);
         token.email = user.email;
         token.userType = user.userType;
         token.name = user.name;
-        token.picture = user.image ||"/default-image.jpg"; // Default image if not provided
+        token.picture = user.image || "/default-image.jpg"; // Default image if not provided
       }
 
       return token;
