@@ -149,5 +149,15 @@ function PaperPage() {
     </div>
   );
 }
+import { Suspense } from 'react'
+ 
+ 
+export default function Searchbar() {
+  return (
+    // You could have a loading skeleton as the `fallback` too
+    <Suspense>
+      <PaperPage />
+    </Suspense>
+  )
+}
 
-export default PaperPage;
