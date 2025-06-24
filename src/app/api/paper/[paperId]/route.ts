@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, PaperStatus } from "@prisma/client";
+import { sendReviewerPaperMail } from "@/helper/mail/send-reviewer-new-paper-mail";
 
 const prisma = new PrismaClient();
 
@@ -123,6 +124,7 @@ if (dataToUpdate.reviewerId) {
   }
 }
 
+
     const updatedPaper = await prisma.researchPaper.update({
       where: { id: paperId },
       data: dataToUpdate,
@@ -135,6 +137,16 @@ if (dataToUpdate.reviewerId) {
         },
       },
     });
+    if (dataToUpdate.reviewerId){
+      // Fetch the full reviewer object required by sendReviewerPaperMail
+      const fullReviewer = await prisma.user.findUnique({
+        where: { id: dataToUpdate.reviewerId },
+      });
+      if (fullReviewer) {
+        await sendReviewerPaperMail(updatedPaper, fullReviewer);
+        console.log("Reviewer allocation email sent successfully.");
+      }
+    }
 
     const responsePaper = {
       ...updatedPaper,

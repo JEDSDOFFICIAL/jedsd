@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-import DataTable from "@/lib/CommonTable";
 import { useSession } from "next-auth/react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, DeleteIcon, MoreHorizontal, Upload, UploadIcon } from "lucide-react";
@@ -20,18 +19,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { useSearchParams } from "next/navigation";
+import { DataTable } from "../data-table";
+import data1 from './data.json'
 export function DashboardPaperList() {
   const { data: session } = useSession();
   console.log("Session from PaperList:", session);
   const [data, setData] = React.useState<ResearchPaper[]>([]);
   const [loading, setLoading] = React.useState(false);
-
+  const params = useSearchParams()
   // Fetch data function
   const fetchData = React.useCallback(async () => {
     setLoading(true);
-    const papers = await fetchPapers({ authorId: session?.user.id as string });
-    if (papers) setData(papers);
+    const papers = await fetchPapers({
+      authorId: session?.user.id as string,
+      page: params.get("page") ? parseInt(params.get("page") as string) : 1
+    });
+    if (papers) setData(papers.papers);
     setLoading(false);
   }, [session?.user.id]);
 
@@ -243,14 +247,7 @@ export function DashboardPaperList() {
       <p className="dark:text-white text-black text-xl font-bold  text-center w-full sm:text-3xl my-4">
         List of Papers
       </p>
-      <DataTable
-        columns={columns}
-        data={data}
-        fetchData={fetchData}
-        deleteData={deleteData}
-        filterColumnAccessorKey="title"
-        loading={loading}
-      />
+     <DataTable />
     </div>
   );
 }

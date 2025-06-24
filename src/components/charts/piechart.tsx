@@ -1,8 +1,7 @@
-"use client"
+"use client";
 
-import { TrendingUp } from "lucide-react"
-import { Pie, PieChart } from "recharts"
-
+import { TrendingUp } from "lucide-react";
+import { Pie, PieChart } from "recharts";
 import {
   Card,
   CardContent,
@@ -10,7 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -18,8 +17,8 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { ResearchPaper } from "@prisma/client"
+} from "@/components/ui/chart";
+import { ResearchPaper } from "@prisma/client";
 
 export enum PaperStatus {
   UPLOAD = "UPLOAD",
@@ -28,50 +27,42 @@ export enum PaperStatus {
   REJECTED = "REJECTED",
 }
 
-export const description = "A pie chart displaying research paper status"
+export const description = "A pie chart displaying research paper status";
 
-export function ChartPieLabel({ paperData }: { paperData: ResearchPaper[] }) {
-  console.log("Paper Data from graph:", paperData)
+export function ChartPieLabel({ paperData = [] }: { paperData?: ResearchPaper[] }) {
+  console.log("Paper Data from graph:", paperData);
+
   const statusCounts = paperData.reduce((acc, paper) => {
-    acc[paper.status] = (acc[paper.status] || 0) + 1
-    return acc
-  }, {} as Record<PaperStatus, number>)
+    acc[paper.status] = (acc[paper.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  const chartData = Object.entries(statusCounts).map(([status, count], index) => {
-    const colors = [
-      "var(--chart-1)",
-      "var(--chart-2)",
-      "var(--chart-3)",
-      "var(--chart-4)",
-      "var(--chart-5)",
-    ]
-    return {
-      status: status as PaperStatus,
-      count: count,
-      fill: colors[index % colors.length],
-    }
-  })
+  const colors = [
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
+  ];
+
+  const chartData = Object.entries(statusCounts).map(([status, count], index) => ({
+    status: status as PaperStatus,
+    count,
+    fill: colors[index % colors.length],
+  }));
 
   const chartConfig: ChartConfig = {
     count: {
       label: "Number of Papers",
     },
     ...Object.values(PaperStatus).reduce((acc, status, index) => {
-      const colors = [
-        "var(--chart-1)",
-        "var(--chart-2)",
-        "var(--chart-3)",
-        "var(--chart-4)",
-        "var(--chart-5)",
-      ]
       acc[status] = {
         label: status.replace(/_/g, " "),
         color: colors[index % colors.length],
-      }
-      return acc
+      };
+      return acc;
     }, {} as Record<string, { label: string; color: string }>),
-  } satisfies ChartConfig
-
+  };
 
   return (
     <Card className="flex flex-col h-full w-full @container/card">
@@ -104,5 +95,5 @@ export function ChartPieLabel({ paperData }: { paperData: ResearchPaper[] }) {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

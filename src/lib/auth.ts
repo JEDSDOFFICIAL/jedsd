@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 import { comparePassword } from "@/utils/hash";
 import { NextAuthOptions } from "next-auth";
+import { sendSuccessAuthMail } from "@/helper/mail/sendSuccessAuthMail";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -39,15 +40,18 @@ export const authOptions: NextAuthOptions = {
             data: {
               userType: userDetails.userType,
               isVerified: true,
+              
             },
           });
         }
-
+await sendSuccessAuthMail(user.email,user.name);
         return {
           id: user.id,
           email: user.email,
           userType: userDetails?.userType || "STUDENT",
           name: user.name,
+          image: user.profileImage || "/default-image.jpg", // Default image if not provided
+          isVerified: user.isVerified || false,
         };
       },
     }),
@@ -122,10 +126,12 @@ export const authOptions: NextAuthOptions = {
             token.userType = existingUser.userType;
             // Ensure name and email are updated from Google if they changed
             token.email = user.email!;
+            token.picture = user.image || "/default-image.jpg"; // Default image if not provided
             token.name = user.name!;
           }
 
         }
+        await sendSuccessAuthMail(user.email!, user.name!);
       }
 
       if (user && account?.provider === "credentials") {
@@ -133,6 +139,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.userType = user.userType;
         token.name = user.name;
+        token.picture = user.image ||"/default-image.jpg"; // Default image if not provided
       }
 
       return token;
@@ -146,6 +153,7 @@ export const authOptions: NextAuthOptions = {
           email: token.email as string,
           name: token.name as string,
           userType: token.userType as string,
+          image: token.picture as string || "/default-image.jpg", // Default image if not provided
         },
       };
     },

@@ -24,7 +24,7 @@ export function DashboardSectionCards() {
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     const papers = await fetchPapers({ authorId: session?.user.id as string });
-    if (papers) setData(papers);
+    if (papers) setData(papers.papers);
     setLoading(false);
   }, [session?.user.id]);
 

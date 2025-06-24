@@ -29,6 +29,9 @@ export async function GET() {
   try {
     const news = await prisma.latestNews.findMany({
       orderBy: { createdAt: "desc" },
+      where:{
+        homePageVisibility: true, // Only fetch news visible on the homepage
+      }
     });
     return NextResponse.json(news);
   } catch (error) {
@@ -54,12 +57,11 @@ export async function POST(req: NextRequest) {
     const {
       title = "",
       content = "",
-      tags = [""],
-      HomePageVisibility = false,
-    } = body;
+      HomePageVisibility = false, // Default to false if not provided
+    }: { title?: string; content?: string; HomePageVisibility?: boolean } = body;
 
     const news = await prisma.latestNews.create({
-      data: { title, content, tags, homePageVisibility: HomePageVisibility },
+      data: { title, content, homePageVisibility: HomePageVisibility },
     });
 
     return NextResponse.json(news, { status: 201 });

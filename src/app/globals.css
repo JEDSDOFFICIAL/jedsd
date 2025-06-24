@@ -1,5 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Chicle&display=swap');
+
+
+html, body {
+  margin: 0; /* Important to remove default body margins */
+  padding: 0;
+}
+*{
+font-family: "Chicle", serif;
+  font-weight: 400;
+  font-style: normal;
+}
 /* hide scrollbar */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -96,7 +108,34 @@
    --radius-lg:
     var(--radius);
    --radius-xl:
-    calc(var(--radius) + 4px);}
+    calc(var(--radius) + 4px);
+   --animate-marquee: marquee var(--duration) infinite linear;
+   --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  @keyframes marquee {
+  from {
+    transform: translateX(0);
+    }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+    }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+  --animate-grid: grid 15s linear infinite;
+  @keyframes grid {
+  0% {
+    transform: translateY(-50%);
+    }
+  100% {
+    transform: translateY(0);
+    }
+  }}
 
 @theme inline {
   --color-background: var(--background);

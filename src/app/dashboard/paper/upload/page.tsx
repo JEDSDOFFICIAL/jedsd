@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useState } from "react";
+import { useForm,  useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -19,23 +19,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 
 import { Progress } from "@/components/ui/progress";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ChevronsUpDown } from "lucide-react";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import { Checkbox } from "@/components/ui/checkbox";
+
+
 import axios from "axios";
 import { FileUpload } from "@/components/ui/file-upload";
-import storage from "@/lib/firebase";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+
 import { useSession } from "next-auth/react";
 import uploadFileToFirebase from "@/lib/uploadToFirebase";
 
@@ -48,8 +36,8 @@ const contributorSchema = z.object({
 });
 
 const formSchema = z.object({
-  title: z.string().min(1, "Paper Title is required"),
-  abstract: z.string().min(1, "Abstract is required"),
+  title: z.string().min(20, "Paper Title is required").max(200, "Paper Title must be less than 200 characters"),
+  abstract: z.string().min(350, "Abstract is required").max(1000, "Abstract must be less than 1000 characters"),
   keywords: z.string().min(1, "Keywords are required"),
   contributors: z
     .array(contributorSchema)

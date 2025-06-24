@@ -124,7 +124,7 @@ const handleGoogleSignIn = async () => {
               <Input id="password" type="password" {...register("password")} />
               {errors.password && <p className="text-red-400">{errors.password.message}</p>}
             </div>
-<Link href="/login" className="ml-auto text-sm underline-offset-4 hover:underline">
+<Link href="/signin" className="ml-auto text-sm underline-offset-4 hover:underline">
                   Allready have an account? Sign in
                 </Link>
             {apiError && <p className="text-red-600">{apiError}</p>}

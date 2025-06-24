@@ -11,6 +11,7 @@ import {
   Search,
   Upload,
   UserIcon,
+  UserPen,
   UserPenIcon,
 } from "lucide-react"
 // This is sample data.
@@ -36,6 +37,7 @@ export const DashboardItems = [
     access: ["REVIEWER"],
     items: [
       { title: "Paper Request",icon:LucidePaperclip, url: "dashboard/paperwork" },
+      { title: "Acceptancy",icon:UserPen, url: "dashboard/acceptancy" },
     ],
   },
   {

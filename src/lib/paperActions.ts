@@ -14,9 +14,15 @@ interface FetchPapersParams {
   title?: string;
 }
 
+interface FetchPapersResponse {
+  papers: ResearchPaper[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
 export async function fetchPapers(
   params: FetchPapersParams = {}
-): Promise<ResearchPaper[] | null> {
+): Promise<FetchPapersResponse | null> {
   try {
     const queryParams = new URLSearchParams();
 
@@ -43,7 +49,9 @@ export async function fetchPapers(
     const url = `/api/paper${queryString ? `?${queryString}` : ""}`;
 
     const res = await axios.get(url);
-    return res.data.papers;
+    console.log("Fetched papers from the function :", res.data);
+
+    return res.data; // Return the entire response as expected by the function signature
   } catch (error) {
     console.error("Failed to fetch papers:", error);
     toast.error("Failed to fetch papers.");

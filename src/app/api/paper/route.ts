@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { sendSuccessfulUploadPaperEmail } from "@/helper/mail/sendSuccessfulUploadPaperMail";
 
 // ------------------
 // Zod Schema for POST
@@ -47,6 +48,8 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+    // Optionally, you can send an email notification here
+    await sendSuccessfulUploadPaperEmail(paper)
 
     return NextResponse.json({ paper }, { status: 200 });
   } catch (error: any) {
@@ -66,20 +69,23 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "5");
   const skip = (page - 1) * limit;
-
+  const status = searchParams.get("status"); // Default to PUBLISH if not provided
   const authorId = searchParams.get("authorId");
   const reviewerId = searchParams.get("reviewerId");
   const keywords = searchParams.getAll("keywords");
   const titles = searchParams.getAll("title");
   const sortBy = searchParams.get("sortBy") || "submissionDate";
   const order = (searchParams.get("order") || "desc") as "asc" | "desc";
-
+console.log("status", status);
+console.log("page", page);
   try {
     const where: any = {
       ...(authorId && { authorId }),
       ...(reviewerId && { reviewerId }),
       ...(keywords.length > 0 && {
-        keywords: { hasSome: keywords },
+        keywords: {
+          hasSome: keywords.map((k) => k.trim()).filter((k) => k !== ""),
+        },
       }),
       ...(titles.length > 0 && {
         OR: titles.map((t) => ({
@@ -89,6 +95,7 @@ export async function GET(req: NextRequest) {
           },
         })),
       }),
+      ...(status && { status }),
     };
 
     const [papers, total] = await Promise.all([

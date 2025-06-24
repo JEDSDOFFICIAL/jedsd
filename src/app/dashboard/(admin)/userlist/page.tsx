@@ -218,7 +218,7 @@ export default function UserList() {
               />
               <UpdatePositionDialog
                 email={row.original.email}
-                currentPosition={row.original.position || ""}
+                currentPosition={row.original.userType || ""}
                 onUpdate={(email, position) => updateUserData(email, { position })}
               />
             

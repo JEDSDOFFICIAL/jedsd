@@ -40,14 +40,15 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton"; 
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  hasActions?: boolean; // Optional prop to control actions visibility
   fetchData: () => Promise<void>;
   deleteData?: (items: string | string[]) => Promise<void>; 
-
   filterColumnAccessorKey?: string;
   loading: boolean;
 }
@@ -57,6 +58,7 @@ export default function DataTable<TData, TValue>({
   data,
   fetchData,
   deleteData,
+  hasActions = true, // Default to true if not provided
   filterColumnAccessorKey,
   loading,
 }: DataTableProps<TData, TValue>) {
@@ -74,6 +76,7 @@ export default function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns: columns, // Use memoized columns here
+    manualPagination: true,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -82,12 +85,6 @@ export default function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
   });
 
   const handleDeleteSelected = async () => {
@@ -105,7 +102,12 @@ export default function DataTable<TData, TValue>({
       toast.error("Delete functionality is not available.");
     }
   };
-
+  const [pageIndex, setPageIndex] = React.useState(1);
+  React.useEffect(() => {
+    const router = useRouter();
+    router.push(`?page=${pageIndex}`); // Update URL with page index
+    fetchData();
+  }, [pageIndex]);
   return (
     <div className="max-w-full w-full flex flex-col gap-4 p-4 rounded-lg shadow-md">
       <div className="flex items-center flex-wrap h-auto flex-row justify-around gap-4">
@@ -244,16 +246,16 @@ export default function DataTable<TData, TValue>({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+             onClick={() => setPageIndex(pageIndex - 1)}
+    disabled={pageIndex === 1}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => setPageIndex(pageIndex + 1)}
+            disabled={pageIndex >= 2}
           >
             Next
           </Button>

@@ -17,3 +17,34 @@ export function useIsMobile() {
 
   return !!isMobile
 }
+
+
+
+
+
+
+
+
+
+const SM_BREAKPOINT = 1064
+
+export function useIsTab() {
+  const [isTab, setIsTab] = React.useState<boolean | undefined>(undefined)
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${SM_BREAKPOINT - 1}px)`)
+    const onChange = () => {
+      setIsTab(window.innerWidth < SM_BREAKPOINT)
+    }
+    mql.addEventListener("change", onChange)
+    setIsTab(window.innerWidth < SM_BREAKPOINT)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
+
+  return !!isTab
+}
+
+
+
+
+
