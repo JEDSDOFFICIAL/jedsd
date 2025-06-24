@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
-
+export const dynamic = "force-dynamic";
 export default function VerifyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
