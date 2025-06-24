@@ -28,7 +28,7 @@ import {
 import Image from "next/image";
 
 import { signOut } from "next-auth/react";
-import { User } from "../../lib/generated/prisma/client";
+import { User } from "@prisma/client";
 
 export function NavUser(user: User) {
   const { isMobile } = useSidebar();

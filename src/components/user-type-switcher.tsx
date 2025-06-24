@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/sidebar";
 
 import Image from "next/image";
-import { User } from "../../lib/generated/prisma/client";
+import { User } from "@prisma/client";
+
 
 type UserType = "ADMIN" | "STUDENT" | "FACULTY";
 
