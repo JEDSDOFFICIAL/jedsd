@@ -94,12 +94,14 @@ export function UserTypeSwitcher(user: User) {
           <div key={option.value}>
             <DropdownMenuItem
               className="flex items-center justify-start gap-4 h-8 cursor-pointer p-2"
-              onClick={() => //console.log('Switch to:', option.value)} // replace with your switch logic
+              onClick={() => { /* TODO: implement switch logic */ }}
             >
-              <Icon className="dark:text-white text-blue h-full w-auto size-2.5 border-r-2 dark:border-white border-black pr-5" />
-              <p className="font-medium text-lg dark:text-white text-black">
-                {option.label}
-              </p>
+              <>
+                <Icon className="dark:text-white text-blue h-full w-auto size-2.5 border-r-2 dark:border-white border-black pr-5" />
+                <p className="font-medium text-lg dark:text-white text-black">
+                  {option.label}
+                </p>
+              </>
             </DropdownMenuItem>
             {index !== options.length - 1 && <DropdownMenuSeparator />}
           </div>
