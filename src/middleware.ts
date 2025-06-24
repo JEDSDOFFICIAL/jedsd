@@ -1,18 +1,22 @@
+import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 
 const AUTH_ROUTES = ['/signin', '/signup', '/verify'];
-const PROTECTED_ROUTES = ['/dashboard', '/dashboard/:path*'];
+const PROTECTED_ROUTES = ['/dashboard'];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
-    const isAuthenticated = Boolean(req.cookies.get('token')); // Adjust cookie name as needed
 
-    // Prevent access to auth routes if already signed in
+    // Retrieve the JWT token
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const isAuthenticated = Boolean(token);
+
+    // Redirect authenticated users away from auth routes
     if (AUTH_ROUTES.some(route => pathname.startsWith(route)) && isAuthenticated) {
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    // Prevent access to protected routes if not authenticated
+    // Redirect unauthenticated users away from protected routes
     if (PROTECTED_ROUTES.some(route => pathname.startsWith(route)) && !isAuthenticated) {
         return NextResponse.redirect(new URL('/signin', req.url));
     }
@@ -21,5 +25,10 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/signin', '/signup', '/verify', '/dashboard', '/dashboard/:path*'],
+    matcher: [
+        '/signin',
+        '/signup',
+        '/verify',
+        '/dashboard/:path*',
+    ],
 };

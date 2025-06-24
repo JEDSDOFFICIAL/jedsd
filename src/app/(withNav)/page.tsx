@@ -16,7 +16,6 @@ export default function Home() {
       <HomePage />
       <AboutUs />
       <Timeline/>
-<Footer/>
     </div>
   );
 }
