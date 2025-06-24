@@ -22,7 +22,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { DataTable } from "../data-table";
 import data1 from './data.json'
-export function DashboardPaperList() {
+ function DashboardPaper() {
   const { data: session } = useSession();
   console.log("Session from PaperList:", session);
   const [data, setData] = React.useState<ResearchPaper[]>([]);
@@ -250,4 +250,12 @@ export function DashboardPaperList() {
      <DataTable />
     </div>
   );
+}
+
+export function DashboardPaperList(){
+  return (
+    <React.Suspense>
+      <DashboardPaper />
+    </React.Suspense>
+  )
 }
