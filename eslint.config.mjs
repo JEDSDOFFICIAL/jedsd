@@ -21,6 +21,9 @@ const eslintConfig = [
 
       // Disable missing hook dependency warnings
       "react-hooks/exhaustive-deps": "off",
+      '@typescript-eslint/no-empty-interface': 'off', // if you still want empty interfaces
+    '@typescript-eslint/no-unused-expressions': 'warn',
+    'react-hooks/rules-of-hooks': 'error', // KEEP THIS
     },
   },
 ];

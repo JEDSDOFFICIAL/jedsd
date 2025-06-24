@@ -316,66 +316,14 @@ const columns: ColumnDef<ResearchPaper>[] = [
         id: "actions",
         enableHiding: false,
         cell: ({ row }) => {
-          const paper = row.original;
-          const [open, setOpen] = React.useState(false);
-          const [selectedReviewer, setSelectedReviewer] =
-            React.useState<Reviewer | null>(
-              reviewers.find((r) => r.id === paper.reviewerId) || null
-            );
-
-          // Effect to update selectedReviewer state when paper.reviewerId changes
-          React.useEffect(() => {
-            setSelectedReviewer(
-              reviewers.find((r) => r.id === paper.reviewerId) || null
-            );
-          }, [paper.reviewerId, reviewers]);
-
           return (
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0" >
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search reviewer..." />
-                  <CommandEmpty>No reviewer found.</CommandEmpty>
-                  <CommandGroup>
-                    {reviewers.length > 0 ? (
-                      reviewers.map((reviewer) => (
-                        <CommandItem
-                          key={reviewer.id}
-                          value={reviewer.name}
-                          onSelect={() => {
-                            // Call the `handleAssignReviewer` function from the parent scope
-                            handleAssignReviewer(paper.id, reviewer.id);
-                            setSelectedReviewer(reviewer); // Update local state for immediate feedback
-                            setOpen(false); // Close the popover
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedReviewer?.id === reviewer.id
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {reviewer.name}
-                        </CommandItem>
-                      ))
-                    ) : (
-                      <CommandItem disabled>No reviewers available</CommandItem>
-                    )}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <ActionsCell
+              paper={row.original}
+              reviewers={reviewers}
+              onAssign={handleAssignReviewer}
+            />
           );
-        },
+        }
       },
 ]
   const table = useReactTable({
@@ -544,4 +492,71 @@ const columns: ColumnDef<ResearchPaper>[] = [
       </TabsContent>
     </Tabs>
   )
+}
+
+
+function ActionsCell({
+  paper,
+  reviewers,
+  onAssign,
+}: {
+  paper: ResearchPaper;
+  reviewers: Reviewer[];
+  onAssign: (paperId: string, reviewerId: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [selectedReviewer, setSelectedReviewer] = React.useState<Reviewer | null>(
+    reviewers.find((r) => r.id === paper.reviewerId) || null
+  );
+
+  React.useEffect(() => {
+    setSelectedReviewer(
+      reviewers.find((r) => r.id === paper.reviewerId) || null
+    );
+  }, [paper.reviewerId, reviewers]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder="Search reviewer..." />
+          <CommandEmpty>No reviewer found.</CommandEmpty>
+          <CommandGroup>
+            {reviewers.length > 0 ? (
+              reviewers.map((reviewer) => (
+                <CommandItem
+                  key={reviewer.id}
+                  value={reviewer.name}
+                  onSelect={() => {
+                    onAssign(paper.id, reviewer.id);
+                    setSelectedReviewer(reviewer);
+                    setOpen(false);
+                  }}
+                  className="cursor-pointer"
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedReviewer?.id === reviewer.id
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  {reviewer.name}
+                </CommandItem>
+              ))
+            ) : (
+              <CommandItem disabled>No reviewers available</CommandItem>
+            )}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }

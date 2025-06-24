@@ -8,13 +8,13 @@ function Footer() {
     <footer className="mt-auto  bg-gray-600 w-screen py-10 px-4 sm:px-6 max-w-[99vw] overflow-hidden">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
         <div className="col-span-full hidden lg:col-span-1 lg:block">
-          <a
+          <Link
             className="flex-none font-semibold text-xl text-black focus:outline-none focus:opacity-80"
-            href="#"
+            href="/"
             aria-label="Brand"
           >
             <Image src={'/logored.jpg'} alt="logo" width={100} height={100}/>
-          </a>
+          </Link>
           <p className="mt-3 text-xs sm:text-sm text-white">
             © 2025 JEDSD .
           </p>
@@ -87,12 +87,12 @@ function Footer() {
               </Link>
             </p>
             <p>
-              <a
+              <Link
                 className="inline-flex gap-x-2 text-white hover:text-gray-800 focus:outline-none focus:text-gray-800"
                 href="#"
               >
                 Community
-              </a>
+              </Link>
             </p>
            
           </div>
@@ -125,43 +125,43 @@ function Footer() {
           <div className="flex flex-wrap items-center gap-3">
             
             <div className="space-x-4 text-sm">
-              <a
+              <Link
                 className="inline-flex gap-x-2 text-white hover:text-gray-800 focus:outline-none focus:text-gray-800"
                 href="#"
               >
                 Terms & Conditions
-              </a>
-              <a
+              </Link>
+              <Link
                 className="inline-flex gap-x-2 text-white hover:text-gray-800 focus:outline-none focus:text-gray-800"
                 href="#"
               >
                 Privacy & Safety
-              </a>
+              </Link>
               
             </div>
           </div>
 
           <div className="flex flex-wrap justify-between items-center gap-3">
             <div className="mt-3 sm:hidden">
-            <a
+            <Link
             className="flex-none font-semibold text-xl text-black focus:outline-none focus:opacity-80"
             href="/"
             aria-label="Brand"
           >
             <Image src={'/logored.jpg'} alt="logo" width={40} height={40}/>
-          </a>
+          </Link>
           <p className="mt-3 text-xs sm:text-sm text-white">
             © 2025 JEDSD .
           </p>
             </div>
 
             <div className="space-x-4">
-              <a
+              <Link
                 className="inline-block text-gray-500 hover:text-gray-800 focus:outline-none focus:text-gray-800"
                 href="mailto:jedsdofficial.com"
               >
                <MailIcon/>
-              </a>
+              </Link>
              
             </div>
           </div>
