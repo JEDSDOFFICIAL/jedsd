@@ -77,7 +77,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         // Check if user exists in the User table
-        let existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
         });
 
