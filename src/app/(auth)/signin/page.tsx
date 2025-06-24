@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
@@ -64,6 +65,9 @@ export default function SignInForm() {
       >
         Sign In
       </button>
+      <Link href="/signup" className="text-blue-600 hover:underline">
+        Don't have an account? Sign up
+      </Link>
     </form>
   );
 }

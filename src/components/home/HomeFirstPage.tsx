@@ -53,9 +53,9 @@ function HomePage() {
                   Explore
                 </InteractiveHoverButton>
               </Link>
-              <Link href="/signin">
+              <Link href="/signup">
                 <InteractiveHoverButton className="bg-white text-black hover:bg-gray-200 transition-all px-6 py-3 rounded-lg">
-                  Sign In
+                  Sign Up
                 </InteractiveHoverButton>
               </Link>
             </>
