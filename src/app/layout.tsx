@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "JEDSD | Journal of Embedded and Digital System Design ",
   description: "JEDSD is a peer-reviewed journal that publishes high-quality research in the field of embedded and digital system design. The journal aims to provide a platform for researchers, engineers, and practitioners to share their findings and advancements in this rapidly evolving field.",
 icons: {
-    icon: "/logored.jpg",
+    icon: "/fevicon.ico",
   },
 };
 
@@ -23,10 +23,6 @@ export default function RootLayout({
   
   return (
     <html lang="en">
-      <Head>
-        <link rel="icon" href="/logored.jpg" sizes="any" />
-
-      </Head>
       <body
         className={`antialiased `}
       >
