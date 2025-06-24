@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-export default function VerifyPage() {
+function VerifyPage1() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
