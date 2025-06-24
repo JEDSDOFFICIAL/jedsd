@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-import DataTable from "@/lib/CommonTable"; // Note: This import seems unused in the provided code
 import UserType_add_input from "@/components/dashboard/UserType_add_input";
 import { useSession } from "next-auth/react";
 import {
