@@ -1,5 +1,5 @@
 // utils/deleteFromFirebaseByURL.ts
-import { adminStorage } from "@/lib/firebase-admin";
+import { getAdminStorage } from "@/lib/firebase-admin";
 
 export const deleteFileByDownloadURL = async (downloadUrl: string) => {
   try {
@@ -11,6 +11,7 @@ export const deleteFileByDownloadURL = async (downloadUrl: string) => {
     const encodedPath = matches[1];
     const filePath = decodeURIComponent(encodedPath);
 
+    const adminStorage = getAdminStorage();
     const file = adminStorage.bucket().file(filePath);
     await file.delete();
 
