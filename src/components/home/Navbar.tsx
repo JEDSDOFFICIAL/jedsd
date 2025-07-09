@@ -200,8 +200,7 @@ if (!mounted) return null;
           <div className="flex flex-col w-full h-full md:justify-center md:items-center">
             <div className="flex items-center justify-end md:hidden h-full gap-4">
               <DropdownMenuProfile profileImage={session?.user?.image ?? undefined} />
-              <Link href="/paper" className="text-white font-semibold text-lg">
-              <Search/></Link>
+              
               <SmNavbar session={session} />
             </div>
             <div className="w-full lg:h-1/2 hidden md:block bg-white border-2 border-black rounded-md py-1">
