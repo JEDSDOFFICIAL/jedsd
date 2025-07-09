@@ -1,29 +1,19 @@
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || session.user.userType !== "ADMIN") {
-    return new Response(JSON.stringify({ message: "Unauthorized" }), {
-      status: 403,
-    });
-  }
-
   const body = await req.json();
   const { email, userType, name, position } = body;
 
   if (!email || typeof email !== "string") {
-    return new Response(
-      JSON.stringify({ message: "Invalid email provided" }),
+    return NextResponse.json(
+      { message: "Invalid email provided" },
       { status: 400 }
     );
   }
 
   try {
-    // Update userType if provided
+    // Update userType in both userDetails and user tables (if provided)
     if (userType) {
       await prisma.userDetails.updateMany({
         where: { email },
@@ -49,13 +39,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return new Response(JSON.stringify({ success: true, result }), {
-      status: 200,
-    });
+    return NextResponse.json({ success: true, result }, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ message: "Internal server error" }), {
-      status: 500,
-    });
+    console.error("POST error:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

@@ -1,50 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { UserType } from "@prisma/client";
 
+// POST: Create a new UserDetails
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { email, userType, name } = body;
-//console.log("Received data:", { email, userType, name });
+  const { email, userType } = body;
 
-  if (!email || !["REVIEWER", "ADMIN"].includes(userType) || !name) {
+  if (!email || !Object.values(UserType).includes(userType)) {
     return NextResponse.json({ message: "Invalid input" }, { status: 400 });
   }
 
-  const trimmedName = name.toLowerCase().trim();
-
   try {
-    const existing = await prisma.userDetails.findUnique({
-      where: { name: trimmedName },
-    });
+    const existing = await prisma.userDetails.findUnique({ where: { email } });
 
     if (existing) {
       return NextResponse.json(
-        { message: "User with this name already exists" },
+        { message: "User with this email already exists" },
         { status: 409 }
       );
     }
 
     const entry = await prisma.userDetails.create({
-      data: { email, userType, name: trimmedName },
+      data: { email, userType },
     });
 
     return NextResponse.json(entry, { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("POST error:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
-
-
+// DELETE: Delete one or multiple UserDetails by email(s)
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
   const body = await req.json();
   const { emails } = body;
 
@@ -56,90 +45,70 @@ export async function DELETE(req: NextRequest) {
     let result;
 
     if (Array.isArray(emails)) {
-      // Delete multiple users
       result = await prisma.userDetails.deleteMany({
-        where: {
-          email: {
-            in: emails,
-          },
-        },
+        where: { email: { in: emails } },
       });
     } else {
-      // Delete a single user
       result = await prisma.userDetails.delete({
-        where: {
-          email: emails,
-        },
+        where: { email: emails },
       });
     }
 
     return NextResponse.json({ success: true, result }, { status: 200 });
   } catch (error) {
-    console.error(error);
+    console.error("DELETE error:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
-
-
+// GET: Return all UserDetails
 export async function GET() {
-
-
   try {
     const data = await prisma.userDetails.findMany();
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return new Response(
-      JSON.stringify({ message: "Internal server error" }),
-      { status: 500 }
-    );
+    console.error("GET error:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
-
+// PUT: Update UserDetails (and User if exists)
 export async function PUT(req: NextRequest) {
   const body = await req.json();
-  const { email, userType, name } = body;
-  const normalizedName = name.toLowerCase().trim();
-//console.log("Updating user with data:", { email, userType, name });
+  const { email, userType } = body;
+
   if (!email || typeof email !== "string") {
-    return new Response(JSON.stringify({ message: "Invalid email(s) provided" }), { status: 400 });
+    return NextResponse.json({ message: "Invalid email provided" }, { status: 400 });
   }
 
-  if (!["USER", "REVIEWER", "ADMIN"].includes(userType)) {
-    return new Response(JSON.stringify({ message: "Invalid user type provided" }), { status: 400 });
+  if (!Object.values(UserType).includes(userType)) {
+    return NextResponse.json({ message: "Invalid user type provided" }, { status: 400 });
   }
 
   try {
-    // ✅ Check if userDetails exists
     const userDetailsExists = await prisma.userDetails.findUnique({ where: { email } });
-    //console.log("User details exists:", userDetailsExists);
+
     if (!userDetailsExists) {
-      return new Response(JSON.stringify({ message: "userDetails not found" }), { status: 404 });
+      return NextResponse.json({ message: "UserDetails not found" }, { status: 404 });
     }
 
-    // ✅ Check if user exists
     const userExists = await prisma.user.findUnique({ where: { email } });
-    if (userExists) {
-       await prisma.user.update({
-      where: { email },
-      data: { userType, name: normalizedName },
-    });
 
+    if (userExists) {
+      await prisma.user.update({
+        where: { email },
+        data: { userType },
+      });
     }
 
-    // ✅ Update both
     const result = await prisma.userDetails.update({
       where: { email },
-      data: { userType, name: normalizedName },
+      data: { userType },
     });
 
-   
-    return new Response(JSON.stringify({ success: true, result }), { status: 200 });
-
+    return NextResponse.json({ success: true, result }, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ message: "Internal server error" }), { status: 500 });
+    console.error("PUT error:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

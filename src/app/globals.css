@@ -6,11 +6,40 @@
 html, body {
   margin: 0; /* Important to remove default body margins */
   padding: 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
+
+/* Performance optimizations */
 *{
-font-family: "Chicle", serif;
+  font-family: "Chicle", serif;
   font-weight: 400;
   font-style: normal;
+}
+
+/* GPU acceleration for better performance */
+.will-change-transform {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize grid animation */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-grid {
+    animation: grid 20s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-grid {
+    animation: none;
+  }
+}
+
+@keyframes grid {
+  0% { transform: translateX(-5%) }
+  100% { transform: translateX(5%) }
 }
 /* hide scrollbar */
 .scrollbar-hide::-webkit-scrollbar {

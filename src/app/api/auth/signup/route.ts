@@ -49,7 +49,8 @@ export async function POST(req: Request) {
   await prisma.user.create({
     data: {
       email,
-      name: name.toLowerCase().trim(),
+      name: name.trim(),
+      username: email.split("@")[0].toLowerCase(),
       password: hashedPassword,
       profileImage:"/profileImage.png",
       isVerified: false,

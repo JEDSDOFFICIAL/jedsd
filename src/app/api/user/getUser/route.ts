@@ -1,60 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { UserType } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+
 export async function GET(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams;
-  const email = searchParams.get("email");
-  const userType = searchParams.get("userType");
-
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit")||"5");
-  const skip = (page - 1) * limit;
-
   try {
-    let users;
-    if (email) {
-      users=await prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (!users) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
-
-      return NextResponse.json(users);
-    }
-    if (userType) {
-      // Import UserType enum from your Prisma client
-      
-      users = await prisma.user.findMany({
-        where: { userType: userType as UserType }, // Replace 'any' with 'UserType' if you import the enum
-      });
-
-      if (!users || users.length === 0) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
-
-      return NextResponse.json(users);
+    const { searchParams } = req.nextUrl;
+    const userType = searchParams.get("userType");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "50");
+    
+    if (!userType) {
+      return NextResponse.json(
+        { message: "userType parameter is required" },
+        { status: 400 }
+      );
     }
 
-    users=await prisma.user.findMany({
+    // Calculate skip for pagination
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const whereClause: any = {
+      userType: userType
+    };
+
+    // Get users with pagination
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        userType: true,
+        affiliation: true,
+        profileImage: true,
+        createdAt: true,
+      },
       skip,
       take: limit,
       orderBy: {
-        createdAt: "desc",
+        name: "asc",
       },
     });
 
-    const total = await prisma.user.count();
+    // Get total count for pagination
+    const totalUsers = await prisma.user.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(totalUsers / limit);
 
     return NextResponse.json({
       users,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit), 
+      pagination: {
+        page,
+        limit,
+        totalUsers,
+        totalPages,
+      },
     });
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

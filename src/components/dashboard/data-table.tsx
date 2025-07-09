@@ -152,7 +152,7 @@ const columns: ColumnDef<ResearchPaper>[] = [
     enableSorting: true,
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5 flex items-center gap-1">
-        {row.original.reviewerStatus === "ACCEPTED" ? (
+        {row.original.reviewerStatus === "ACCEPTED_FOR_REVIEW" || row.original.reviewerStatus === "ACCEPTED_FOR_PUBLICATION" ? (
           <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 w-4 h-4" />
         ) : (
           <IconLoader className="w-4 h-4 animate-spin" />

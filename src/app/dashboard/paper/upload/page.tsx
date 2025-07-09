@@ -135,58 +135,72 @@ export default function MultiPagePaperUpload() {
         return;
       }
 
-      const finalData: {
-        title: string;
-        abstract: string;
-        keywords: string[];
-        contributors: typeof data.contributors;
-        pointOfContact: typeof data.pocDetails;
-        filePath: string | null;
-        coverLetterPath: string | null;
-        authorId: string | null; // Assuming you will add authorId later
-      } = {
+      const finalData = {
         title: data.title,
         abstract: data.abstract,
         keywords: data.keywords.split(",").map((k: any) => k.trim()),
-        contributors: data.contributors,
-        pointOfContact: data.pocDetails,
-        filePath: null,
-        coverLetterPath: null,
-        authorId: null, // You can set this to the logged-in user's ID later
+        contributors: JSON.stringify(data.contributors),
+        pointOfContact: JSON.stringify(data.pocDetails),
+        filePath: "",
+        coverLetterPath: null as string | null,
+        authorId: session?.user?.id || null,
       };
-        // Assuming paperData.submittedAt is always available for an update operation
 
-      if (paperFile) {
-        const fileId = await uploadFileToFirebase(paperFile, "papers");
-        finalData.filePath = fileId;
+      // Upload paper file to Firebase (required)
+      if (!paperFile) {
+        toast.error("Paper file is required");
+        setLoading(false);
+        return;
+      }
+
+      const fileId = await uploadFileToFirebase(paperFile, "papers");
+      if (!fileId) {
+        toast.error("Failed to upload paper file");
+        setLoading(false);
+        return;
+      }
+      finalData.filePath = fileId;
+
+      // Upload cover letter to Firebase if provided
       if (coverLetterFile) {
         const coverLetterId = await uploadFileToFirebase(
           coverLetterFile,
           "cover-letters"
         );
-        finalData.coverLetterPath = coverLetterId;
-      }
-      // Make sure to set authorId if you have user authentication
-      if (session?.user?.id) {
-        finalData.authorId = session.user.id;
+        if (coverLetterId) {
+          finalData.coverLetterPath = coverLetterId;
+        }
       }
 
-      const uploadApi = await axios.post("/api/paper/", finalData);
-      if (uploadApi.status !== 200) {
+      // Set authorId if user is authenticated
+      if (session?.user?.id) {
+        finalData.authorId = session.user.id;
+      } else {
+        // If no user session, remove authorId to avoid foreign key constraint
+        finalData.authorId = null;
+      }
+
+      // Submit data to API
+      console.log("Submitting finalData:", finalData);
+      const uploadApi = await axios.post("/api/paper", finalData);
+      
+      if (uploadApi.status === 200) {
+        toast.success("Form submitted successfully!");
+      } else {
         toast.error("Failed to submit form");
         setLoading(false);
         return;
       }
-      //console.log("Form data submitted:", uploadApi.data);
-        return;
-      }
-
-      toast.success("Form submitted successfully!");
       
       
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to submit form");
+      if (axios.isAxiosError(error)) {
+        console.error("API Error Response:", error.response?.data);
+        toast.error(`API Error: ${error.response?.data?.error || "Unknown error"}`);
+      } else {
+        toast.error("Failed to submit form");
+      }
     } finally {
       setLoading(false);
       setStep(1);

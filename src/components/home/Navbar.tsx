@@ -171,8 +171,19 @@ const [mounted, setMounted] = useState(false);
 useEffect(() => setMounted(true), []);
 if (!mounted) return null;
   function onClickSearch(query: string) {
-    if (!query.trim()) return;
-    router.push(`/paper?titles=${encodeURIComponent(query)}`);
+    if (!query.trim()) {
+      router.push('/paper');
+      return;
+    }
+    // Only search by title from navbar
+    router.push(`/paper?q=${encodeURIComponent(query)}`);
+    setSearchValue(""); // Clear search input after navigation
+  }
+
+  function handleSearchKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      onClickSearch(SearchValue);
+    }
   }
 
   return (
@@ -199,9 +210,11 @@ if (!mounted) return null;
             <div className="w-full lg:h-1/2 hidden lg:flex gap-3 py-1">
               <Input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search papers..."
                 className="w-full h-full bg-white text-black"
+                value={SearchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
+                onKeyPress={handleSearchKeyPress}
               />
               <Button
                 className="h-full text-black"
@@ -218,8 +231,10 @@ if (!mounted) return null;
       <div className="w-full h-16 flex items-center gap-4 p-2 lg:hidden ">
         <Input
           type="text"
-          placeholder="Search..."
+          placeholder="Search papers..."
+          value={SearchValue}
           onChange={(e) => setSearchValue(e.target.value)}
+          onKeyPress={handleSearchKeyPress}
           className="w-full h-full bg-white text-black"
         />
         <Button

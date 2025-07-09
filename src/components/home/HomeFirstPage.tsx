@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { InteractiveHoverButton } from "../magicui/interactive-hover-button";
 import { TextAnimate } from "../magicui/text-animate";
-import { MarqueeDemo } from "./MarqueeHomepage";
+
 import { RetroGrid } from "../magicui/retro-grid";
 
 function HomePage() {
@@ -14,16 +14,17 @@ function HomePage() {
 
   return (
     <section
-      className="relative w-full min-h-screen flex flex-col items-center justify-center overflow-x-hidden"
+      className="relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden"
       style={{background: "linear-gradient(210deg,rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 64, 0.84) 56%, rgba(0, 151, 181, 1) 100%)"}}
     >
-      {/* Decorative Background Grid */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <RetroGrid />
+      {/* Decorative Background Grid - Only render on larger screens for performance */}
+      <div className="absolute inset-0 z-0 overflow-hidden hidden md:block">
+        <RetroGrid opacity={0.2} />
       </div>
 
       {/* Main Content Layer */}
-      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-screen-xl px-4 text-center gap-6 pt-0">
+      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-screen-xl px-4 text-center gap-6 pt-0 transform-gpu will-change-transform"
+           style={{ backfaceVisibility: 'hidden' }}>
         <TextAnimate className="text-5xl md:text-6xl lg:text-9xl text-white font-bold chicle-regular">
           Welcome to
         </TextAnimate>
@@ -64,9 +65,7 @@ function HomePage() {
       </div>
 
       {/* Marquee Section */}
-      <div className="absolute bottom-0 left-0 w-full z-10 overflow-x-hidden">
-        <MarqueeDemo />
-      </div>
+     
     </section>
   );
 }

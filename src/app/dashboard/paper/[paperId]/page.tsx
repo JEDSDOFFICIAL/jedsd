@@ -40,7 +40,6 @@ import { getDownloadURL, uploadBytes } from "firebase/storage";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation"; // Import useParams for dynamic routes
 import { ResearchPaper } from "@prisma/client";
-import deleteFileByDownloadURL from "@/lib/deleteTOFirebase";
 import uploadFileToFirebase from "@/lib/uploadToFirebase";
 
 // Zod Schema (remains the same as it defines the structure)
@@ -166,7 +165,7 @@ export default function MultiPagePaperUpdate() {
     const fetchPaperData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`/api/paper/${paperId}`); // Adjust your API endpoint
+        const response = await axios.get(`/api/paper?paperId=${paperId}`); // Adjust your API endpoint
         if (response.status !== 200) {
           toast.error("Failed to fetch paper data.");
           setLoading(false);
@@ -262,10 +261,7 @@ export default function MultiPagePaperUpdate() {
         authorId: session?.user?.id || null, // Ensure authorId is passed
       };
       if (paperFile) {
-        // If a new file is selected, delete the previous file
-        if (paperData?.filePath) {
-          await deleteFileByDownloadURL(paperData.filePath);
-        }
+       
 
         // Upload the new paper file with the desired path structure
         const fileUrl = await uploadFileToFirebase(paperFile, "papers");
@@ -279,11 +275,7 @@ export default function MultiPagePaperUpdate() {
 
       // --- Cover Letter File Handling ---
       if (coverLetterFile) {
-        // If a new cover letter is selected, delete the previous one
-        if (paperData?.coverLetterPath) {
-         await deleteFileByDownloadURL(paperData.coverLetterPath);
-        }
-
+        
         const coverLetterUrl = await uploadFileToFirebase(
           coverLetterFile,
           "cover-letters",
@@ -297,7 +289,7 @@ export default function MultiPagePaperUpdate() {
       }
 
       // --- API call to update the paper ---
-      const updateApi = await axios.put(`/api/paper/${paperId}`, finalData); // Use PUT/PATCH
+      const updateApi = await axios.put(`/api/paper?paperId=${paperId}`, finalData); // Use PUT/PATCH
       if (updateApi.status !== 200) {
         toast.error("Failed to update paper.");
         setLoading(false);

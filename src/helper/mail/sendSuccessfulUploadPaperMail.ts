@@ -1,6 +1,7 @@
 import { resend } from "@/utils/mailer";
 import { ResearchPaper, User } from "@prisma/client";
-import PaperUploadEmail from "../../../emails/PaperUploadMail";
+import { render } from '@react-email/components';
+import SuccessfulPaperUploadEmail from "../../../emails/SuccessfulPaperUploadMail";
 
 interface Contributor {
   name: string;
@@ -41,13 +42,24 @@ export async function sendSuccessfulUploadPaperEmail(paper: ResearchPaper & { au
     if (pointOfContact?.email) emails.add(pointOfContact.email);
 
     Array.from(emails).push(process.env.NEXT_ENV_TO_ADMIN!); // Ensure the sender email is included
-    // 4. Send email
-    await resend.emails.send({
-      from: process.env.NEXT_ENV_FROM_MAIL!,
-      to: Array.from(emails),
-      subject: "JEDSD successful new paper upload mail",
-      react: PaperUploadEmail(paper),
-    });
+    
+    // 4. Send email to each recipient
+    for (const email of emails) {
+      const emailHtml = await render(SuccessfulPaperUploadEmail({
+        authorName: paper.author?.name || 'Author',
+        paperTitle: paper.title,
+        submissionDate: new Date(paper.submissionDate).toLocaleDateString(),
+        submissionId: paper.id,
+        dashboardUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dashboard`
+      }));
+
+      await resend.emails.send({
+        from: process.env.NEXT_ENV_FROM_MAIL!,
+        to: email,
+        subject: "JEDSD - Paper Submission Successful",
+        html: emailHtml,
+      });
+    }
 
     return { success: true, message: "Upload success email sent to all contributors." };
   } catch (emailError) {

@@ -28,12 +28,16 @@ export default function RootLayout({
 }) {
   const { data: session } = useSession();
   const [userDetails, setUserDetails] = useState<User | undefined>(undefined);
+const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
         if (session?.user?.email) {
-          const res = await axios.get(`/api/user/getUser?email=${session.user.email}`);
+          const res = await axios.get(`/api/user?email=${session.user.email}`);
           setUserDetails(res.data);
         }
       } catch (error) {
@@ -43,7 +47,8 @@ export default function RootLayout({
 
     fetchUserDetails();
   }, [session]);
-
+console.log("User Details:", session?.user);
+  if (!mounted) return null;
   return (
     <SidebarProvider className="h-screen w-full">
       {userDetails && <AppSidebar userData={userDetails} />}
@@ -56,11 +61,15 @@ export default function RootLayout({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Building Your Application</BreadcrumbLink>
+               <BreadcrumbPage>{userDetails?.name}</BreadcrumbPage>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                <BreadcrumbPage>{userDetails?.username}</BreadcrumbPage>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{userDetails?.email}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

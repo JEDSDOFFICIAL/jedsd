@@ -16,7 +16,7 @@ interface ReviewerAllocationEmailProps {
 
 export default function ReviewerAllocationEmail({
   paper,
-  reviewer
+  reviewer,
 }: ReviewerAllocationEmailProps) {
   return (
     <Html lang="en">
@@ -35,7 +35,8 @@ export default function ReviewerAllocationEmail({
       </Head>
 
       <Preview>
-        Reviewer "{reviewer.name}" has been assigned to review the paper "{paper.title}".
+        Reviewer "{reviewer.name}" has been assigned to review the paper "
+        {paper.title}".
       </Preview>
 
       <Section>
@@ -44,7 +45,8 @@ export default function ReviewerAllocationEmail({
         </Text>
 
         <Text>
-          A reviewer has been successfully assigned to the paper titled <strong>{paper.title}</strong>.
+          A reviewer has been successfully assigned to the paper titled{" "}
+          <strong>{paper.title}</strong>.
         </Text>
 
         <table
@@ -69,10 +71,7 @@ export default function ReviewerAllocationEmail({
               <td style={tdStyle}>Keywords</td>
               <td style={tdStyle}>{paper.keywords.join(", ")}</td>
             </tr>
-            <tr>
-              <td style={tdStyle}>Version</td>
-              <td style={tdStyle}>{paper.currentVersion}</td>
-            </tr>
+
             <tr>
               <td style={tdStyle}>Submission Date</td>
               <td style={tdStyle}>
@@ -83,28 +82,23 @@ export default function ReviewerAllocationEmail({
               <td style={tdStyle}>Status</td>
               <td style={tdStyle}>{paper.status}</td>
             </tr>
-           
+
             <tr>
               <td style={tdStyle}>Point of Contact</td>
               <td style={tdStyle}>
-                {paper.pointOfContact && typeof paper.pointOfContact === "object" &&
-                "name" in paper.pointOfContact &&
-                "email" in paper.pointOfContact &&
-                "phone" in paper.pointOfContact ? (
-                  <>
-                    {(paper.pointOfContact as { name: string; email: string; phone: string }).name}<br />
-                    {(paper.pointOfContact as { name: string; email: string; phone: string }).email}<br />
-                    {(paper.pointOfContact as { name: string; email: string; phone: string }).phone}
-                  </>
-                ) : (
-                  <em>Not provided</em>
-                )}
+                {typeof paper.pointOfContact === "object" &&
+                paper.pointOfContact !== null &&
+                "email" in paper.pointOfContact
+                  ? ((paper.pointOfContact as { email?: string }).email ??
+                    "N/A")
+                  : "N/A"}
               </td>
-            </tr>
-            <tr>
-              <td style={tdStyle}>Contributors</td>
               <td style={tdStyle}>
-                <pre>{JSON.stringify(paper.contributors, null, 2)}</pre>
+                {typeof paper.pointOfContact === "object" &&
+                paper.pointOfContact !== null &&
+                "name" in paper.pointOfContact
+                  ? ((paper.pointOfContact as { name?: string }).name ?? "N/A")
+                  : "N/A"}
               </td>
             </tr>
           </tbody>
@@ -127,9 +121,39 @@ export default function ReviewerAllocationEmail({
         >
           Download Paper
         </Button>
-
+        <Button
+          style={{
+            backgroundColor: "#0f172a",
+            color: "#ffffff",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            textDecoration: "none",
+            display: "inline-block",
+            marginTop: "10px",
+          }}
+        >
+          <a href={`https://jedsd.com/review?paperId=${paper.id}&reviewerId=${reviewer.id}&action=accept`}>
+            Accept Paper
+          </a>
+        </Button>
+        <Button
+          style={{
+            backgroundColor: "#0f172a",
+            color: "#ffffff",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            textDecoration: "none",
+            display: "inline-block",
+            marginTop: "10px",
+          }}
+        >
+          <a href={`https://jedsd.com/review?paperId=${paper.id}&reviewerId=${reviewer.id}&action=reject`}>
+            Reject Paper
+          </a>
+        </Button>
         <Text style={{ marginTop: "30px" }}>
-          The reviewer will be notified and begin the review process. You will be updated once a review decision is made.
+          The reviewer will be notified and begin the review process. You will
+          be updated once a review decision is made.
         </Text>
 
         <Text>If you have any questions, feel free to contact us.</Text>
@@ -138,8 +162,6 @@ export default function ReviewerAllocationEmail({
           Best regards, <br />
           <strong>The JEDSD Editorial Team</strong>
         </Text>
-
-        
       </Section>
     </Html>
   );

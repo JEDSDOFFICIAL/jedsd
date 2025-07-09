@@ -5,12 +5,13 @@ import { Fade } from "react-awesome-reveal";
 
 function HomeSecondElementAboutUs() {
   return (
-    <div className="w-full min-h-screen h-fit md:p-10 lg:p-14 py-0 flex flex-col justify-between items-center p-3">
+    <div className="w-full min-h-screen h-fit md:p-10 lg:p-14 py-0 flex flex-col justify-between items-center p-3 will-change-transform">
       <div
-        className="chicle-regular flex flex-col items-center rounded-md lg:p-9 p-3 text-justify justify-center w-full md:text-xl text-sm gap-6 h-fit"
+        className="chicle-regular flex flex-col items-center rounded-md lg:p-9 p-3 text-justify justify-center w-full md:text-xl text-sm gap-6 h-fit transform-gpu"
         style={{
           boxShadow:
             " rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset",
+          backfaceVisibility: 'hidden'
         }}
       >
         <h2 className="md:text-6xl text-4xl text-black font-bold">About Us</h2>

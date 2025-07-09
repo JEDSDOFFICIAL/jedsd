@@ -60,7 +60,7 @@ export const data = [
 
 export default function Timeline() {
   return (
-    <div className="w-full min-h-screen py-10 px-4 md:px-10 lg:px-16 bg-white">
+    <div className="w-full min-h-screen py-10 px-4 md:px-10 lg:px-16 bg-white will-change-transform">
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12">
         Submission Steps
       </h1>
@@ -79,15 +79,16 @@ export default function Timeline() {
             iconStyle={{ background: "#1d4ed8", color: "#fff" }}
             icon={item.icon}
           >
-            <Card className="relative h-[300px]   group rounded-lg overflow-hidden">
+            <Card className="relative h-[300px] group rounded-lg overflow-hidden transform-gpu">
               <div
-                className="absolute inset-0 bg-black bg-opacity-50 z-10 group-hover:bg-opacity-60 bg-cover bg-no-repeat bg-center group-hover:scale-110 transition-all duration-500"
+                className="absolute inset-0 bg-black bg-opacity-50 z-10 group-hover:bg-opacity-60 bg-cover bg-no-repeat bg-center transition-all duration-300 ease-out"
                 style={{
                   backgroundImage: `url(${item.image})`,
+                  willChange: 'transform, opacity'
                 }}
               />
-              <CardContent className="relative z-20 h-full flex flex-col justify-end  text-white">
-                <h3 className="text-2xl font-bold mb-2 text-white ">{item.title}</h3>
+              <CardContent className="relative z-20 h-full flex flex-col justify-end text-white">
+                <h3 className="text-2xl font-bold mb-2 text-white">{item.title}</h3>
                 <h5 className="text-base mb-5">{item.description}</h5>
                 <Link href={item.link}>
                   <Button variant="secondary" className="w-max">

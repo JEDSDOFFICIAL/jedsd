@@ -8,10 +8,13 @@ import { ResearchPaper } from "@prisma/client";
 interface FetchPapersParams {
   authorId?: string;
   reviewerId?: string;
+  editorId?: string;
   page?: number;
   limit?: number;
   keywords?: string;
   title?: string;
+  status?: string;
+  reviewerStatus?: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "ACCEPTED_FOR_REVIEW" | "REJECTED_FOR_REVIEW" | "PENDING";
 }
 
 interface FetchPapersResponse {
@@ -32,6 +35,9 @@ export async function fetchPapers(
     if (params.reviewerId) {
       queryParams.append("reviewerId", params.reviewerId);
     }
+    if (params.editorId) {
+      queryParams.append("editorId", params.editorId);
+    }
     if (params.page) {
       queryParams.append("page", params.page.toString());
     }
@@ -44,12 +50,19 @@ export async function fetchPapers(
     if (params.title) {
       queryParams.append("title", params.title);
     }
+    if (params.status) {
+      queryParams.append("status", params.status);
+    }
+    if (params.reviewerStatus) {
+      queryParams.append("reviewerStatus", params.reviewerStatus);
+    }
+    console.log("editor id from the function is", params.editorId);
 
     const queryString = queryParams.toString();
     const url = `/api/paper${queryString ? `?${queryString}` : ""}`;
-
+    console.log("Fetching papers with URL:", url);
     const res = await axios.get(url);
-    //console.log("Fetched papers from the function :", res.data);
+    console.log("Fetched papers from the function :", res.data);
 
     return res.data; // Return the entire response as expected by the function signature
   } catch (error) {
@@ -87,7 +100,7 @@ export async function updatePaper(
 ): Promise<void> {
   try {
     await axios.put(
-      `/api/paper/${paperId}`,
+      `/api/paper?paperId=${paperId}`,
       updates,
       { headers: { "Content-Type": "application/json" } }
     );

@@ -1,9 +1,5 @@
 
-
-
-import Footer from "@/components/home/Footer";
 import Navbar from "@/components/home/Navbar";
-
 
 export default function RootLayout({
   children,
@@ -12,6 +8,9 @@ export default function RootLayout({
 }>) {
   
   return (
-   <><Navbar/>{children} <Footer /></>
+    
+      <main className="relative w-full">
+        {children}
+      </main>
   );
 }

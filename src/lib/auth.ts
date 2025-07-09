@@ -26,31 +26,35 @@ export const authOptions: NextAuthOptions = {
           credentials.password,
           user.password
         );
-        if (!isValid) return null;
+        if (!isValid || !user.isVerified) return null;
 
-        if (!user.isVerified) return null;
-
-        const userDetails = await prisma.userDetails.findUnique({ // Corrected: Assuming userDetails is on the User model
+        const userDetails = await prisma.userDetails.findUnique({
           where: { email: credentials.email },
         });
 
-        if (userDetails) {
-          await prisma.user.update({
-            where: { email: credentials.email },
-            data: {
-              userType: userDetails.userType,
-              isVerified: true,
-            },
-          });
-        }
+        const finalUserType =
+          userDetails &&
+          ["ADMIN", "REVIEWER", "EDITOR", "USER"].includes(userDetails.userType)
+            ? userDetails.userType
+            : "USER";
+
+        // Sync userType to main user table
+        await prisma.user.update({
+          where: { email: credentials.email },
+          data: {
+            userType: finalUserType,
+            isVerified: true,
+          },
+        });
+
         await sendSuccessAuthMail(user.email, user.name);
+
         return {
           id: user.id,
           email: user.email,
-          userType: userDetails?.userType || "STUDENT",
           name: user.name,
-          image: user.profileImage || "/default-image.jpg", // Default image if not provided
-          isVerified: user.isVerified || false,
+          username: user.username,
+          userType: finalUserType,
         };
       },
     }),
@@ -69,58 +73,71 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, account }) {
       if (user && account?.provider === "google") {
-        let currentUser; // Variable to hold the user data that will populate the token
-
-        // Check if user details exist in the userDetails table
         const existingUserDetails = await prisma.userDetails.findUnique({
           where: { email: user.email! },
         });
 
-        // Check if user exists in the User table
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
         });
 
+        const resolvedUserType =
+          existingUser?.userType &&
+          ["ADMIN", "REVIEWER", "EDITOR", "USER"].includes(
+            existingUser.userType
+          )
+            ? existingUser.userType
+            : existingUserDetails?.userType &&
+                ["ADMIN", "REVIEWER", "EDITOR", "USER"].includes(
+                  existingUserDetails.userType
+                )
+              ? existingUserDetails.userType
+              : "USER";
+
+        let currentUser;
+
         if (!existingUser) {
-          // If user doesn't exist in the 'User' table, create them
           currentUser = await prisma.user.create({
             data: {
               email: user.email!,
-              name: user.name?.toLowerCase().trim() || "Unnamed",
-              isVerified: true, // Assuming Google logins are verified by default
+              name: user.name?.trim() || "Unnamed",
+              username: user.email!.split("@")[0],
+              isVerified: true,
+              password: null,
               profileImage: user.image,
-              userType: existingUserDetails?.userType || "USER", // Assign userType if userDetails exists, otherwise default
+              userType: resolvedUserType,
             },
           });
         } else {
-          // If user exists, update their information from Google, especially if userDetails exists
           currentUser = await prisma.user.update({
             where: { email: user.email! },
             data: {
-              name: user.name?.toLowerCase().trim() || "Unnamed",
-              isVerified: true, // Assuming Google logins are verified by default
+              name: user.name?.trim() || "Unnamed",
+              isVerified: true,
               profileImage: user.image,
-              userType: existingUserDetails?.userType || existingUser.userType, // Keep existing userType or update if userDetails exists
+              userType: resolvedUserType,
             },
           });
         }
 
-        // Now, populate the token with the final user data
+        await sendSuccessAuthMail(currentUser.email, currentUser.name);
+
         token.id = currentUser.id;
         token.email = currentUser.email;
         token.name = currentUser.name;
+        token.username = currentUser.username;
         token.userType = currentUser.userType;
-        token.picture = currentUser.profileImage || "/default-image.jpg"; // Use profileImage from currentUser
-
-        await sendSuccessAuthMail(currentUser.email, currentUser.name);
+        token.image = user.image || null;
       }
 
+      // For credentials login
       if (user && account?.provider === "credentials") {
         token.id = user.id;
         token.email = user.email;
-        token.userType = user.userType;
         token.name = user.name;
-        token.picture = user.image || "/default-image.jpg"; // Default image if not provided
+        token.username = user.username;
+        token.userType = user.userType;
+        token.image = user.image || null;
       }
 
       return token;
@@ -130,11 +147,12 @@ export const authOptions: NextAuthOptions = {
       return {
         ...session,
         user: {
-          id: token.id as string,
-          email: token.email as string,
-          name: token.name as string,
-          userType: token.userType as string,
-          image: token.picture as string || "/default-image.jpg", // Default image if not provided
+          id: token.id,
+          email: token.email,
+          name: token.name,
+          username: token.username,
+          image: token.image || null,
+          userType: token.userType,
         },
       };
     },
@@ -143,6 +161,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/signin",
     error: "/auth/error",
+    signOut: "/signup",
   },
 
   secret: process.env.NEXTAUTH_SECRET,

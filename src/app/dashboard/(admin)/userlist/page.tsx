@@ -74,7 +74,7 @@ export default function UserList() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/user/getUser?page=${page}&limit=${limit}`);
+      const res = await axios.get(`/api/user?page=${page}&limit=${limit}`);
       setData(res.data.users);
       setTotalPages(res.data.totalPages);
     } catch (error) {
@@ -200,7 +200,7 @@ export default function UserList() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {["STUDENT", "FACULTY", "ADMIN"].map((userType) => (
+                    {["USER", "EDITOR","REVIEWER", "ADMIN"].map((userType) => (
                       <DropdownMenuItem
                         key={userType}
                         onClick={() => updateUserData(row.original.email, { userType })}

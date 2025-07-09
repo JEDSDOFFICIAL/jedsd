@@ -8,8 +8,47 @@ import {
   Text,
   Button,
 } from "@react-email/components";
+import * as React from "react";
 
 export default function PaperUploadEmail(paper: ResearchPaper) {
+  interface Contact {
+    fullName: string;
+    email: string;
+  }
+
+  interface Contributor {
+    fullName: string;
+    email: string;
+  }
+
+  interface PaperUploadEmailProps extends Omit<ResearchPaper, "pointOfContact" | "contributors"> {
+    pointOfContact?: Contact | null;
+    contributors?: Contributor[];
+  }
+
+  const formatContact = (contact: Contact | null | undefined): React.JSX.Element => {
+    if (!contact) return <em>Not provided</em>;
+    return (
+      <>
+        {contact.fullName} <br />
+        {contact.email}
+      </>
+    );
+  };
+
+  interface FormatContributorsProps {
+    fullName: string;
+    email: string;
+  }
+
+  const formatContributors = (contributors: FormatContributorsProps[] | undefined | null): React.JSX.Element | string => {
+    if (!contributors || contributors.length === 0)
+      return <em>Not provided</em>;
+    return contributors
+      .map((contributor: FormatContributorsProps) => `${contributor.fullName} (${contributor.email})`)
+      .join(", ");
+  };
+
   return (
     <Html lang="en">
       <Head>
@@ -61,10 +100,7 @@ export default function PaperUploadEmail(paper: ResearchPaper) {
               <td style={tdStyle}>Keywords</td>
               <td style={tdStyle}>{paper.keywords.join(", ")}</td>
             </tr>
-            <tr>
-              <td style={tdStyle}>Version</td>
-              <td style={tdStyle}>{paper.currentVersion}</td>
-            </tr>
+
             <tr>
               <td style={tdStyle}>Submission Date</td>
               <td style={tdStyle}>
@@ -82,21 +118,36 @@ export default function PaperUploadEmail(paper: ResearchPaper) {
             <tr>
               <td style={tdStyle}>Point of Contact</td>
               <td style={tdStyle}>
-                {paper.pointOfContact && typeof paper.pointOfContact === "object" && "name" in paper.pointOfContact && "email" in paper.pointOfContact && "phone" in paper.pointOfContact ? (
-                  <>
-                    {(paper.pointOfContact as { name: string; email: string; phone: string }).name} <br />
-                    {(paper.pointOfContact as { name: string; email: string; phone: string }).email} <br />
-                    {(paper.pointOfContact as { name: string; email: string; phone: string }).phone}
-                  </>
-                ) : (
-                  <em>Not provided</em>
+                {formatContact(
+                  paper.pointOfContact &&
+                    typeof paper.pointOfContact === "object" &&
+                    "fullName" in paper.pointOfContact &&
+                    "email" in paper.pointOfContact
+                    ? (paper.pointOfContact as {
+                        fullName: string;
+                        email: string;
+                      })
+                    : null
                 )}
               </td>
             </tr>
             <tr>
               <td style={tdStyle}>Contributors</td>
               <td style={tdStyle}>
-                <pre>{JSON.stringify(paper.contributors, null, 2)}</pre>
+                {formatContributors(
+                  Array.isArray(paper.contributors)
+                    ? (paper.contributors as unknown as FormatContributorsProps[])
+                    : typeof paper.contributors === "string"
+                    ? (() => {
+                        try {
+                          const parsed = JSON.parse(paper.contributors);
+                          return Array.isArray(parsed) ? parsed : undefined;
+                        } catch {
+                          return undefined;
+                        }
+                      })()
+                    : undefined
+                )}
               </td>
             </tr>
           </tbody>

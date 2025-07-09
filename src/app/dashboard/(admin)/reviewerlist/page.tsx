@@ -169,7 +169,7 @@ function FacultyList() {
         ),
       },
       {
-        accessorKey: "name",
+        accessorKey: "email", 
         header: ({ column }) => {
           return (
             <Button
@@ -178,26 +178,7 @@ function FacultyList() {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Name
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="lowercase">{row.getValue("name")}</div>
-        ),
-      },
-      {
-        accessorKey: "email",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Email
+              Name/Email
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
@@ -254,14 +235,14 @@ function FacultyList() {
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={() => updateData(user.email, "ADMIN", user.name)}
+          onClick={() => updateData(user.email, "ADMIN", user.email)}
           className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer"
         >
           <ShieldCheck className="mr-2 h-4 w-4 text-green-600" />
           Make Admin
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => updateData(user.email, "REVIEWER", user.name)}
+          onClick={() => updateData(user.email, "REVIEWER", user.email)}
           className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer"
         >
           <ShieldCheck className="mr-2 h-4 w-4 text-green-600" />

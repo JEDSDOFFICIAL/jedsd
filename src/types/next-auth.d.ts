@@ -6,8 +6,10 @@ declare module "next-auth" {
       id: string;
       email: string;
       userType: string;
+      // Optional properties for user details
       image?: string | null; // Optional, as it may not always be present
       name?: string; // Optional, as it may not always be present
+      username?: string; // Optional, as it may not always be present
     };
   }
 
@@ -17,6 +19,7 @@ declare module "next-auth" {
     userType: string;
     image?: string | null; // Optional, as it may not always be present
     name?: string; // Optional, as it may not always be present
+    username?: string; // Optional, as it may not always be present
   }
 }
 
@@ -27,5 +30,6 @@ declare module "next-auth/jwt" {
     userType: string;
     image?: string | null; // Optional, as it may not always be present
     name?: string; // Optional, as it may not always be present
+    username?: string; // Optional, as it may not always be present
   }
 }

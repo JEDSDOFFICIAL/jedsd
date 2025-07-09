@@ -12,11 +12,12 @@ import {
   } from "@react-email/components";
   
   interface VerificationEmailProps {
+    name: string;
     username: string;
 
   }
-  
-  export default function SuccessAuthentication({ username }: VerificationEmailProps) {
+
+  export default function SuccessAuthentication({ name, username }: VerificationEmailProps) {
     return (
       <Html lang="en" dir="ltr">
         <Head>
@@ -32,11 +33,13 @@ import {
             fontStyle="normal"
           />
         </Head>
+        <Preview>Welcome to JEDSD, {name}!</Preview>
+        <Preview>Thank you for registering with JEDSD</Preview>
         <Preview>Your Username is {username}</Preview>
         <Container style={{ backgroundColor: "#f4f4f4", padding: "20px", borderRadius: "8px" }}>
           <Section style={{ backgroundColor: "#ffffff", padding: "30px", borderRadius: "8px", textAlign: "center", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}>
             <Heading as="h2" style={{ color: "#333", fontSize: "24px", marginBottom: "10px" }}>
-              Hello, {username}!
+              Hello, {name}!
             </Heading>
             <Text style={{ color: "#555", fontSize: "16px", marginBottom: "20px" }}>
               Thank you for registering. We are excited to have you on board. Your account has been successfully created.
