@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get("userId");
     const userType = searchParams.get("userType");
 
-    // Overall statistics
+    // Global statistics
     const [
       totalPapers,
       uploadedPapers,
@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
       rejectedPapers,
       totalUsers,
       totalReviewers,
-      totalEditors
+      reviewerAllocationPending,
+      awaitingFinalDecision
     ] = await Promise.all([
       prisma.researchPaper.count(),
       prisma.researchPaper.count({ where: { status: "UPLOAD" } }),
@@ -28,7 +29,15 @@ export async function GET(req: NextRequest) {
       prisma.researchPaper.count({ where: { status: "REJECTED" } }),
       prisma.user.count(),
       prisma.user.count({ where: { userType: "REVIEWER" } }),
-      prisma.user.count({ where: { userType: "EDITOR" } })
+      prisma.researchPaper.count({ where: { status: "REVIEWER_ALLOCATION" } }),
+      prisma.researchPaper.count({
+        where: {
+          reviewerStatus: { in: ["ACCEPTED_FOR_REVIEW", "REJECTED_FOR_REVIEW"] },
+          status: {
+            notIn: ["PUBLISH", "REJECTED"]
+          }
+        }
+      })
     ]);
 
     let userSpecificStats = {};
@@ -36,42 +45,88 @@ export async function GET(req: NextRequest) {
     if (userId && userType) {
       switch (userType) {
         case "USER":
-          const [authoredPapers, authoredPublished] = await Promise.all([
+          const [
+            authoredPapers,
+            authoredPublished,
+            underReview,
+            underEdit,
+            rejectedUserPapers
+          ] = await Promise.all([
             prisma.researchPaper.count({ where: { authorId: userId } }),
-            prisma.researchPaper.count({ 
-              where: { 
-                authorId: userId, 
-                status: "PUBLISH" 
-              } 
+            prisma.researchPaper.count({
+              where: { authorId: userId, status: "PUBLISH" }
+            }),
+            prisma.researchPaper.count({
+              where: { authorId: userId, status: "ON_REVIEW" }
+            }),
+            prisma.researchPaper.count({
+              where: { authorId: userId, status: "ON_EDIT" }
+            }),
+            prisma.researchPaper.count({
+              where: { authorId: userId, status: "REJECTED" }
             })
           ]);
-          userSpecificStats = { authoredPapers, authoredPublished };
+
+          userSpecificStats = {
+            authoredPapers,
+            authoredPublished,
+            underReview,
+            underEdit,
+            rejectedUserPapers
+          };
           break;
 
         case "REVIEWER":
-          const [assignedForReview, reviewsCompleted] = await Promise.all([
-            prisma.researchPaper.count({ where: { reviewerId: userId } }),
-            prisma.researchPaper.count({ 
-              where: { 
-                reviewerId: userId, 
-                reviewerStatus: { in: ["ACCEPTED_FOR_PUBLICATION", "REJECTED_FOR_PUBLICATION"] }
-              } 
+          const [
+            assignedForReview,
+            reviewsCompleted,
+            pendingReviews,
+            majorSuggested,
+            minorSuggested
+          ] = await Promise.all([
+            prisma.paperReview.count({ where: { reviewerId: userId } }),
+            prisma.paperReview.count({
+              where: {
+                reviewerId: userId,
+                reviewerStatus: {
+                  in: ["ACCEPTED_FOR_PUBLICATION", "REJECTED_FOR_PUBLICATION"]
+                }
+              }
+            }),
+            prisma.paperReview.count({
+              where: {
+                reviewerId: userId,
+                reviewerStatus: "PENDING"
+              }
+            }),
+            prisma.paperReview.count({
+              where: {
+                reviewerId: userId,
+                revisionType: "MAJOR"
+              }
+            }),
+            prisma.paperReview.count({
+              where: {
+                reviewerId: userId,
+                revisionType: "MINOR"
+              }
             })
           ]);
-          userSpecificStats = { assignedForReview, reviewsCompleted };
+
+          userSpecificStats = {
+            assignedForReview,
+            reviewsCompleted,
+            pendingReviews,
+            majorSuggested,
+            minorSuggested
+          };
           break;
 
-        case "EDITOR":
-          const [assignedForEdit, editsCompleted] = await Promise.all([
-            prisma.researchPaper.count({ where: { editorId: userId } }),
-            prisma.researchPaper.count({ 
-              where: { 
-                editorId: userId, 
-                editorStatus: { in: ["ACCEPTED_FOR_PUBLICATION", "REJECTED_FOR_PUBLICATION"] }
-              } 
-            })
-          ]);
-          userSpecificStats = { assignedForEdit, editsCompleted };
+        case "ADMIN":
+          userSpecificStats = {
+            reviewerAllocationPending,
+            awaitingFinalDecision
+          };
           break;
       }
     }
@@ -86,11 +141,12 @@ export async function GET(req: NextRequest) {
         rejectedPapers,
         totalUsers,
         totalReviewers,
-        totalEditors
+        reviewerAllocationPending,
+
+        awaitingFinalDecision
       },
       userSpecific: userSpecificStats
     });
-
   } catch (error) {
     console.error("Error fetching statistics:", error);
     return NextResponse.json(
