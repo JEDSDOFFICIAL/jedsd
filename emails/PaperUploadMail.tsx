@@ -112,10 +112,6 @@ export default function PaperUploadEmail(paper: ResearchPaper) {
               <td style={tdStyle}>{paper.status}</td>
             </tr>
             <tr>
-              <td style={tdStyle}>Reviewer Status</td>
-              <td style={tdStyle}>{paper.reviewerStatus}</td>
-            </tr>
-            <tr>
               <td style={tdStyle}>Point of Contact</td>
               <td style={tdStyle}>
                 {formatContact(

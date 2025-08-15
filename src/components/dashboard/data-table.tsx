@@ -60,7 +60,7 @@ import {
 } from "@tabler/icons-react"
 import { ResearchPaper } from "@prisma/client"
 
-import { fetchPapers } from "@/lib/paperActions"
+import { fetchPapers } from "@/lib/Frontend-actions"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 
@@ -131,33 +131,6 @@ const columns: ColumnDef<ResearchPaper>[] = [
           <IconLoader className="w-4 h-4 animate-spin" />
         )}
         {row.original.status}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "reviewerStatus",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Reviewer Status
-        <IconChevronDown
-          className={`ml-2 transition-transform ${
-            column.getIsSorted() === "desc" ? "rotate-180" : ""
-          }`}
-        />
-      </Button>
-    ),
-    enableSorting: true,
-    cell: ({ row }) => (
-      <Badge variant="outline" className="text-muted-foreground px-1.5 flex items-center gap-1">
-        {row.original.reviewerStatus === "ACCEPTED_FOR_REVIEW" || row.original.reviewerStatus === "ACCEPTED_FOR_PUBLICATION" ? (
-          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400 w-4 h-4" />
-        ) : (
-          <IconLoader className="w-4 h-4 animate-spin" />
-        )}
-        {row.original.reviewerStatus}
       </Badge>
     ),
   },

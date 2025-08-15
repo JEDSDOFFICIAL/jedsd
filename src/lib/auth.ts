@@ -1,7 +1,7 @@
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
-import { comparePassword } from "@/utils/hash";
+import { comparePassword } from "@/lib/hash";
 import { NextAuthOptions } from "next-auth";
 import { sendSuccessAuthMail } from "@/helper/mail/sendSuccessAuthMail";
 
@@ -62,12 +62,34 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      httpOptions: {
+        timeout: 10000, // 10 seconds instead of default 3.5 seconds
+      },
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
   ],
 
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
+  },
+
+  debug: process.env.NODE_ENV === "development",
+
+  // Add timeout and retry configuration
+  events: {
+    async signIn(message) {
+      console.log("Sign in event:", message);
+    },
+    async signOut(message) {
+      console.log("Sign out event:", message);
+    },
   },
 
   callbacks: {
@@ -160,7 +182,7 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: "/signin",
-    error: "/auth/error",
+    error: "/signin", // Redirect to signin page on OAuth errors
     signOut: "/signup",
   },
 

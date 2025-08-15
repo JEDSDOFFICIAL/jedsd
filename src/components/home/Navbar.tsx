@@ -187,7 +187,7 @@ if (!mounted) return null;
   }
 
   return (
-    <div className="w-full h-fit fixed top-0 z-50 bg-white shadow-md">
+    <div className="w-full h-fit bg-white shadow-md">
       <header className="bg-gray-600 text-white w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20 ">
         <div className="flex items-center gap-4 w-full h-full">
           <Image

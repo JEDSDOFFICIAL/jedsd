@@ -67,7 +67,7 @@ const handleGoogleSignIn = async () => {
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome to IEDC</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome to JEDSD</CardTitle>
           <CardDescription>Sign up with your Google account</CardDescription>
         </CardHeader>
         <CardContent>

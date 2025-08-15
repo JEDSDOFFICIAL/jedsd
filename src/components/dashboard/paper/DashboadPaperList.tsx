@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { ResearchPaper } from "@prisma/client";
 import Link from "next/link";
-import { fetchPapers, updatePaper, deletePapers } from "@/lib/paperActions";
+import { fetchPapers, updatePaper, deletePapers } from "@/lib/Frontend-actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSearchParams } from "next/navigation";
 import { DataTable } from "../data-table";
-import data1 from './data.json'
+
  function DashboardPaper() {
   const { data: session } = useSession();
   //console.log("Session from PaperList:", session);

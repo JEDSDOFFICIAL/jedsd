@@ -1,4 +1,4 @@
-import { resend } from "@/utils/mailer";
+import { resend } from "@/lib/mailer";
 import { ResearchPaper, User } from "@prisma/client";
 import { render } from '@react-email/components';
 import AuthorPaperStatusUpdateEmail from "../../../emails/AuthorPaperStatusUpdateMail";

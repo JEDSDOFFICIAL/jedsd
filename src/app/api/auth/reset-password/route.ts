@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { hashPassword } from "@/utils/hash";
+import { hashPassword } from "@/lib/hash";
 
 const resetPasswordSchema = z.object({
   token: z.string().min(1, "Reset token is required"),

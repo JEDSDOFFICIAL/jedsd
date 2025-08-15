@@ -13,7 +13,7 @@ import { ChartPieLabel } from "../charts/piechart";
 import { useSession } from "next-auth/react";
 import React from "react";
 import { ResearchPaper } from "@prisma/client";
-import { fetchPapers } from "@/lib/paperActions";
+import { fetchPapers } from "@/lib/Frontend-actions";
 
 export function DashboardSectionCards() {
   const { data: session } = useSession();

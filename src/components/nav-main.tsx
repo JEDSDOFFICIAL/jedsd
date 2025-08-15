@@ -32,6 +32,9 @@ export function NavMain(
     if (user.userType === "ADMIN") {
       return true
     }
+    if (user.userType === "EDITOR") {
+      return !item.access || item.access.includes("EDITOR")
+    }
     if (user.userType === "REVIEWER") {
       return !item.access || item.access.includes("REVIEWER")
     }
@@ -66,7 +69,7 @@ export function NavMain(
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton asChild>
-                        <Link href={`/${subItem.url}`}>
+                        <Link href={`${subItem.url}`}>
                           {"icon" in subItem && subItem.icon && <subItem.icon />}
                           <span>{subItem.title}</span>
                         </Link>

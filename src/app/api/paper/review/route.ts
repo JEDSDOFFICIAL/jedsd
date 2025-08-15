@@ -1,175 +1,383 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { PrismaClient, ReviewerStatus, PaperStatus } from "@prisma/client";
+import { z } from "zod";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
+const prisma = new PrismaClient();
+
+// Zod Schema for review submission
+const reviewSubmissionSchema = z.object({
+  paperId: z.string().uuid("Invalid paperId format."),
+  reviewerId: z.string().uuid("Invalid reviewerId format."),
+  reviewText: z.string().min(10, "Review text must be at least 10 characters."),
+  rating: z.number().int().min(1).max(5, "Rating must be between 1 and 5."),
+  correspondingFile: z.string().url().optional(),
+  reviewerStatus: z.enum([
+    "ACCEPTED_FOR_PUBLICATION", 
+    "REJECTED_FOR_PUBLICATION",
+    "ACCEPTED_FOR_REVIEW",
+    "REJECTED_FOR_REVIEW",
+    "PENDING"
+  ]).optional(),
+});
+
+// POST handler for submitting/publishing a review
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-
-    const {
-      paperId,
-      reviewText,
-      correspondingFile,
-      rating,
-      reviewerStatus,
-      editorStatus,
-      reviewerId,
-      editorId,
-    } = body;
-
-    // Validate essential fields
-    if (!paperId || !reviewText) {
-      return NextResponse.json({ message: "Missing required fields." }, { status: 400 });
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized access." },
+        { status: 401 }
+      );
     }
 
-    // Find the research paper to ensure it exists
+    const body = await req.json();
+    const validationResult = reviewSubmissionSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: "Invalid request data.", 
+          errors: validationResult.error.errors 
+        },
+        { status: 400 }
+      );
+    }
+
+    const { 
+      paperId, 
+      reviewerId, 
+      reviewText, 
+      rating, 
+      correspondingFile, 
+      reviewerStatus
+    } = validationResult.data;
+
+    // Verify the user has permission to submit this review
+    const userType = session.user.userType;
+    const currentUserId = session.user.id;
+
+    // Only allow the assigned reviewer, editors, or admins to submit reviews
+    if (userType === "REVIEWER" && currentUserId !== reviewerId) {
+      return NextResponse.json(
+        { success: false, message: "You can only submit your own reviews." },
+        { status: 403 }
+      );
+    }
+
+    if (!["REVIEWER", "EDITOR", "ADMIN"].includes(userType)) {
+      return NextResponse.json(
+        { success: false, message: "Insufficient permissions to submit reviews." },
+        { status: 403 }
+      );
+    }
+
+    // Verify the paper exists and is in a reviewable state
     const paper = await prisma.researchPaper.findUnique({
       where: { id: paperId },
+      include: { reviews: true }
     });
 
     if (!paper) {
-      return NextResponse.json({ message: "Paper not found." }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Paper not found." },
+        { status: 404 }
+      );
     }
 
-    // Update the research paper's assigned reviewer/editor if they are provided
-    if (reviewerId) {
-      const reviewer = await prisma.user.findUnique({
-        where: { id: reviewerId },
-      });
-      if (!reviewer) {
-        return NextResponse.json({ message: "Reviewer not found." }, { status: 404 });
-      }
-      await prisma.researchPaper.update({
-        where: { id: paperId },
-        data: { reviewerId: reviewer.id },
-      });
-    }
+    // Check if paper is in a state where reviews can be submitted
+    const reviewableStates: PaperStatus[] = [
+      PaperStatus.ON_REVIEW, 
+      PaperStatus.REVIEWER_ALLOCATION,
+      PaperStatus.EDITOR_ALLOCATION,
+      PaperStatus.ON_EDIT
+    ];
 
-    if (editorId) {
-      const editor = await prisma.user.findUnique({
-        where: { id: editorId },
-      });
-      if (!editor) {
-        return NextResponse.json({ message: "Editor not found." }, { status: 404 });
-      }
-      await prisma.researchPaper.update({
-        where: { id: paperId },
-        data: { editorId: editor.id },
-      });
-    }
-
-    // Update the paper's rating if it's provided and not undefined
-    if (rating !== undefined && rating !== null) {
-      await prisma.researchPaper.update({
-        where: { id: paperId },
-        data: { rating: rating },
-      });
-    }
-
-    // Create the review record
-    const review = await prisma.paperReview.create({
-      data: {
-        paperId,
-        reviewText,
-        correspondingFile: correspondingFile || null,
-        rating: rating,
-        reviewerId: reviewerId || null,
-        editorId: editorId || null,
-        reviewerStatus: reviewerStatus || null,
-        editorStatus: editorStatus || null,
-      },
-      include: {
-        paper: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            reviewerId: true,
-            editorId: true,
-            rating: true,
-          },
+    if (!reviewableStates.includes(paper.status)) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: `Paper is not in a reviewable state. Current status: ${paper.status}` 
         },
+        { status: 400 }
+      );
+    }
+
+    // Check if review already exists, if so update it, otherwise create new
+    const existingReview = await prisma.paperReview.findFirst({
+      where: {
+        paperId: paperId,
+        reviewerId: reviewerId,
       },
     });
 
-    // Update the paper's status based on the review decision
-    if (reviewerStatus === "ACCEPTED_FOR_PUBLICATION") {
-      await prisma.researchPaper.update({
-        where: { id: paperId },
-        data: { status: "EDITOR_ALLOCATION", reviewerStatus: "ACCEPTED_FOR_PUBLICATION" },
+    let review;
+    
+    if (existingReview) {
+      // Update existing review
+      review = await prisma.paperReview.update({
+        where: { id: existingReview.id },
+        data: {
+          reviewText,
+          rating,
+          correspondingFile,
+          reviewerStatus: reviewerStatus || ReviewerStatus.PENDING,
+          updatedAt: new Date(),
+        },
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              userType: true,
+            }
+          },
+          paper: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+            }
+          }
+        }
       });
-    } else if (reviewerStatus === "REJECTED_FOR_PUBLICATION") {
-      await prisma.researchPaper.update({
-        where: { id: paperId },
-        data: { status: "REJECTED", reviewerStatus: "REJECTED_FOR_PUBLICATION" },
-      });
-    } else if (editorStatus === "ACCEPTED_FOR_PUBLICATION") {
-      await prisma.researchPaper.update({
-        where: { id: paperId },
-        data: { status: "ACCEPTED", editorStatus: "ACCEPTED_FOR_PUBLICATION" },
-      });
-    } else if (editorStatus === "REJECTED_FOR_PUBLICATION") {
-      await prisma.researchPaper.update({
-        where: { id: paperId },
-        data: { status: "REJECTED", editorStatus: "REJECTED_FOR_PUBLICATION" },
+    } else {
+      // Create new review
+      review = await prisma.paperReview.create({
+        data: {
+          paperId,
+          reviewerId,
+          reviewText,
+          rating,
+          correspondingFile,
+          reviewerStatus: reviewerStatus || ReviewerStatus.PENDING,
+        },
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              userType: true,
+            }
+          },
+          paper: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+            }
+          }
+        }
       });
     }
 
-    return NextResponse.json({ message: "Review submitted successfully", review }, { status: 201 });
-  } catch (error) {
-    console.error("Error submitting review:", error);
-    return NextResponse.json({ message: "Internal server error", error: {} }, { status: 500 });
+    // Update paper status based on review submission
+    let newPaperStatus = paper.status;
+    
+    if (reviewerStatus === "ACCEPTED_FOR_PUBLICATION") {
+      newPaperStatus = PaperStatus.ACCEPTED;
+    } else if (reviewerStatus === "REJECTED_FOR_PUBLICATION") {
+      newPaperStatus = PaperStatus.REJECTED;
+    } else if (reviewerStatus === "ACCEPTED_FOR_REVIEW" && paper.status === PaperStatus.REVIEWER_ALLOCATION) {
+      newPaperStatus = PaperStatus.ON_REVIEW;
+    }
+
+    // Update paper status if it has changed
+    if (newPaperStatus !== paper.status) {
+      await prisma.researchPaper.update({
+        where: { id: paperId },
+        data: { 
+          status: newPaperStatus,
+          lastUpdated: new Date(),
+          ...(newPaperStatus === PaperStatus.ACCEPTED ? { acceptedDate: new Date() } : {})
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Review published successfully.",
+      review: review,
+      paperStatus: newPaperStatus,
+    }, { status: 201 });
+
+  } catch (error: any) {
+    console.error("Error publishing review:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: "Server error occurred while publishing review.", 
+        error: error.message 
+      },
+      { status: 500 }
+    );
   }
 }
 
+// GET handler for fetching reviews
 export async function GET(req: NextRequest) {
   try {
-    const searchParams = req.nextUrl.searchParams;
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized access." },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
     const paperId = searchParams.get("paperId");
     const reviewerId = searchParams.get("reviewerId");
-    const editorId = searchParams.get("editorId");
 
-    const where: any = {};
-    if (paperId) where.paperId = paperId;
-    if (reviewerId) where.reviewerId = reviewerId;
-    if (editorId) where.editorId = editorId;
+    const whereClause: any = {};
 
-    const data = await prisma.paperReview.findMany({
-      where,
+    if (paperId) {
+      whereClause.paperId = paperId;
+    }
+
+    if (reviewerId) {
+      whereClause.reviewerId = reviewerId;
+    }
+
+    // Role-based access control
+    const userType = session.user.userType;
+    const currentUserId = session.user.id;
+
+    if (userType === "REVIEWER" && !reviewerId) {
+      // Reviewers can only see their own reviews
+      whereClause.reviewerId = currentUserId;
+    } else if (userType === "USER") {
+      // Regular users cannot access review data
+      return NextResponse.json(
+        { success: false, message: "Insufficient permissions." },
+        { status: 403 }
+      );
+    }
+
+    const reviews = await prisma.paperReview.findMany({
+      where: whereClause,
       include: {
+        reviewer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            userType: true,
+          }
+        },
         paper: {
           select: {
             id: true,
             title: true,
             status: true,
-            reviewerId: true,
-            editorId: true,
-            rating: true,
-          },
-        },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              }
+            }
+          }
+        }
       },
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
-    return NextResponse.json(data);
-  } catch (error) {
+
+    return NextResponse.json({
+      success: true,
+      reviews: reviews,
+    });
+
+  } catch (error: any) {
     console.error("Error fetching reviews:", error);
-    return NextResponse.json({ message: "Internal server error", error }, { status: 500 });
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: "Server error occurred while fetching reviews.", 
+        error: error.message 
+      },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(req: NextRequest) {
+// PUT handler for updating review status (for editors/admins)
+export async function PUT(req: NextRequest) {
   try {
-    const { reviewId } = await req.json();
+    const session = await getServerSession(authOptions);
     
-    if (reviewId) {
-      await prisma.paperReview.delete({
-        where: { id: reviewId }
-      });
-      return NextResponse.json({ message: "Review deleted successfully" }, { status: 200 });
-    } else {
-      await prisma.paperReview.deleteMany();
-      return NextResponse.json({ message: "All reviews deleted successfully" }, { status: 200 });
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized access." },
+        { status: 401 }
+      );
     }
-  } catch (error) {
-    console.error("Error deleting review:", error);
-    return NextResponse.json({ message: "Internal server error", error }, { status: 500 });
+
+    // Only editors and admins can update review status
+    if (!["EDITOR", "ADMIN"].includes(session.user.userType)) {
+      return NextResponse.json(
+        { success: false, message: "Insufficient permissions." },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json();
+    const { reviewId, reviewerStatus } = body;
+
+    if (!reviewId || !reviewerStatus) {
+      return NextResponse.json(
+        { success: false, message: "Review ID and status are required." },
+        { status: 400 }
+      );
+    }
+
+    const updatedReview = await prisma.paperReview.update({
+      where: { id: reviewId },
+      data: {
+        reviewerStatus: reviewerStatus as ReviewerStatus,
+        updatedAt: new Date(),
+      },
+      include: {
+        reviewer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        },
+        paper: {
+          select: {
+            id: true,
+            title: true,
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Review status updated successfully.",
+      review: updatedReview,
+    });
+
+  } catch (error: any) {
+    console.error("Error updating review status:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: "Server error occurred while updating review status.", 
+        error: error.message 
+      },
+      { status: 500 }
+    );
   }
 }

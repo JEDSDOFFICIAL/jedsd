@@ -1,4 +1,4 @@
-import { resend } from "@/utils/mailer";
+import { resend } from "@/lib/mailer";
 import { render } from '@react-email/components';
 import PasswordResetEmail from "../../../emails/PasswordResetMail";
 

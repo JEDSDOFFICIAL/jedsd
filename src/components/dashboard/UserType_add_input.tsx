@@ -19,7 +19,7 @@ import { ArrowDownWideNarrow } from 'lucide-react';
 const userTypeSchema = z.object({
   email: z.string().email({ message: 'Invalid email' }),
   name: z.string().min(1, { message: 'Name is required' }),
-  userType: z.enum(['REVIEWER', 'ADMIN'], {
+  userType: z.enum(['REVIEWER', 'ADMIN','EDITOR'], {
     errorMap: () => ({ message: 'User type must be REVIEWER or ADMIN' }),
   }),
 });
@@ -81,6 +81,9 @@ function UserType_add_input() {
         <DropdownMenuContent className='w-full '>
           <DropdownMenuItem onClick={() => setUserType('REVIEWER')}>
             REVIEWER
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setUserType('EDITOR')}>
+            EDITOR
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setUserType('ADMIN')}>
             ADMIN

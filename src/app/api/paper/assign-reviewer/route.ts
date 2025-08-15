@@ -1,72 +1,86 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { PaperStatus, ReviewerStatus } from "@prisma/client";
-import { NotificationService } from "@/helper/mail";
+import { NextResponse } from "next/server";
+import {  ReviewerStatus } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { paperId, reviewerId } = await req.json();
+    const { paperId, reviewerIds } = await req.json();
+    console.log("paper id is ",paperId,"reviewerIds are",reviewerIds);
 
-    if (!paperId || !reviewerId) {
+    if (!paperId || !Array.isArray(reviewerIds) || reviewerIds.length === 0) {
+      console.error("Invalid request data:", { paperId, reviewerIds });
       return NextResponse.json(
-        { error: "Paper ID and Reviewer ID are required" },
+        { success: false, message: "paperId and at least one reviewerId are required" },
         { status: 400 }
       );
     }
 
-    // Check if paper exists
-    const paper = await prisma.researchPaper.findUnique({
-      where: { id: paperId },
-      include: {
-        author: { select: { name: true, email: true } }
-      }
-    });
-
+    // Ensure paper exists
+    const paper = await prisma.researchPaper.findUnique({ where: { id: paperId } });
     if (!paper) {
-      return NextResponse.json(
-        { error: "Paper not found" },
-        { status: 404 }
-      );
+      console.error("Paper not found for ID:", paperId);
+      return NextResponse.json({ success: false, message: "Paper not found" }, { status: 404 });
     }
 
-    // Check if reviewer exists and has REVIEWER role
-    const reviewer = await prisma.user.findUnique({
-      where: { id: reviewerId },
+    // Get reviewers and validate
+    const reviewers = await prisma.user.findMany({
+      where: { id: { in: reviewerIds } }
     });
 
-    if (!reviewer || reviewer.userType !== "REVIEWER") {
+    if (reviewers.length !== reviewerIds.length) {
+      console.error("One or more reviewers are invalid:", reviewerIds);
       return NextResponse.json(
-        { error: "Invalid reviewer or user is not a reviewer" },
+        { success: false, message: "One or more reviewers are invalid" },
         { status: 400 }
       );
     }
 
-    // Update paper with reviewer and change status
-    const updatedPaper = await prisma.researchPaper.update({
-      where: { id: paperId },
-      data: {
-        reviewerId: reviewerId,
-        status: PaperStatus.REVIEWER_ALLOCATION,
-        reviewerStatus: ReviewerStatus.PENDING
-      },
-      include: {
-        author: true,
-        reviewer: true
+    const findExistingPaperReview = await prisma.paperReview.findFirst({
+      where: {
+        paperId,
+        reviewerId: { in: reviewerIds }
       }
     });
 
-    // Send email notifications to all relevant parties
-    await NotificationService.sendReviewerAssignmentNotifications(updatedPaper, reviewer);
+    if (findExistingPaperReview) {
+      console.error("Paper review already exists:", findExistingPaperReview);
+      return NextResponse.json(
+        { success: false, message: "Paper review already exists" },
+        { status: 400 }
+      );
+    }
+
+
+    // Create PaperReview entries
+    const paperReviews = await Promise.all(
+      reviewerIds.map((rid) =>
+        prisma.paperReview.create({
+          data: {
+            paperId,
+            reviewerId: rid,
+            reviewText: "",
+            reviewerStatus: ReviewerStatus.PENDING
+          }
+        })
+      )
+    );
+
+    // Update paper status
+    await prisma.researchPaper.update({
+      where: { id: paperId },
+      data: { status: "ON_REVIEW" }
+    });
 
     return NextResponse.json({
-      message: "Reviewer assigned successfully",
-      paper: updatedPaper
+      success: true,
+      message: "Reviewers assigned successfully",
+      data: paperReviews
     });
 
-  } catch (error) {
-    console.error("Error assigning reviewer:", error);
+  } catch (error: any) {
+    console.error("Error assigning reviewers:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { success: false, message: "Server error", error: error.message },
       { status: 500 }
     );
   }

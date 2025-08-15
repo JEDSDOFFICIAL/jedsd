@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import * as React from "react";
 import { useSession } from "next-auth/react";
@@ -12,32 +12,39 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Edit,
   Upload,
-  TrendingUp,
-  TrendingDown,
 } from "lucide-react";
-import { ChartPieLabel } from "../charts/piechart";
+import { ChartPieLabel } from "../charts/piechart"; // Assuming this component exists
 
 interface DashboardStats {
   overall: {
-    totalPapers: number;
-    uploadedPapers: number;
-    underReviewPapers: number;
-    underEditPapers: number;
-    publishedPapers: number;
-    rejectedPapers: number;
     totalUsers: number;
+    totalResearchPapers: number;
+    totalReviews: number;
     totalReviewers: number;
-    totalEditors: number;
+    papersByStatus: {
+      UPLOAD: number;
+      ON_REVIEW: number;
+      ACCEPTED: number;
+      REJECTED: number;
+      PUBLISH: number;
+    };
+    averageOverallReviewRating: number;
   };
   userSpecific: {
-    authoredPapers?: number;
-    authoredPublished?: number;
-    assignedForReview?: number;
-    reviewsCompleted?: number;
-    assignedForEdit?: number;
-    editsCompleted?: number;
+    totalAuthoredPapers?: number;
+    papersInReview?: number;
+    papersAccepted?: number;
+    papersRejected?: number;
+    papersPublished?: number;
+    totalAssignedReviews?: number;
+    reviewsSubmitted?: number;
+    reviewsPending?: number;
+    averageRatingGiven?: number;
+    // EDITOR specific properties
+    papersToAllocate?: number;
+    papersCompleted?: number;
+    totalPapersManaged?: number;
   };
 }
 
@@ -56,11 +63,11 @@ export function EnhancedDashboardCards() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/dashboard/stats?userId=${session?.user?.id}&userType=${session?.user?.userType}`
+        `/api/stats?userId=${session?.user?.id}&userType=${session?.user?.userType}`
       );
       if (response.ok) {
         const data = await response.json();
-        setStats(data);
+        setStats(data.stats);
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -85,19 +92,55 @@ export function EnhancedDashboardCards() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{userStats.authoredPapers || 0}</div>
+                <div className="text-2xl font-bold">
+                  {userStats.totalAuthoredPapers || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">Total submitted</p>
               </CardContent>
             </Card>
-            
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">In Review</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {userStats.papersInReview || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Currently under review
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Accepted</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {userStats.papersAccepted || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Papers accepted
+                </p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Published</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <Upload className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{userStats.authoredPublished || 0}</div>
-                <p className="text-xs text-muted-foreground">Papers published</p>
+                <div className="text-2xl font-bold text-blue-600">
+                  {userStats.papersPublished || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Papers published
+                </p>
               </CardContent>
             </Card>
           </>
@@ -112,18 +155,24 @@ export function EnhancedDashboardCards() {
                 <Eye className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{userStats.assignedForReview || 0}</div>
-                <p className="text-xs text-muted-foreground">Papers to review</p>
+                <div className="text-2xl font-bold">
+                  {userStats.totalAssignedReviews || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Papers to review
+                </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Completed</CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{userStats.reviewsCompleted || 0}</div>
+                <div className="text-2xl font-bold">
+                  {userStats.reviewsSubmitted || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">Reviews done</p>
               </CardContent>
             </Card>
@@ -135,23 +184,61 @@ export function EnhancedDashboardCards() {
           <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Assigned</CardTitle>
-                <Edit className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">To Allocate</CardTitle>
+                <FileText className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{userStats.assignedForEdit || 0}</div>
-                <p className="text-xs text-muted-foreground">Papers to edit</p>
+                <div className="text-2xl font-bold text-orange-600">
+                  {userStats.papersToAllocate || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Papers awaiting reviewer allocation
+                </p>
               </CardContent>
             </Card>
-            
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">In Review</CardTitle>
+                <Clock className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {userStats.papersInReview || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Papers currently under review
+                </p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <CheckCircle className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{userStats.editsCompleted || 0}</div>
-                <p className="text-xs text-muted-foreground">Edits done</p>
+                <div className="text-2xl font-bold text-green-600">
+                  {userStats.papersCompleted || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Papers processed
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Managed</CardTitle>
+                <Users className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {userStats.totalPapersManaged || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  All papers in system
+                </p>
               </CardContent>
             </Card>
           </>
@@ -162,49 +249,63 @@ export function EnhancedDashboardCards() {
           <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">New Submissions</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  New Submissions
+                </CardTitle>
                 <Upload className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.overall.uploadedPapers}</div>
-                <p className="text-xs text-muted-foreground">Awaiting assignment</p>
+                <div className="text-2xl font-bold">
+                  {stats?.overall?.papersByStatus?.UPLOAD || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting assignment
+                </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Under Process</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">
+                  Under Review
+                </CardTitle>
+                <Clock className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.overall.underReviewPapers + stats.overall.underEditPapers}
+                <div className="text-2xl font-bold text-orange-600">
+                  {stats?.overall?.papersByStatus?.ON_REVIEW || 0}
                 </div>
-                <p className="text-xs text-muted-foreground">Review + Edit</p>
+                <p className="text-xs text-muted-foreground">
+                  Papers in review
+                </p>
               </CardContent>
             </Card>
-            
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats?.overall?.totalUsers || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Registered users
+                </p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Published</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <CheckCircle className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.overall.publishedPapers}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats?.overall?.papersByStatus?.PUBLISH || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">Total published</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">System Users</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.overall.totalUsers}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.overall.totalReviewers}R + {stats.overall.totalEditors}E
-                </p>
               </CardContent>
             </Card>
           </>
@@ -258,31 +359,43 @@ export function EnhancedDashboardCards() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Paper Status Distribution</CardTitle>
+              <CardTitle className="text-lg">
+                Paper Status Distribution
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Uploaded</span>
-                  <Badge variant="outline">{stats.overall.uploadedPapers}</Badge>
+                  <Badge variant="outline">
+                    {stats.overall.papersByStatus.UPLOAD}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Under Review</span>
-                  <Badge variant="secondary">{stats.overall.underReviewPapers}</Badge>
+                  <Badge variant="secondary">
+                    {stats.overall.papersByStatus.ON_REVIEW}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Under Edit</span>
-                  <Badge variant="secondary">{stats.overall.underEditPapers}</Badge>
+                  <span className="text-sm">Accepted</span>
+                  <Badge variant="default">
+                    {stats.overall.papersByStatus.ACCEPTED}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Published</span>
-                  <Badge variant="default">{stats.overall.publishedPapers}</Badge>
+                  <Badge variant="default">
+                    {stats.overall.papersByStatus.PUBLISH}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Rejected</span>
-                  <Badge variant="destructive">{stats.overall.rejectedPapers}</Badge>
+                  <Badge variant="destructive">
+                    {stats.overall.papersByStatus.REJECTED}
+                  </Badge>
                 </div>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
 
@@ -308,28 +421,39 @@ export function EnhancedDashboardCards() {
               <CardTitle className="text-lg">System Health</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              {/* <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Total Papers</span>
-                  <span className="font-semibold">{stats.overall.totalPapers}</span>
+                  <span className="font-semibold">
+                    {stats.overall.totalResearchPapers}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Active Reviewers</span>
-                  <span className="font-semibold">{stats.overall.totalReviewers}</span>
+                  <span className="font-semibold">
+                    {stats.overall.totalReviewers}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Active Editors</span>
-                  <span className="font-semibold">{stats.overall.totalEditors}</span>
+                  <span className="text-sm">Total Reviews</span>
+                  <span className="font-semibold">
+                    {stats.overall.totalReviews}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Success Rate</span>
                   <span className="font-semibold text-green-600">
-                    {stats.overall.totalPapers > 0 
-                      ? Math.round((stats.overall.publishedPapers / stats.overall.totalPapers) * 100)
-                      : 0}%
+                    {stats.overall.totalResearchPapers > 0
+                      ? Math.round(
+                          (stats.overall.papersByStatus.PUBLISH /
+                            stats.overall.totalResearchPapers) *
+                            100
+                        )
+                      : 0}
+                    %
                   </span>
                 </div>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         </div>

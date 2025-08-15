@@ -1,4 +1,4 @@
-import { resend } from "@/utils/mailer";
+import { resend } from "@/lib/mailer";
 import { ResearchPaper, User } from "@prisma/client";
 import { render } from '@react-email/components';
 import EditorPaperAllocationEmail from "../../../emails/EditorPaperAllocationMail";
@@ -11,7 +11,6 @@ export async function sendEditorPaperAllocationMail(paper: ResearchPaper, editor
       paperAbstract: paper.abstract,
       authorName: (paper as any).author?.name || 'Author',
       submissionDate: new Date(paper.submissionDate).toLocaleDateString(),
-      reviewerStatus: (paper as any).reviewerStatus || 'Pending',
       editUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/edit/${paper.id}`
     }));
 

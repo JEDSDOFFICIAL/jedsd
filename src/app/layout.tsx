@@ -2,7 +2,7 @@
 
 import type { Metadata } from "next";
 import "./globals.css";
-import Providers from "@/utils/Provider";
+import Providers from "@/lib/Provider";
 import Head from "next/head";
 
 

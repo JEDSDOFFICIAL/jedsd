@@ -1,4 +1,4 @@
-import { resend } from "@/utils/mailer";
+import { resend } from "@/lib/mailer";
 import SuccessAuthentication from "../../../emails/successAuthenticate";
 
 

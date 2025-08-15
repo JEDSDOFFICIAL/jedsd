@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm,  useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -25,7 +25,7 @@ import axios from "axios";
 import { FileUpload } from "@/components/ui/file-upload";
 
 import { useSession } from "next-auth/react";
-import uploadFileToFirebase from "@/lib/uploadToFirebase";
+import { uploadFileToFirebase } from "@/lib/Firebase-Action";
 
 // Zod Schema
 const contributorSchema = z.object({
@@ -36,34 +36,41 @@ const contributorSchema = z.object({
 });
 
 const formSchema = z.object({
-  title: z.string().min(20, "Paper Title is required").max(200, "Paper Title must be less than 200 characters"),
-  abstract: z.string().min(350, "Abstract is required").max(1000, "Abstract must be less than 1000 characters"),
+  title: z.string().min(20, "Paper Title is required (min 20 chars)").max(200, "Paper Title must be less than 200 characters"),
+  abstract: z.string().min(350, "Abstract is required (min 350 chars)").max(1000, "Abstract must be less than 1000 characters"),
   keywords: z.string().min(1, "Keywords are required"),
   contributors: z
     .array(contributorSchema)
     .min(1, "At least one Contributor is required"),
-  pocDetails: contributorSchema,
+  pocDetails: contributorSchema, // This now directly maps to the contactInfoSchema
   file: z
     .instanceof(File)
     .refine(
-      (file) => !file || file.type === "application/pdf",
-      "Only PDF files are allowed"
+      (file) => file.type === "application/pdf",
+      "Only PDF files are allowed for the paper."
     )
-    .nullable(),
+    .refine(
+      (file) => file.size <= 10 * 1024 * 1024,
+      "Paper file size must be less than 10MB."
+    ),
   coverLetter: z
     .instanceof(File)
     .optional()
     .refine(
       (file) => !file || file.type === "application/pdf",
-      "Only PDF files are allowed"
+      "Only PDF files are allowed for the cover letter."
     )
-    .nullable(),
+    .refine(
+      (file) => !file || file.size <= 10 * 1024 * 1024,
+      "Cover letter file size must be less than 10MB."
+    )
+    .nullable(), // Allows undefined (optional) or null
 });
 
 export default function MultiPagePaperUpload() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const totalSteps = 6; // Updated total steps
+  const totalSteps = 6;
 
   const { data: session } = useSession();
 
@@ -75,6 +82,7 @@ export default function MultiPagePaperUpload() {
     setValue,
     trigger,
     formState: { errors },
+    reset, // Added reset for easier form clearing
   } = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,15 +91,15 @@ export default function MultiPagePaperUpload() {
       keywords: "",
       contributors: [
         { fullName: "", email: "", contactNumber: "", affiliation: "" },
-      ], // Default for dynamic fields
+      ],
       pocDetails: {
         fullName: "",
         email: "",
         contactNumber: "",
         affiliation: "",
       },
-      file: undefined,
-      coverLetter: undefined,
+      file: undefined, // Default to undefined for File inputs
+      coverLetter: undefined, // Default to undefined for File inputs
     },
   });
 
@@ -113,116 +121,75 @@ export default function MultiPagePaperUpload() {
       const paperFile = data.file;
       const coverLetterFile = data.coverLetter;
 
-      if (paperFile && paperFile.type !== "application/pdf") {
-        toast.error("Only PDF files are allowed for the paper.");
+      // Zod schema already handles type and size validation for files,
+      // so explicit checks here are redundant if Zod is strictly applied.
+      // However, keeping them as an extra safeguard before upload if needed.
+      if (!paperFile) {
+        toast.error("Paper file is required.");
         setLoading(false);
         return;
       }
-      if (paperFile && paperFile.size > 10 * 1024 * 1024) {
-        toast.error("Paper file size exceeds 10MB limit.");
-        setLoading(false);
-        return;
-      }
-
-      if (coverLetterFile && coverLetterFile.type !== "application/pdf") {
-        toast.error("Only PDF files are allowed for the cover letter.");
-        setLoading(false);
-        return;
-      }
-      if (coverLetterFile && coverLetterFile.size > 10 * 1024 * 1024) {
-        toast.error("Cover letter file size exceeds 10MB limit.");
-        setLoading(false);
-        return;
-      }
-
-      const finalData = {
-        title: data.title,
-        abstract: data.abstract,
-        keywords: data.keywords.split(",").map((k: any) => k.trim()),
-        contributors: JSON.stringify(data.contributors),
-        pointOfContact: JSON.stringify(data.pocDetails),
-        filePath: "",
-        coverLetterPath: null as string | null,
-        authorId: session?.user?.id || null,
-      };
 
       // Upload paper file to Firebase (required)
-      if (!paperFile) {
-        toast.error("Paper file is required");
+      const filePath = await uploadFileToFirebase(paperFile, "papers");
+      if (!filePath) {
+        toast.error("Failed to upload paper file.");
         setLoading(false);
         return;
       }
-
-      const fileId = await uploadFileToFirebase(paperFile, "papers");
-      if (!fileId) {
-        toast.error("Failed to upload paper file");
-        setLoading(false);
-        return;
-      }
-      finalData.filePath = fileId;
 
       // Upload cover letter to Firebase if provided
+      let coverLetterPath: string | null = null;
       if (coverLetterFile) {
-        const coverLetterId = await uploadFileToFirebase(
+        const uploadedCoverLetterPath = await uploadFileToFirebase(
           coverLetterFile,
           "cover-letters"
         );
-        if (coverLetterId) {
-          finalData.coverLetterPath = coverLetterId;
+        if (uploadedCoverLetterPath) {
+          coverLetterPath = uploadedCoverLetterPath;
+        } else {
+          toast.error("Failed to upload cover letter. Proceeding without it.");
         }
       }
 
-      // Set authorId if user is authenticated
-      if (session?.user?.id) {
-        finalData.authorId = session.user.id;
+      // Prepare data for API submission
+      const finalData = {
+        title: data.title,
+        abstract: data.abstract,
+        // Convert comma-separated keywords string to array
+        keywords: data.keywords.split(",").map((k) => k.trim()).filter(Boolean),
+        // Pass contributors and pocDetails directly as objects (Axios will stringify them)
+        contributors: data.contributors,
+        pointOfContact: data.pocDetails,
+        filePath: filePath, // The URL/ID from Firebase
+        coverLetterPath: coverLetterPath, // The URL/ID from Firebase, or null
+        authorId: session?.user?.id || null, // Ensure authorId is null if not authenticated
+      };
+      console.log("final Data is ",finalData)
+      // Submit data to API
+      const uploadApi = await axios.post("/api/paper", finalData); // Corrected API endpoint
+
+      if (uploadApi.status === 201) { // Expect 201 Created for successful POST
+        toast.success("Research paper uploaded successfully!");
+        reset(); // Reset form fields after successful submission
+        setStep(1); // Go back to the first step
       } else {
-        // If no user session, remove authorId to avoid foreign key constraint
-        finalData.authorId = null;
+        toast.error(`Failed to submit form. Status: ${uploadApi.status}`);
       }
 
-      // Submit data to API
-      console.log("Submitting finalData:", finalData);
-      const uploadApi = await axios.post("/api/paper", finalData);
-      
-      if (uploadApi.status === 200) {
-        toast.success("Form submitted successfully!");
-      } else {
-        toast.error("Failed to submit form");
-        setLoading(false);
-        return;
-      }
-      
-      
     } catch (error) {
       console.error("Error submitting form:", error);
       if (axios.isAxiosError(error)) {
-        console.error("API Error Response:", error.response?.data);
-        toast.error(`API Error: ${error.response?.data?.error || "Unknown error"}`);
+        const errorMessage = error.response?.data?.message || error.message;
+        const errorDetails = error.response?.data?.errors ? JSON.stringify(error.response.data.errors, null, 2) : '';
+        toast.error(`Submission Error: ${errorMessage} ${errorDetails}`);
       } else {
-        toast.error("Failed to submit form");
+        toast.error("An unexpected error occurred during submission.");
       }
     } finally {
       setLoading(false);
-      setStep(1);
-      setValue("title", "");
-      setValue("abstract", "");
-      setValue("keywords", "");
-      setValue("contributors", [
-        { fullName: "", email: "", contactNumber: "", affiliation: "" },
-      ]);
-      setValue("pocDetails", {
-        fullName: "",
-        email: "",
-        contactNumber: "",
-        affiliation: "",
-      });
-      setValue("file", null);
-      setValue("coverLetter", null);
     }
   };
-
- 
-
 
   const nextStep = async () => {
     let isValid = false;
@@ -233,18 +200,24 @@ export default function MultiPagePaperUpload() {
     } else if (step === 3) {
       isValid = await trigger(["pocDetails"]);
     } else if (step === 4) {
-      isValid = await trigger(["file"]);
-      // Allow moving to next step even if cover letter is not uploaded (optional field)
+      // Validate 'file' for requiredness and type/size
+      isValid = await trigger("file");
+      if (isValid && !watchFile) {
+          toast.error("Paper file is required for this step.");
+          isValid = false;
+      }
     } else if (step === 5) {
-      isValid = await trigger(["coverLetter"]);
-      isValid = isValid || true; // Allow moving to next step even if cover letter is not uploaded (optional field)
-      // Allow moving to next step even if cover letter is not uploaded (optional field)
+      // Validate 'coverLetter' (optional)
+      isValid = await trigger("coverLetter");
+      // If coverLetter is optional, `trigger` will return true even if it's null.
+      // We explicitly make it valid here to allow proceeding if it's empty.
+      isValid = true;
     }
 
     if (isValid) {
       setStep((s) => Math.min(s + 1, totalSteps));
     } else {
-      toast.error("Please fill in all required fields for this step.");
+      toast.error("Please fill in all required fields correctly for this step.");
     }
   };
 
@@ -254,7 +227,7 @@ export default function MultiPagePaperUpload() {
     <div className="w-full md:p-9 p-4 h-fit">
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="text-white">Loading...</div>
+          <div className="text-white">Submitting your paper...</div>
         </div>
       )}
       <Card className="w-full h-full min-w-fit overflow-auto">
@@ -504,23 +477,10 @@ export default function MultiPagePaperUpload() {
                     No file selected
                   </p>
                 )}
-                {watchFile && (
-                  <>
-                    <p className="text-green-600 text-xs">
-                      One file is selected already. If you upload another file,
-                      the previous one will be replaced.
-                    </p>
-                    <FileUpload
-                      onChange={(files) => setValue("file", files[0])}
-                    />
-                  </>
-                )}
-
-                {!watchFile && (
-                  <FileUpload
-                    onChange={(files) => setValue("file", files[0])}
-                  />
-                )}
+                {/* FileUpload component should handle file selection */}
+                <FileUpload
+                  onChange={(files) => setValue("file", files[0] || null)}
+                />
                 {errors.file && (
                   <p className="text-red-500">{errors.file.message}</p>
                 )}
@@ -541,23 +501,9 @@ export default function MultiPagePaperUpload() {
                     No cover letter selected
                   </p>
                 )}
-                {watchCoverLetter && (
-                  <>
-                    <p className="text-green-600 text-xs">
-                      One file is selected already. If you upload another file,
-                      the previous one will be replaced.
-                    </p>
-                    <FileUpload
-                      onChange={(files) => setValue("coverLetter", files[0])}
-                    />
-                  </>
-                )}
-
-                {!watchCoverLetter && (
-                  <FileUpload
-                    onChange={(files) => setValue("coverLetter", files[0])}
-                  />
-                )}
+                <FileUpload
+                  onChange={(files) => setValue("coverLetter", files[0] || null)}
+                />
                 {errors.coverLetter && (
                   <p className="text-red-500">{errors.coverLetter.message}</p>
                 )}
@@ -572,7 +518,7 @@ export default function MultiPagePaperUpload() {
                       {
                         title: watch("title"),
                         abstract: watch("abstract"),
-                        keywords: watch("keywords"),
+                        keywords: watch("keywords").split(",").map((k: any) => k.trim()).filter(Boolean),
                         contributors: watch("contributors"),
                         pointOfContact: watch("pocDetails"),
                         fileName: watchFile?.name,
@@ -605,8 +551,9 @@ export default function MultiPagePaperUpload() {
               type="submit"
               formMethod="post"
               onClick={handleSubmit(onSubmit)}
+              disabled={loading} // Disable button when loading
             >
-              Submit
+              {loading ? "Submitting..." : "Submit"}
             </Button>
           )}
         </CardFooter>

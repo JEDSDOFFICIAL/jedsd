@@ -1,353 +1,282 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { AuthorOrContact } from "@/types/dataTypes";
-import { sendSuccessfulUploadPaperEmail } from "@/helper/mail/sendSuccessfulUploadPaperMail";
-import {
-  EditorStatus,
-  PaperStatus,
-  ResearchPaper,
-  ReviewerStatus,
-} from "@prisma/client";
-import { deleteFileByDownloadURL } from "@/lib/deleteTOFirebase";
-import { sendReviewerPaperMail } from "@/helper/mail/send-reviewer-new-paper-mail";
-export async function POST(request: NextRequest) {
+// app/api/research-papers/route.ts
+
+import { NextResponse } from "next/server";
+import { PrismaClient, PaperStatus } from "@prisma/client";
+import { z } from "zod";
+
+const prisma = new PrismaClient();
+
+// --- Zod Schemas for Request Validation ---
+const contactInfoSchema = z.object({
+  fullName: z.string().min(1, "Full name is required."),
+  email: z.string().email("Invalid email format."),
+  affiliation: z.string().min(1, "Affiliation is required."),
+  contactNumber: z.string().min(1, "Contact number is required."),
+});
+// Schema for uploading a research paper (POST request)
+const uploadPaperSchema = z.object({
+  title: z.string().min(1, "Title is required."),
+  abstract: z.string().min(1, "Abstract is required."),
+  filePath: z
+    .string()
+    .url("Invalid file path URL.")
+    .min(1, "File path is required."),
+  keywords: z
+    .array(z.string().min(1, "Keyword cannot be empty."))
+    .min(1, "At least one keyword is required."),
+  coverLetterPath: z
+    .string()
+    .url("Invalid cover letter path URL.")
+    .optional()
+    .nullable(),
+  authorId: z.string().uuid("Invalid authorId format."),
+  contributors: z.array(contactInfoSchema), // Zod's .json() or more specific schema if structure is known
+  pointOfContact: contactInfoSchema, // Zod's .json() or more specific schema if structure is known
+});
+
+// Schema for deleting multiple research papers (DELETE request)
+const deletePapersSchema = z.object({
+  paperIds: z
+    .array(z.string().uuid("Invalid paper ID format in array."))
+    .min(1, "At least one paper ID is required for deletion."),
+});
+
+// --- API Route Handlers ---
+
+// POST /api/research-papers - Upload a new research paper
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
-    console.log("Received body:", JSON.stringify(body, null, 2));
-    
-    const data = body as ResearchPaper & {
-      keywords: string[];
-      contributors: AuthorOrContact[];
-      pointOfContact?: AuthorOrContact;
-    };
+    const body = await req.json();
+    const validationResult = uploadPaperSchema.safeParse(body);
 
-    console.log("Processed data:", JSON.stringify(data, null, 2));
-
-    // Validate authorId if provided
-    if (data.authorId) {
-      const authorExists = await prisma.user.findUnique({
-        where: { id: data.authorId },
-      });
-      
-      if (!authorExists) {
-        console.error("Author not found:", data.authorId);
-        return NextResponse.json(
-          { error: "Invalid author ID" },
-          { status: 400 }
-        );
-      }
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid request data.",
+          errors: validationResult.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
-    const paper = await prisma.researchPaper.create({
+    const {
+      title,
+      abstract,
+      filePath,
+      keywords,
+      coverLetterPath,
+      authorId,
+      contributors,
+      pointOfContact,
+    } = validationResult.data;
+    console.log("backend data is ,", validationResult.data);
+    // Verify author exists and is a USER (or AUTHOR, depending on your UserType definition for authors)
+    const author = await prisma.user.findUnique({
+      where: { id: authorId },
+    });
+
+    if (!author) {
+      return NextResponse.json(
+        { success: false, message: "Author not found." },
+        { status: 404 }
+      );
+    }
+
+    const newPaper = await prisma.researchPaper.create({
       data: {
-        ...data,
-      },
-      include: {
-        author: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
+        title,
+        abstract,
+        filePath,
+        keywords,
+        coverLetterPath,
+        authorId,
+        contributors,
+        pointOfContact,
+        status: PaperStatus.UPLOAD, // Default status for new uploads
       },
     });
-    // Optionally, you can send an email notification here
-    await sendSuccessfulUploadPaperEmail(paper);
 
-    return NextResponse.json({ paper }, { status: 200 });
-  } catch (error: any) {
-    console.error("Error creating paper:", error);
     return NextResponse.json(
-      { message: "Internal server error", error: error.message },
+      {
+        success: true,
+        message: "Research paper uploaded successfully.",
+        paper: newPaper,
+      },
+      { status: 201 }
+    ); // 201 Created
+  } catch (error: any) {
+    console.error("Error uploading research paper:", error);
+    return NextResponse.json(
+      { success: false, message: "Server error", error: error.message },
       { status: 500 }
     );
   }
 }
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = req.nextUrl;
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "5");
-  const skip = (page - 1) * limit;
-  const status = searchParams.get("status"); // Default to PUBLISH if not provided
-  const authorId = searchParams.get("authorId");
-  const reviewerId = searchParams.get("reviewerId");
-  const editorId = searchParams.get("editorId");
-  const paperId = searchParams.get("paperId");
-  const keywords = searchParams.getAll("keywords");
-  const titles = searchParams.getAll("title");
-  const sortBy = searchParams.get("sortBy") || "submissionDate";
-  const order = (searchParams.get("order") || "desc") as "asc" | "desc";
-  //console.log("status", status);
-  //console.log("page", page);
-  try {
-    const where: any = {
-      ...(authorId && { authorId }),
-      ...(reviewerId && { reviewerId }),
-      ...(keywords.length > 0 && {
-        keywords: {
-          hasSome: keywords.map((k) => k.trim()).filter((k) => k !== ""),
-        },
-      }),
-      ...(titles.length > 0 && {
-        OR: titles.map((t) => ({
-          title: {
-            contains: t,
-            mode: "insensitive",
-          },
-        })),
-      }),
-      ...(status && { status }),
-      ...(editorId && { editorId }),
-      ...(paperId && { id: paperId }),
-      // Add other filters as needed
-    };
+// GET /api/research-papers - Fetch all research papers
 
-    const [papers, total] = await Promise.all([
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+
+    // Build the dynamic 'where' clause
+    const where: any = {};
+
+    const authorId = searchParams.get("authorId");
+    if (authorId) {
+      where.authorId = authorId;
+    }
+
+    const reviewerId = searchParams.get("reviewerId");
+    if (reviewerId) {
+      where.reviews = {
+        some: {
+          reviewerId: reviewerId,
+        },
+      };
+    }
+
+    const keywords = searchParams.get("keywords");
+    if (keywords) {
+      where.keywords = {
+        has: keywords, // assuming keywords is a list or array
+      };
+    }
+
+    const title = searchParams.get("title");
+    if (title) {
+      where.title = {
+        contains: title,
+        mode: "insensitive", // Case-insensitive search
+      };
+    }
+
+    const status = searchParams.get("status");
+    if (status) {
+      where.status = status;
+    }
+
+    const reviewerStatus = searchParams.get("reviewerStatus");
+    if (reviewerStatus && reviewerId) {
+      // Filter papers where the specific reviewer has this status
+      where.reviews = {
+        some: {
+          reviewerId: reviewerId,
+          reviewerStatus: reviewerStatus,
+        },
+      };
+    } else if (reviewerStatus) {
+      // Filter papers where any reviewer has this status
+      where.reviews = {
+        some: {
+          reviewerStatus: reviewerStatus,
+        },
+      };
+    }
+
+    // Handle Pagination
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
+
+    const [papers, totalPapers] = await prisma.$transaction([
       prisma.researchPaper.findMany({
         where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: order },
         include: {
           author: {
-            select: {
-              name: true,
-              email: true,
-            },
+            select: { id: true, name: true, email: true, username: true },
           },
-          reviewer: {
+          reviews: {
             select: {
               id: true,
-              name: true,
-              email: true,
-            },
-          },
-          editor: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+              reviewerId: true,
+              reviewer: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+
+              reviewText: true,
+              rating: true,
+              reviewerStatus: true,
             },
           },
         },
+        orderBy: {
+          submissionDate: "desc",
+        },
+        skip,
+        take: limit,
       }),
       prisma.researchPaper.count({ where }),
     ]);
 
     return NextResponse.json({
+      success: true,
+      message: "Research papers fetched successfully.",
       papers,
-      total,
+      total: totalPapers,
       page,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(totalPapers / limit),
     });
   } catch (error: any) {
-    console.error("Error fetching papers:", error);
+    console.error("Error fetching research papers:", error);
     return NextResponse.json(
-      { message: "Error", error: error.message },
+      { success: false, message: "Server error", error: error.message },
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(req: NextRequest) {
+// DELETE /api/research-papers - Delete multiple research papers
+export async function DELETE(req: Request) {
   try {
     const body = await req.json();
+    const validationResult = deletePapersSchema.safeParse(body);
 
-    const { paperIds } = body as { paperIds: string[] };
-    if (!Array.isArray(paperIds) || paperIds.length === 0) {
+    if (!validationResult.success) {
       return NextResponse.json(
-        { message: "No paper IDs provided." },
+        {
+          success: false,
+          message: "Invalid request data.",
+          errors: validationResult.error.errors,
+        },
         { status: 400 }
       );
     }
-    const existingPapers = await prisma.researchPaper.findMany({
-      where: { id: { in: paperIds } },
-      select: {
-        id: true,
-        filePath: true,
-        coverLetterPath: true,
-      },
-    });
-    // Step 2: Attempt to delete each file from Firebase
-    for (const paper of existingPapers) {
-      if (paper.filePath) await deleteFileByDownloadURL(paper.filePath);
-      if (paper.coverLetterPath)
-        await deleteFileByDownloadURL(paper.coverLetterPath);
-    }
+
+    const { paperIds } = validationResult.data;
 
     const deleteResult = await prisma.researchPaper.deleteMany({
-      where: { id: { in: paperIds } },
+      where: {
+        id: {
+          in: paperIds,
+        },
+      },
     });
 
-    return NextResponse.json(
-      {
-        message: `Successfully deleted ${deleteResult.count} paper(s).`,
-        deletedCount: deleteResult.count,
-      },
-      { status: 200 }
-    );
+    if (deleteResult.count === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "No research papers found with the provided IDs for deletion.",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully deleted ${deleteResult.count} research paper(s).`,
+      deletedCount: deleteResult.count,
+    });
   } catch (error: any) {
-    console.error("Error deleting papers:", error);
+    console.error("Error deleting research papers:", error);
     return NextResponse.json(
-      { message: "Failed to delete papers.", error: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(
-  request: NextRequest
-) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const paperId = searchParams.get("paperId");
-    if (!paperId) {
-      return NextResponse.json(
-        { error: "Paper ID is required" },
-        { status: 400 }
-      );
-    }
-    const body = await request.json();
-    console.log("Update paper body:", body);
-
-    const allowedUpdates = [
-      "title",
-      "abstract",
-      "filePath",
-      "keywords",
-      "rating",
-      "coverLetterPath",
-      "status",
-      "reviewerId",
-      "reviewerStatus",
-      "editorId",
-      "editorStatus",
-      "contributors",
-      "pointOfContact",
-    ];
-
-    const dataToUpdate: Record<string, any> = {};
-
-    // Prepare update data
-    for (const key of allowedUpdates) {
-      if (body[key] !== undefined) {
-        dataToUpdate[key] = body[key];
-      }
-    }
-
-    // Validate status enums
-    if (
-      dataToUpdate.status &&
-      !Object.values(PaperStatus).includes(dataToUpdate.status)
-    ) {
-      return NextResponse.json(
-        { error: "Invalid paper status" },
-        { status: 400 }
-      );
-    }
-    if (
-      dataToUpdate.reviewerStatus &&
-      !Object.values(ReviewerStatus).includes(dataToUpdate.reviewerStatus)
-    ) {
-      return NextResponse.json(
-        { error: "Invalid reviewer status" },
-        { status: 400 }
-      );
-    }
-    if (
-      dataToUpdate.editorStatus &&
-      !Object.values(EditorStatus).includes(dataToUpdate.editorStatus)
-    ) {
-      return NextResponse.json(
-        { error: "Invalid editor status" },
-        { status: 400 }
-      );
-    }
-
-    // Verify reviewer exists
-    if (dataToUpdate.reviewerId) {
-      const reviewerExists = await prisma.user.findUnique({
-        where: { id: dataToUpdate.reviewerId },
-      });
-      if (!reviewerExists) {
-        return NextResponse.json(
-          { error: "Reviewer ID is invalid or user does not exist" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Delete old filePath if updating it
-    if (dataToUpdate.filePath || dataToUpdate.coverLetterPath) {
-      const current = await prisma.researchPaper.findUnique({
-        where: { id: paperId },
-        select: { filePath: true, coverLetterPath: true },
-      });
-
-      if (dataToUpdate.filePath && current?.filePath) {
-        await deleteFileByDownloadURL(current.filePath);
-      }
-      if (dataToUpdate.coverLetterPath && current?.coverLetterPath) {
-        await deleteFileByDownloadURL(current.coverLetterPath);
-      }
-    }
-
-    // Clear reviewer/editor if REJECTED
-    if (dataToUpdate.reviewerStatus === "REJECTED_FOR_REVIEW") {
-      dataToUpdate.reviewerId = null;
-    }
-    if (dataToUpdate.editorStatus === "REJECTED_FOR_EDIT") {
-      dataToUpdate.editorId = null;
-    }
-
-    // Convert JSON fields safely
-    if (body.contributors) {
-      dataToUpdate.contributors = JSON.stringify(body.contributors);
-    }
-    if (body.pointOfContact) {
-      dataToUpdate.pointOfContact = JSON.stringify(body.pointOfContact);
-    }
-
-    const updatedPaper = await prisma.researchPaper.update({
-      where: { id: paperId },
-      data: dataToUpdate,
-      include: {
-        author: { select: { id: true, name: true, email: true } },
-        reviewer: { select: { id: true, name: true, email: true } },
-        editor: { select: { id: true, name: true, email: true } },
-      },
-    });
-
-    // Send reviewer notification
-    if (dataToUpdate.reviewerId) {
-      const fullReviewer = await prisma.user.findUnique({
-        where: { id: dataToUpdate.reviewerId },
-      });
-
-      if (fullReviewer) {
-        await sendReviewerPaperMail(updatedPaper, fullReviewer);
-      }
-    }
-
-    // Parse JSON fields before sending back
-    const responsePaper = {
-      ...updatedPaper,
-      contributors:
-        typeof updatedPaper.contributors === "string"
-          ? JSON.parse(updatedPaper.contributors)
-          : updatedPaper.contributors,
-      pointOfContact:
-        typeof updatedPaper.pointOfContact === "string"
-          ? JSON.parse(updatedPaper.pointOfContact)
-          : updatedPaper.pointOfContact,
-    };
-
-    return NextResponse.json(responsePaper);
-  } catch (error) {
-    console.error("Failed to update paper:", error);
-    return NextResponse.json(
-      { error: "Failed to update paper" },
+      { success: false, message: "Server error", error: error.message },
       { status: 500 }
     );
   }

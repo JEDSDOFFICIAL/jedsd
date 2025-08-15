@@ -57,7 +57,7 @@ interface ResearchPaper {
 export default function PaperDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const paperId = params.id as string;
+  const id = params.id as string;
 
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +68,7 @@ export default function PaperDetailsPage() {
   const fetchPaperDetails = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/paper/${paperId}`);
+      const response = await axios.get(`/api/paper/${id}`);
       const paperData = response.data.paper;
 
       setPaper(paperData);
@@ -133,10 +133,10 @@ export default function PaperDetailsPage() {
   };
 
   useEffect(() => {
-    if (paperId) {
+    if (id) {
       fetchPaperDetails();
     }
-  }, [paperId]);
+  }, [id]);
 
   if (loading) {
     return (

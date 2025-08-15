@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       data: { email, userType },
     });
 
-    return NextResponse.json(entry, { status: 201 });
+    return NextResponse.json({entry,message:"New User Created Successfully"}, { status: 200});
   } catch (error) {
     console.error("POST error:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
@@ -64,7 +64,11 @@ export async function DELETE(req: NextRequest) {
 // GET: Return all UserDetails
 export async function GET() {
   try {
-    const data = await prisma.userDetails.findMany();
+    const data = await prisma.user.findMany({
+      where:{
+        userType: { in: [UserType.REVIEWER,UserType.ADMIN,UserType.EDITOR] }
+      }
+    });
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("GET error:", error);

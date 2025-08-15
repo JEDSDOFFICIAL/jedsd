@@ -40,7 +40,7 @@ import { getDownloadURL, uploadBytes } from "firebase/storage";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation"; // Import useParams for dynamic routes
 import { ResearchPaper } from "@prisma/client";
-import uploadFileToFirebase from "@/lib/uploadToFirebase";
+import { uploadFileToFirebase } from "@/lib/Firebase-Action";
 
 // Zod Schema (remains the same as it defines the structure)
 const contributorSchema = z.object({

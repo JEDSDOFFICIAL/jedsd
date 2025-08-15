@@ -1,73 +1,92 @@
-import { IconDashboard } from "@tabler/icons-react"
 import {
-  AreaChart,
-  BrainCircuit,
-  EditIcon,
+  LayoutDashboard,
   Home,
-  LucideLayoutDashboard,
-  LucidePaperclip,
-  Newspaper,
-  PartyPopper,
-  Search,
   Upload,
-  UserIcon,
-  UserPen,
-  UserPenIcon,
-} from "lucide-react"
-// This is sample data.
-
+  Search,
+  Paperclip,
+  Users,
+  UserCog,
+  FileText,
+  UserCheck,
+  FileSignature,
+  BookOpenCheck,
+  LineChart,
+  Settings,
+  HelpCircle,
+  PartyPopper,
+  Brain,
+} from "lucide-react";
 
 export const DashboardItems = [
   {
-    title: "Dashboard",
+    title: "Main",
     url: "#",
-    icon: LucideLayoutDashboard,
+    icon: LayoutDashboard,
     isActive: true,
     items: [
-      { title: "Home", url: "/",icon:Home },
-      { title: "Dashboard", url: "dashboard" ,icon:IconDashboard},
-      { title: "Upload Paper", url: "dashboard/paper/upload",icon: Upload },
-      { title: "Search a Paper", url: "paper",icon: Search },
+      { title: "Home", url: "/", icon: Home },
+      { title: "Overview Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Upload Research Paper", url: "/dashboard/paper/upload", icon: Upload },
+      { title: "Search Papers", url: "/dashboard/paper/search", icon: Search },
+      { title: "Analytics & Reports", url: "/dashboard/analytics", icon: LineChart },
     ],
   },
   {
-    title: "Reviewer Work Panel",
+    title: "Reviewer Panel",
     url: "#",
-    icon: AreaChart,
+    icon: FileSignature,
     access: ["REVIEWER"],
     items: [
-      { title: "Paper Request",icon:LucidePaperclip, url: "dashboard/paperworkreviewer" },
-      
+      { title: "Review Dashboard", url: "/dashboard/reviewer", icon: FileSignature },
     ],
   },
   {
-    title: "Editor Work Panel",
+    title: "Editor Panel",
     url: "#",
-    icon: UserPen,
+    icon: Brain,
     access: ["EDITOR"],
     items: [
-      { title: "Edit Papers", icon: UserPenIcon, url: "dashboard/editwork" },
-      { title: "Editor Paper Work", url: "dashboard/paperworkeditor", icon: EditIcon },
+      { title: "Assign Reviewers", url: "/dashboard/editor/reviewer-allocation", icon: UserCheck },
+      { title: "Manage Reviews", url: "/dashboard/editor/paper-reviews", icon: FileSignature },
+      { title: "Manage Publications", url: "/dashboard/editor/publications", icon: BookOpenCheck },
     ],
   },
   {
-    title: "Admin Work Panel",
+    title: "Admin Panel",
     url: "#",
-    icon: BrainCircuit ,
+    icon: Users,
     access: ["ADMIN"],
     items: [
-      { title: "Paper Workflow Management", url: "dashboard/workflow", icon: PartyPopper },
-      { title: "Reviewer List Work", url: "dashboard/reviewerlist" ,icon:UserPenIcon},
-      { title: "User List", url: "dashboard/userlist" ,icon:UserIcon},
+      { title: "User Management", url: "/dashboard/admin/users", icon: Users },
+      { title: "Role Management", url: "/dashboard/admin/roles", icon: UserCog },
+      { title: "Paper Management", url: "/dashboard/admin/papers", icon: FileText },
+      { title: "System Settings", url: "/dashboard/admin/settings", icon: Settings },
     ],
   },
-]
-
+  {
+    title: "Profile & Settings",
+    url: "#",
+    icon: UserCog,
+    items: [
+      { title: "Profile Setup", url: "/dashboard/profile", icon: UserCog },
+      { title: "Account Settings", url: "/dashboard/settings", icon: Settings },
+    ],
+  },
+  {
+    title: "Support",
+    url: "#",
+    icon: HelpCircle,
+    items: [
+      { title: "Help Center", url: "/help", icon: HelpCircle },
+      { title: "Contact Support", url: "/contact-support", icon: PartyPopper },
+    ],
+  },
+];
 
 export type AuthorOrContact = {
   fullName: string;
   affiliation?: string;
-  gmail: string;
+  email: string;
   contactNumber?: string;
 };
 

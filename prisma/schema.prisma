@@ -33,30 +33,21 @@ model User {
   verificationCodeExpiry DateTime?
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
-
-  reviewedPapers         ResearchPaper[] @relation("PaperReviewer")
   authoredPapers         ResearchPaper[] @relation("PaperAuthor")
-  editoredPapers         ResearchPaper[] @relation("PaperEditor")
+  reviews               PaperReview[]   @relation("UserToReviews")
 }
-
 model PaperReview {
-  id                String       @id @default(uuid())
+  id                String          @id @default(uuid())
   paperId           String
-  paper             ResearchPaper @relation("PaperToReviews",fields: [paperId], references: [id])
-
-  reviewerId        String?
-
-  editorId          String?
-
-
+  paper             ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id])
+  reviewerId        String
+  reviewer          User            @relation("UserToReviews", fields: [reviewerId], references: [id])
   reviewText        String
   correspondingFile String?
   rating            Int?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
   reviewerStatus    ReviewerStatus?
-  editorStatus      EditorStatus?
 }
 
 
@@ -73,19 +64,11 @@ model ResearchPaper {
   acceptedDate    DateTime?
   status          PaperStatus @default(UPLOAD)
 
-  reviewerId String?
-  reviewer   User?   @relation("PaperReviewer", fields: [reviewerId], references: [id])
-
   authorId String?
   author   User?   @relation("PaperAuthor", fields: [authorId], references: [id])
-  editorId String?
-  editor   User?   @relation("PaperEditor",fields: [editorId], references: [id])
-
   contributors   Json 
   pointOfContact Json 
 
-  reviewerStatus ReviewerStatus @default(PENDING)
-  editorStatus   EditorStatus   @default(PENDING)
   reviews        PaperReview[]  @relation("PaperToReviews")
 }
 
@@ -105,13 +88,6 @@ enum ReviewerStatus {
   REJECTED_FOR_PUBLICATION
   ACCEPTED_FOR_REVIEW
   REJECTED_FOR_REVIEW
-  PENDING
-}
-enum EditorStatus {
-  ACCEPTED_FOR_PUBLICATION
-  REJECTED_FOR_PUBLICATION
-  ACCEPTED_FOR_EDIT
-  REJECTED_FOR_EDIT
   PENDING
 }
 

@@ -1,7 +1,7 @@
 // /api/auth/signup.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { comparePassword, hashPassword } from "@/utils/hash";
+import { comparePassword, hashPassword } from "@/lib/hash";
 
 import { z } from "zod";
 

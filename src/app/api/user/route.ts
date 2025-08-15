@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { UserType } from "@prisma/client";
+
+
+
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const email = searchParams.get("email");
   const userType = searchParams.get("userType");
-
+  console.log("email is ", email);
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit")||"5");
   const skip = (page - 1) * limit;
@@ -78,6 +81,17 @@ export async function PUT(req: NextRequest) {
       where: { id: userId },
       data: updateData,
     });
+    if (userType){
+      await prisma.userDetails.update({
+        where:{
+          id:userId
+        },
+
+        data:{
+          userType:userType
+        }
+      })
+    }
 
     return NextResponse.json({
       message: "User updated successfully",
