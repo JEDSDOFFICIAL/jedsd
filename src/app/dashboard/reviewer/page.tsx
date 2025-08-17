@@ -586,7 +586,7 @@ export default function ReviewerDashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle>Submit Review</AlertDialogTitle>
             <AlertDialogDescription>
-              Submit your review for "{selectedPaper?.title}"
+              Submit your review for &apos;{selectedPaper?.title}&apos;
             </AlertDialogDescription>
           </AlertDialogHeader>
 

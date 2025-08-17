@@ -903,7 +903,7 @@ export const data: GuideData[] = [
               <strong>Manuscript Submission Check:</strong> Authors submit their manuscripts through the online submission system, which automatically checks if all files are uploaded correctly in PDF format. Sometimes a cover letter may be uploaded only in PDF format.
             </li>
             <li>
-              <strong>Preliminary Check:</strong> The editorial office conducts an initial screening to ensure the manuscript adheres to the journal's formatting and ethical guidelines. Manuscripts that do not meet these criteria are returned to the authors for correction.
+              <strong>Preliminary Check:</strong> The editorial office conducts an initial screening to ensure the manuscript adheres to the journal&apos;s formatting and ethical guidelines. Manuscripts that do not meet these criteria are returned to the authors for correction.
             </li>
           </ul>
         </div>
@@ -914,7 +914,7 @@ export const data: GuideData[] = [
           </h2>
           <ul className="list-disc pl-6 text-gray-700">
             <li>
-              <strong>Editor Assignment:</strong> The Editor-in-Chief assigns the manuscript to an appropriate Associate Editor based on the manuscript's subject area.
+              <strong>Editor Assignment:</strong> The Editor-in-Chief assigns the manuscript to an appropriate Associate Editor based on the manuscript&apos;s subject area.
             </li>
             <li>
               <strong>Reviewer Selection:</strong> The Associate Editor selects three or more independent reviewers with expertise in the relevant field.
@@ -931,7 +931,7 @@ export const data: GuideData[] = [
               <strong>Under Review:</strong> JEDSD follows a blind review process where the reviewers will remain anonymous to authors.
             </li>
             <li>
-              <strong>Review Criteria:</strong> Reviewers evaluate the manuscript based on originality, technical quality, significance, clarity, and relevance to the journal's scope.
+              <strong>Review Criteria:</strong> Reviewers evaluate the manuscript based on originality, technical quality, significance, clarity, and relevance to the journal&apos;s scope.
             </li>
             <li>
               <strong>Reviewer Reports:</strong> Reviewers provide detailed feedback and recommendations: accept, minor revisions, major revisions, or reject.
