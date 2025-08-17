@@ -18,7 +18,7 @@ const Allroute = () => {
   }, [pathname]);
   return (
     <div className='w-full overflow-x-hidden scroll-smooth'>
-    <div className='flex flex-col items-center justify-center min-h-screen w-full pt-8 bg-gradient-to-r from-teal-200 to-teal-500'>
+    <div className='flex flex-col items-center justify-center min-h-screen py-4 w-full bg-gradient-to-r from-blue-900/50 to-teal-100'>
       {data.map((item: any, index: number) => (
         item.title === path ? (
           <div key={index}>

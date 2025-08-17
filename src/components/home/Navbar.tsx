@@ -187,17 +187,17 @@ if (!mounted) return null;
   }
 
   return (
-    <div className="w-full h-fit bg-white shadow-md">
-      <header className="bg-gray-600 text-white w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20 ">
-        <div className="flex items-center gap-4 w-full h-full">
+    <div className="w-full h-fit bg-white shadow-md overflow-x-hidden">
+      <header className="bg-gray-600 text-white w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20 overflow-x-hidden">
+        <div className="flex items-center gap-4 w-full h-full min-w-0">
           <Image
             src="/logored.jpg"
             alt="Logo"
             width={100}
             height={100}
-            className="h-full w-auto"
+            className="h-full w-auto flex-shrink-0"
           />
-          <div className="flex flex-col w-full h-full md:justify-center md:items-center">
+          <div className="flex flex-col w-full h-full md:justify-center md:items-center min-w-0">
             <div className="flex items-center justify-end md:hidden h-full gap-4">
               <DropdownMenuProfile profileImage={session?.user?.image ?? undefined} />
               <Link href="/paper" className="text-white font-semibold text-lg">
@@ -207,17 +207,17 @@ if (!mounted) return null;
             <div className="w-full lg:h-1/2 hidden md:block bg-white border-2 border-black rounded-md py-1">
               <NavigationMenuDemo session={session} />
             </div>
-            <div className="w-full lg:h-1/2 hidden lg:flex gap-3 py-1">
+            <div className="w-full lg:h-1/2 hidden lg:flex gap-3 py-1 max-w-full">
               <Input
                 type="text"
                 placeholder="Search papers..."
-                className="w-full h-full bg-white text-black"
+                className="flex-1 h-full bg-white text-black min-w-0"
                 value={SearchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
               />
               <Button
-                className="h-full text-black"
+                className="h-full text-black flex-shrink-0"
                 variant="outline"
                 onClick={() => onClickSearch(SearchValue)}
               >
@@ -228,17 +228,17 @@ if (!mounted) return null;
         </div>
       </header>
 
-      <div className="w-full h-16 flex items-center gap-4 p-2 lg:hidden ">
+      <div className="w-full h-16 flex items-center gap-4 p-2 lg:hidden max-w-full">
         <Input
           type="text"
           placeholder="Search papers..."
           value={SearchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           onKeyPress={handleSearchKeyPress}
-          className="w-full h-full bg-white text-black"
+          className="flex-1 h-full bg-white text-black min-w-0"
         />
         <Button
-          className="h-full text-black"
+          className="h-full text-black flex-shrink-0"
           variant="outline"
           onClick={() => onClickSearch(SearchValue)}
         >
@@ -325,6 +325,15 @@ function NavigationMenuDemo({ session }: { session: any }) {
                 <Link href="/paper">
                   <div className="flex items-center gap-2 text-black font-medium">
                     <Search className="size-6 text-black" /> Paper
+                  </div>
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link href="/pre-publish">
+                  <div className="flex items-center gap-2 text-black font-medium">
+                    <BookCheck className="size-6 text-black" /> Pre-Publish
                   </div>
                 </Link>
               </NavigationMenuLink>
@@ -453,6 +462,24 @@ const SmNavbar = ({ session }: { session: any }) => {
               "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset",
           }}
         >
+          {/* Direct navigation links */}
+          <div className="space-y-2">
+            <Link
+              href="/paper"
+              className="flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-white/10 text-white text-sm border-b border-white/20 pb-2"
+            >
+              <Search className="size-4" />
+              <span className="font-medium">Papers</span>
+            </Link>
+            <Link
+              href="/pre-publish"
+              className="flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-white/10 text-white text-sm border-b border-white/20 pb-2"
+            >
+              <BookCheck className="size-4" />
+              <span className="font-medium">Pre-Publish</span>
+            </Link>
+          </div>
+          
           {sections.map((section, index) => (
             <Collapsible key={index}>
               <CollapsibleTrigger className="w-full border-b border-r border-white shadow-md shadow-white flex items-center justify-between px-3 py-2 text-white text-lg font-medium">

@@ -146,6 +146,20 @@ export async function fetchAllUser(){
   }
 }
 
+export async function fetchReviewerPapers(page: number = 1, limit: number = 10) {
+  try {
+    const res = await axios.get(`/api/paper/reviewer-papers`, {
+      params: { page, limit }
+    });
+    console.log("Fetched reviewer papers:", res.data);
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch reviewer papers:", error);
+    toast.error("Failed to fetch reviewer papers.");
+    return null;
+  }
+}
+
 export async function reviewerAllocation(paperId:string,reviewerIds:string[],onSuccess?:()=>void){
   try {
     const res = await axios.post(`/api/paper/assign-reviewer`, {
@@ -228,5 +242,51 @@ export async function publishPaper(paperId:string,onSuccess?:()=>void){
     console.error("Failed to publish paper:", error);
     toast.error("Failed to publish paper.");
     return null;
+  }
+}
+
+export async function acceptPaper(paperId: string, editorNotes?: string, onSuccess?: () => void) {
+  try {
+    const res = await axios.patch(`/api/paper/${paperId}/accept`, {
+      editorNotes
+    });
+    console.log("Accepted paper:", res.data);
+    toast.success("Paper accepted for publication successfully!");
+    onSuccess?.();
+    return res.data;
+  } catch (error) {
+    console.error("Failed to accept paper:", error);
+    toast.error("Failed to accept paper.");
+    return null;
+  }
+}
+
+export async function submitReview(
+  paperId: string,
+  reviewerId: string,
+  reviewText: string,
+  rating: number,
+  reviewerStatus: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION",
+  correspondingFile?: string | null,
+  onSuccess?: () => void
+): Promise<any> {
+  try {
+    console.log("Submitting review for paperId:", paperId, "reviewerId:", reviewerId);
+    const res = await axios.post(`/api/paper/review`, {
+      paperId,
+      reviewerId,
+      reviewText,
+      rating,
+      reviewerStatus,
+      correspondingFile
+    });
+    console.log("Review submission response:", res.data);
+    toast.success("Review submitted successfully!");
+    onSuccess?.();
+    return res.data;
+  } catch (error) {
+    console.error("Failed to submit review:", error);
+    toast.error("Failed to submit review.");
+    throw error;
   }
 }

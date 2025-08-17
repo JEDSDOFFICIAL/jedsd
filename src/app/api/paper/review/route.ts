@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if review already exists, if so update it, otherwise create new
-    const existingReview = await prisma.paperReview.findFirst({
+    let existingReview = await prisma.paperReview.findFirst({
       where: {
         paperId: paperId,
         reviewerId: reviewerId,
@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
     const paperId = searchParams.get("paperId");
     const reviewerId = searchParams.get("reviewerId");
 
-    const whereClause: any = {};
+    let whereClause: any = {};
 
     if (paperId) {
       whereClause.paperId = paperId;

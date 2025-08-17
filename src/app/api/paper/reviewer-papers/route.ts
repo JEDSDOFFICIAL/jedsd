@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Only reviewers can access this endpoint
-    if (session.user.userType !== "REVIEWER") {
+    if (session.user.userType ==="USER") {
       return NextResponse.json(
         { success: false, message: "Only reviewers can access this endpoint." },
         { status: 403 }
@@ -27,7 +27,24 @@ export async function GET(req: NextRequest) {
 
     const reviewerId = session.user.id;
 
-    // Fetch papers assigned to this reviewer
+    // Get query parameters for pagination
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await prisma.researchPaper.count({
+      where: {
+        reviews: {
+          some: {
+            reviewerId: reviewerId
+          }
+        }
+      }
+    });
+
+    // Fetch papers assigned to this reviewer with pagination
     const papers = await prisma.researchPaper.findMany({
       where: {
         reviews: {
@@ -62,13 +79,20 @@ export async function GET(req: NextRequest) {
       },
       orderBy: {
         submissionDate: 'desc'
-      }
+      },
+      skip: skip,
+      take: limit
     });
+
+    const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
       success: true,
       papers: papers,
-      total: papers.length,
+      total: totalCount,
+      page: page,
+      totalPages: totalPages,
+      limit: limit
     });
 
   } catch (error: any) {

@@ -9,19 +9,19 @@ export default function WithNavLayout({
 }>) {
   
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
       {/* Fixed Navbar */}
-      <header className="sticky top-0 z-50">
+      <header className="sticky top-0 z-50 w-full">
         <Navbar />
       </header>
       
       {/* Main Content - takes remaining space */}
-      <main className="flex-1 w-full">
+      <main className="flex-1 w-full overflow-x-hidden">
         {children}
       </main>
       
       {/* Footer */}
-      <footer className="mt-auto">
+      <footer className="mt-auto w-full">
         <Footer />
       </footer>
     </div>

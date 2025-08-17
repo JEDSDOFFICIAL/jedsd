@@ -126,7 +126,7 @@ function Footer() {
  
   
   return (
-    <footer className="mt-auto bg-gray-600 w-screen py-10 px-4 sm:px-6 max-w-screen overflow-hidden">
+    <footer className="mt-auto bg-gray-600 w-full py-10 px-4 sm:px-6 overflow-hidden">
       <div className="flex gap-6 mb-10">
         {/* Brand/Logo */}
         <div className="hidden lg:block">
@@ -138,6 +138,31 @@ function Footer() {
 
         {/* Dynamic Sections */}
         <div className="flex flex-1 justify-between flex-wrap gap-6 p-4">
+          {/* Navigation Section */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-900 uppercase">Navigation</h4>
+            <div className="mt-3 grid space-y-3 text-sm">
+              <p>
+                <Link
+                  className="inline-flex gap-x-2 text-white hover:text-gray-800 focus:outline-none focus:text-gray-800"
+                  href="/paper"
+                >
+                  <Search className="size-4" />
+                  Papers
+                </Link>
+              </p>
+              <p>
+                <Link
+                  className="inline-flex gap-x-2 text-white hover:text-gray-800 focus:outline-none focus:text-gray-800"
+                  href="/pre-publish"
+                >
+                  <BookCheck className="size-4" />
+                  Pre-Publish
+                </Link>
+              </p>
+            </div>
+          </div>
+          
           {["about us", "Policies", "Publishing Procedure"].map((section) => (
             <div key={section}>
               <h4 className="text-xs font-semibold text-gray-900 uppercase">{section}</h4>

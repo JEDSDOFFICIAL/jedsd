@@ -16,7 +16,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import Link from "next/link";
-import { fetchPapers } from "@/lib/Frontend-actions";
+import { acceptPaper, fetchPapers } from "@/lib/Frontend-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +25,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
 import { Label } from "@/components/ui/label";
@@ -51,6 +54,8 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
 } from "@tabler/icons-react";
+import { Eye, MoreHorizontal } from "lucide-react";
+import toast from "react-hot-toast";
 
 // Extended interface to include reviews data
 interface ExtendedResearchPaper {
@@ -84,7 +89,10 @@ interface ExtendedResearchPaper {
     reviewerStatus: string;
   }[];
 }
-
+const handleAcceptPaper = async(paperId: string) => {
+  await acceptPaper(paperId);
+  toast.success("Successfully accepted the paper");
+}
 export default function PaperReviewsPage() {
   const { data: session } = useSession();
   const [data, setData] = React.useState<ExtendedResearchPaper[]>([]);
@@ -99,7 +107,7 @@ export default function PaperReviewsPage() {
     pageSize: 10,
   });
   const [totalPages, setTotalPages] = React.useState(1);
-
+  
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     
@@ -231,6 +239,33 @@ export default function PaperReviewsPage() {
           </div>
         ),
       },
+       {
+            id: "actions",
+            header: "Actions",
+            cell: ({ row }) => {
+              const paper = row.original;
+              return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Paper Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    
+                    <DropdownMenuItem onClick={()=>handleAcceptPaper(paper.id)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Accept Paper
+                    </DropdownMenuItem>
+                    
+                 
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            },
+          },
     ],
     []
   );
