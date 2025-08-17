@@ -21,7 +21,7 @@ const acceptPaperSchema = z.object({
 // PATCH /api/paper/[paperId]/accept - Accept a research paper for publication
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { paperId: string } }
+  context: Promise<{ params: { paperId: string } }>
 ) {
   try {
     // 1. Check authentication and authorization
@@ -44,7 +44,7 @@ export async function PATCH(
     }
 
     // 2. Validate paperId
-    const paperIdValidationResult = paperIdSchema.safeParse({ paperId: params.paperId });
+    const paperIdValidationResult = paperIdSchema.safeParse({ paperId: (await context).params.paperId });
     if (!paperIdValidationResult.success) {
       return NextResponse.json(
         { success: false, message: "Invalid paper ID provided.", errors: paperIdValidationResult.error.errors },
