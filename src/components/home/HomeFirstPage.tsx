@@ -23,7 +23,7 @@ function HomePage() {
       </div>
 
       {/* Main Content Layer */}
-      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-screen-xl px-4 text-center gap-6 pt-0 transform-gpu will-change-transform"
+      <div className="relative z-10 flex flex-col items-center justify-start w-full max-w-screen-xl text-center gap-6 pt-0 transform-gpu will-change-transform"
            style={{ backfaceVisibility: 'hidden' }}>
         <TextAnimate className="text-5xl md:text-6xl lg:text-9xl text-white font-bold chicle-regular">
           Welcome to

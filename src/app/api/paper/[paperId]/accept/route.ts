@@ -21,12 +21,13 @@ const acceptPaperSchema = z.object({
 // PATCH /api/paper/[paperId]/accept - Accept a research paper for publication
 export async function PATCH(
   req: NextRequest,
-  context: Promise<{ params: { paperId: string } }>
+  context: { params: Promise<{ paperId: string }> }
 ) {
   try {
     // 1. Check authentication and authorization
     const session = await getServerSession(authOptions);
-    
+    const params = await context.params;
+    const paperIdParam = params.paperId;
     if (!session || !session.user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized access." },
@@ -44,7 +45,7 @@ export async function PATCH(
     }
 
     // 2. Validate paperId
-    const paperIdValidationResult = paperIdSchema.safeParse({ paperId: (await context).params.paperId });
+    const paperIdValidationResult = paperIdSchema.safeParse({ paperId: paperIdParam });
     if (!paperIdValidationResult.success) {
       return NextResponse.json(
         { success: false, message: "Invalid paper ID provided.", errors: paperIdValidationResult.error.errors },
@@ -52,7 +53,7 @@ export async function PATCH(
       );
     }
 
-    const { paperId } = paperIdValidationResult.data;
+    const validatedPaperId = paperIdValidationResult.data.paperId;
 
     // 3. Validate request body (optional editor notes)
     const body = await req.json().catch(() => ({}));
@@ -69,7 +70,7 @@ export async function PATCH(
 
     // 4. Find the paper and update its status to ACCEPTED
     const updatedPaper = await prisma.researchPaper.update({
-      where: { id: paperId },
+      where: { id: validatedPaperId },
       data: {
         status: PaperStatus.ACCEPTED,
         acceptedDate: new Date(), // Set the acceptance date
