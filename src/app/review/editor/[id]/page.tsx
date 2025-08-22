@@ -246,11 +246,21 @@ export default function EditorReviewPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6">
+        <div className="flex justify-between items-center mb-6">
           <Link href="/dashboard/editor" className="inline-flex items-center text-blue-600 hover:text-blue-500">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Editor Dashboard
           </Link>
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <Eye className="h-4 w-4" />
+              <span>Reviews: {paper.reviews.length}/3</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>Status: {paper.status}</span>
+            </div>
+          </div>
         </div>
 
         {/* Paper Information */}

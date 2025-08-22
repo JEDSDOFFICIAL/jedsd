@@ -1,8 +1,44 @@
 import { TextAnimate } from "@/components/magicui/text-animate";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { 
+  StepCard, 
+  InfoBox, 
+  StatCard, 
+  FeatureCard, 
+  TimelineItem 
+} from "@/components/guides/GuideComponents";
+import { ContactForm } from "@/components/guides/ContactForm";
 import Link from "next/link";
 import React from "react";
 import { Fade } from "react-awesome-reveal";
+import {
+  FileText,
+  Users,
+  Target,
+  CheckCircle,
+  Clock,
+  Search,
+  BookOpen,
+  Shield,
+  Globe,
+  Award,
+  TrendingUp,
+  Download,
+  Upload,
+  Eye,
+  MessageCircle,
+  AlertTriangle,
+  Info,
+  Star,
+  Lightbulb,
+  Zap,
+  Settings,
+  Mail,
+  User
+} from "lucide-react";
 
 interface GuideData {
   title: string;
@@ -66,53 +102,121 @@ export const data: GuideData[] = [
   {
     title: "about-us",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-4">
-            About Us
-          </h2>
-          <TextAnimate
-            animation="fadeIn"
-            duration={1}
-            animate
-            once
-            className="text-gray-600 text-lg mb-4 text-justify"
-          >
-            A nation&rsquo;s dream is to build a ubiquitous digital
-            infrastructure so that this will ensure ease of living for the
-            people living within. The growth in digital infrastructure is
-            completely relying on the development of secure, fast, and reliable
-            digital hardware platforms. Innovative techniques are to be adopted
-            to develop cheaper but high-performing embedded or digital systems.
-          </TextAnimate>
-          <TextAnimate
-            animation="fadeIn"
-            delay={1}
-            duration={2}
-            once
-            className="text-gray-600 text-lg  mb-4 text-justify"
-          >
-            Journal of Embedded and Digital System Design (JEDSD) is a platform
-            where researchers can publish emerging techniques for the design of
-            embedded or digital systems. JEDSD is an open-access journal that
-            aims to publish full-length manuscripts on emerging design
-            techniques for embedded and digital systems. This journal covers a
-            broader area of the aforesaid domain.
-          </TextAnimate>
-          <TextAnimate
-            animation="fadeIn"
-            delay={3}
-            duration={3}
-            animate
-            once
-            className="text-gray-600 text-lg  text-justify"
-          >
-            The objective of this journal is to motivate students right from
-            graduation to focus on developing innovative designs, to inspire
-            researchers to propose novel ideas in digital hardware development,
-            and to provide researchers with a platform through which their
-            research can reach researchers around the world.
-          </TextAnimate>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">About Us</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Advancing embedded and digital system design through innovative research publication
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              icon={BookOpen}
+              value="2024"
+              label="Established"
+              description="New journal launch"
+            />
+            <StatCard
+              icon={Target}
+              value="Open Access"
+              label="Publication Model"
+              description="Free to publish"
+            />
+            <StatCard
+              icon={Globe}
+              value="Global"
+              label="Reach"
+              description="Worldwide authors"
+            />
+          </div>
+
+          <div className="space-y-6">
+            <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-blue-100/30">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Lightbulb className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">Our Foundation</h3>
+                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                      A nation&apos;s dream is to build a ubiquitous digital infrastructure so that this will ensure ease of living for the 
+                      people living within. The growth in digital infrastructure is completely relying on the development of secure, 
+                      fast, and reliable digital hardware platforms. Innovative techniques are to be adopted to develop cheaper but 
+                      high-performing embedded or digital systems.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-green-100/30">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-4">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <BookOpen className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">Our Platform</h3>
+                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                      Journal of Embedded and Digital System Design (JEDSD) is a platform where researchers can publish emerging 
+                      techniques for the design of embedded or digital systems. JEDSD is an open-access journal that aims to publish 
+                      full-length manuscripts on emerging design techniques for embedded and digital systems. This journal covers a 
+                      broader area of the aforesaid domain.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50 to-purple-100/30">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-4">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Users className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">Our Objective</h3>
+                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                      The objective of this journal is to motivate students right from graduation to focus on developing innovative 
+                      designs, to inspire researchers to propose novel ideas in digital hardware development, and to provide researchers 
+                      with a platform through which their research can reach researchers around the world.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+            <h3 className="text-xl md:text-2xl font-bold text-center mb-6 text-gray-900">Why Choose JEDSD?</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FeatureCard
+                icon={Zap}
+                title="Innovation Focus"
+                description="Cutting-edge research in digital systems"
+                features={[
+                  "Emerging design techniques",
+                  "Novel hardware platforms",
+                  "Innovative system architectures",
+                  "Advanced optimization methods"
+                ]}
+              />
+              <FeatureCard
+                icon={Shield}
+                title="Quality Assurance"
+                description="Rigorous peer review process"
+                features={[
+                  "Expert reviewer network",
+                  "Ethical publication standards",
+                  "Open access model",
+                  "Global research impact"
+                ]}
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
     ),
@@ -120,86 +224,185 @@ export const data: GuideData[] = [
   {
     title: "mission-vision",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h2 className="text-3xl font-bold text-center text-gray-800">
-            Our Mission and Vision
-          </h2>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">Our Mission and Vision</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Driving innovation in embedded and digital system design through 
+              world-class research publication and academic excellence.
+            </p>
+          </div>
 
-          <TextAnimate
-            animation="fadeIn"
-            duration={1}
-            once
-            animate
-            className="text-2xl font-semibold text-gray-700 mb-2"
-          >
-            Vision Statement
-          </TextAnimate>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            The vision of the{" "}
-            <strong>
-              Journal of Embedded and Digital System Design (JEDSD)
-            </strong>{" "}
-            is to:
-          </p>
-          <ul className="list-disc pl-6 text-gray-600 text-lg mb-4">
-            <li>
-              to drive forward the research in the field of digital system
-              design (DSD) and embedded system design (ESD)
-            </li>
-            <li>
-              to promote research in algorithm development and optimization for
-              best design metrics
-            </li>
-            <li>
-              to be indexed by scientific abstract and citation databases like
-              SCOPUS
-            </li>
-            <li>to become one of the journals belonging to Quartile 4 (Q4)</li>
-            <li>
-              to get international recognition and become the first choice for
-              the researchers to publish their research in the domain as
-              mentioned earlier.
-            </li>
-          </ul>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            {/* Vision Section */}
+            <Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-blue-100/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-3 text-blue-900 text-lg md:text-xl">
+                  <Target className="w-5 h-5 md:w-6 md:h-6" />
+                  <span>Vision Statement</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  The vision of the <strong>Journal of Embedded and Digital System Design (JEDSD)</strong> is to:
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="bg-white/50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                      <h4 className="font-semibold text-sm md:text-base">Research Leadership</h4>
+                    </div>
+                    <ul className="space-y-1 text-xs md:text-sm text-gray-700">
+                      <li className="flex items-start space-x-2">
+                        <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>Advance algorithm development and optimization</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>Promote best design metrics practices</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>Foster innovative research methodologies</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center bg-white/50 rounded-lg p-3">
+                      <div className="flex justify-center mb-2">
+                        <Award className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="text-lg md:text-xl font-bold text-gray-900">Q4</div>
+                      <div className="text-xs text-gray-600">Target Quartile</div>
+                    </div>
+                    <div className="text-center bg-white/50 rounded-lg p-3">
+                      <div className="flex justify-center mb-2">
+                        <Globe className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="text-lg md:text-xl font-bold text-gray-900">SCOPUS</div>
+                      <div className="text-xs text-gray-600">Indexing Goal</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <TextAnimate
-            animation="fadeIn"
-            duration={1}
-            once
-            animate
-            className="text-2xl font-semibold text-gray-700 mb-2"
-          >
-            Mission Statement
-          </TextAnimate>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            In achieving the vision statements, the mission statements are set
-            as
-          </p>
-          <ul className="list-disc pl-6 text-gray-600 text-lg">
-            <li>
-              to publish periodically quality original manuscripts in the domain
-              of embedded and digital system design,
-            </li>
-            <li>
-              to maintain the trust of the authors by maintaining
-              confidentiality, following ethical values, and focusing on
-              novelty,
-            </li>
-            <li>
-              to reach global researchers by maintaining quality as well as by
-              proper advertisement,
-            </li>
-            <li>
-              to have a data object identifier (DOI) for each article and to
-              have an International Standard Serial Number (ISSN) number for the
-              journal as soon as possible,
-            </li>
-            <li>
-              to focus on quality not on quantity to have a good citation index
-              which will help in getting popular.
-            </li>
-          </ul>
+            {/* Mission Section */}
+            <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-green-100/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-3 text-green-900 text-lg md:text-xl">
+                  <Lightbulb className="w-5 h-5 md:w-6 md:h-6" />
+                  <span>Mission Statement</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  In achieving our vision, our mission focuses on:
+                </p>
+                
+                <div className="bg-white/50 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <BookOpen className="w-4 h-4 text-green-600" />
+                    <h4 className="font-semibold text-sm md:text-base">Publication Excellence</h4>
+                  </div>
+                  <ul className="space-y-1 text-xs md:text-sm text-gray-700">
+                    <li className="flex items-start space-x-2">
+                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Publish quality original manuscripts periodically</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Maintain author trust through ethical practices</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Focus on research novelty and significance</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Ensure global research accessibility</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center bg-white/50 rounded-lg p-3">
+                    <div className="flex justify-center mb-2">
+                      <Shield className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div className="text-lg md:text-xl font-bold text-gray-900">DOI</div>
+                    <div className="text-xs text-gray-600">For each article</div>
+                  </div>
+                  <div className="text-center bg-white/50 rounded-lg p-3">
+                    <div className="flex justify-center mb-2">
+                      <Star className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div className="text-lg md:text-xl font-bold text-gray-900">ISSN</div>
+                    <div className="text-xs text-gray-600">Serial Number</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-6">
+            <h3 className="text-xl md:text-2xl font-bold text-center text-gray-900">Our Strategic Goals</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="p-3 md:p-4 bg-blue-100 rounded-full">
+                      <Zap className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
+                    </div>
+                    <h4 className="font-bold text-base md:text-lg">Innovation Focus</h4>
+                    <p className="text-gray-600 text-sm">
+                      Promote cutting-edge research in embedded systems, IoT, and digital design
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="p-3 md:p-4 bg-green-100 rounded-full">
+                      <Globe className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
+                    </div>
+                    <h4 className="font-bold text-base md:text-lg">Global Reach</h4>
+                    <p className="text-gray-600 text-sm">
+                      Connect researchers worldwide and become the first choice for publication
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center hover:shadow-lg transition-shadow md:col-span-1 col-span-1 mx-auto md:mx-0 max-w-sm md:max-w-none">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="p-3 md:p-4 bg-purple-100 rounded-full">
+                      <Award className="w-6 h-6 md:w-8 md:h-8 text-purple-600" />
+                    </div>
+                    <h4 className="font-bold text-base md:text-lg">Quality First</h4>
+                    <p className="text-gray-600 text-sm">
+                      Prioritize quality over quantity for better citation index and recognition
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <InfoBox type="info" title="Future Vision">
+            We aim to establish JEDSD as a leading journal in embedded and digital system design, 
+            indexed in major databases, and recognized globally for advancing technological innovation 
+            in digital infrastructure development.
+          </InfoBox>
         </CardContent>
       </Card>
     ),
@@ -207,83 +410,143 @@ export const data: GuideData[] = [
   {
     title: "our-team",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <h2 className="text-4xl font-bold text-center text-black mb-6">
-          Members
-        </h2>
-        <div className="flex flex-wrap justify-center gap-4">
-          {members.map((member, index) => (
-            <Fade key={index} direction="up" triggerOnce>
-              <Card className="bg-white shadow-lg rounded-2xl p-4  w-[20rem] max-w-[98vw] mx-4">
-                <CardContent>
-                  <h3 className="text-xl font-semibold text-gray-700">
-                    {member.name}
-                  </h3>
-                  <p className="text-gray-600">{member.role}</p>
-                  <p className="text-gray-500 text-sm">{member.position}</p>
-                  {member.email && (
-                    <p className="text-blue-500 text-sm mt-2">
-                      <a href={`mailto:${member.email}`}>{member.email}</a>
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </Fade>
-          ))}
-        </div>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Editorial Board</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Meet our distinguished editorial team committed to advancing research in embedded and digital system design
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              icon={Users}
+              value={members.length.toString()}
+              label="Board Members"
+              description="Expert researchers"
+            />
+            <StatCard
+              icon={Globe}
+              value="Global"
+              label="Expertise"
+              description="International network"
+            />
+            <StatCard
+              icon={Award}
+              value="PhD+"
+              label="Qualifications"
+              description="Advanced degrees"
+            />
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {members.map((member, index) => (
+              <Fade key={index} direction="up" triggerOnce>
+                <Card className={`h-full transition-all duration-300 hover:shadow-lg ${
+                  member.role === "Editor-in-Chief" 
+                    ? "border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100/50" 
+                    : "bg-white hover:bg-gray-50"
+                }`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      {member.role === "Editor-in-Chief" ? (
+                        <Award className="w-5 h-5 text-blue-600" />
+                      ) : member.role.includes("Editorial") ? (
+                        <Users className="w-5 h-5 text-green-600" />
+                      ) : member.role.includes("Faculty") ? (
+                        <BookOpen className="w-5 h-5 text-purple-600" />
+                      ) : (
+                        <User className="w-5 h-5 text-gray-600" />
+                      )}
+                      <Badge 
+                        variant={member.role === "Editor-in-Chief" ? "default" : "outline"}
+                        className="text-xs"
+                      >
+                        {member.role}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg font-bold text-gray-900 leading-tight">
+                      {member.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-700 font-medium">
+                        {member.position}
+                      </p>
+                      {member.email && (
+                        <div className="pt-2 border-t border-gray-100">
+                          <a 
+                            href={`mailto:${member.email}`}
+                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                          >
+                            <Mail className="w-3 h-3" />
+                            <span className="truncate">{member.email}</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Fade>
+            ))}
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+            <h3 className="text-xl md:text-2xl font-bold text-center mb-4 text-gray-900">Join Our Editorial Network</h3>
+            <p className="text-center text-gray-600 mb-6">
+              We&apos;re always looking for qualified researchers to join our editorial board and reviewer network.
+            </p>
+            <div className="flex justify-center">
+              <Link href="/contact-us">
+                <Button>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contact Editorial Office
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     ),
   },
   {
     title: "contact-us",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h1 className="text-4xl font-bold mb-4 text-center">Contact Us</h1>
-
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">Editor-in-Chief</h2>
-            <p className="text-gray-700">Dr. Shirshendu Roy</p>
-            <p className="text-gray-700">Assistant Professor</p>
-            <p className="text-gray-700">
-              Department of Electronics and Communication
-            </p>
-            <p className="text-gray-700">Dayananda Sagar University</p>
-            <p className="text-gray-700">
-              Email:{" "}
-              <a
-                href="mailto:shirshenduroy-ece@dsu.edu.in"
-                className="text-blue-500"
-              >
-                shirshenduroy-ece@dsu.edu.in
-              </a>
-            </p>
-            <p className="text-gray-700">
-              Ph:{" "}
-              <a href="tel:+919330324297" className="text-blue-500">
-                9330324297
-              </a>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+        <CardContent className="space-y-6">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4 text-gray-900">Contact Us</h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              We&apos;re here to support authors, reviewers, and the research community. 
+              Get in touch with any questions about submissions, peer review, or our journal.
             </p>
           </div>
-
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">Official Address</h2>
-            <p className="text-gray-700">Das Vila</p>
-            <p className="text-gray-700">17 - Rajani Kanta Chowdhury Lane</p>
-            <p className="text-gray-700">Shibpur, Howrah-711103</p>
-            <p className="text-gray-700">
-              Email:{" "}
-              <a href="mailto:editorial@jedsd.com" className="text-blue-500">
-                editorial@jedsd.com
-              </a>{" "}
-              /{" "}
-              <a
-                href="mailto:jedsdofficial@gmail.com"
-                className="text-blue-500"
-              >
-                jedsdofficial@gmail.com
-              </a>
-            </p>
+          
+          <ContactForm />
+          
+          <div className="mt-12 pt-8 border-t border-gray-200">
+            <div className="grid md:grid-cols-3 gap-6">
+              <StatCard
+                icon={Clock}
+                value="24-48h"
+                label="Response Time"
+                description="Average response to inquiries"
+              />
+              <StatCard
+                icon={Users}
+                value="150+"
+                label="Authors Helped"
+                description="Researchers we've assisted"
+              />
+              <StatCard
+                icon={Globe}
+                value="24/7"
+                label="Global Access"
+                description="Available worldwide"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -292,198 +555,406 @@ export const data: GuideData[] = [
   {
     title: "submission-guidelines",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <h1 className="text-4xl font-bold mb-4 text-center">
-          Submission Guidelines
-        </h1>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+        <CardContent className="space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4 text-gray-900">Submission Guidelines</h1>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Follow our comprehensive guidelines to ensure your manuscript meets JEDSD standards 
+              and has the best chance of successful review and publication.
+            </p>
+          </div>
 
-        <p className="text-gray-700 mb-6">
-          The Journal of Embedded and Digital System Design (JEDSD) accepts
-          regular original manuscripts, review papers, and tutorials. Authors
-          must submit their manuscripts through our online submission portal.
-        </p>
+          <InfoBox type="info" title="Quick Start">
+            The Journal of Embedded and Digital System Design (JEDSD) accepts regular original manuscripts, 
+            review papers, and tutorials. All submissions must go through our online portal with proper 
+            formatting and ethical compliance.
+          </InfoBox>
 
-        <div>
-          <h2 className="text-xl font-semibold mt-4">
-            1. Online Submission Portal
-          </h2>
-          <ul className="list-disc pl-5 text-gray-700">
-            <li>
-              Access Link:{" "}
-              <Link href="/dashboard" className="text-blue-600 underline">
-                Submit Manuscript
+          <div className="grid md:grid-cols-3 gap-6 my-8">
+            <StatCard
+              icon={FileText}
+              value="PDF"
+              label="Format Required"
+              description="All submissions in PDF"
+            />
+            <StatCard
+              icon={Clock}
+              value="4-6 weeks"
+              label="Review Time"
+              description="Average review period"
+            />
+            <StatCard
+              icon={CheckCircle}
+              value="3+"
+              label="Reviewers"
+              description="Expert peer reviewers"
+            />
+          </div>
+
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">Submission Process</h2>
+              <div className="space-y-6">
+                <StepCard
+                  step={1}
+                  title="Access Online Portal"
+                  description="Visit our submission portal and create an account or log in with existing credentials."
+                  icon={Globe}
+                />
+                <StepCard
+                  step={2}
+                  title="Prepare Your Manuscript"
+                  description="Ensure your manuscript follows our formatting guidelines and includes all required sections."
+                  icon={FileText}
+                />
+                <StepCard
+                  step={3}
+                  title="Complete Submission Form"
+                  description="Fill in manuscript details including title, abstract, keywords, and author information."
+                  icon={Settings}
+                />
+                <StepCard
+                  step={4}
+                  title="Upload Files"
+                  description="Submit your manuscript PDF, cover letter, and any supplementary materials."
+                  icon={Upload}
+                  isLast
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <FeatureCard
+                icon={CheckCircle}
+                title="Submission Checklist"
+                description="Essential items required for submission"
+                features={[
+                  "Full manuscript in PDF format",
+                  "Cover letter (PDF format)",
+                  "Abstract (200-250 words)",
+                  "4-5 relevant keywords",
+                  "Complete author details and affiliations",
+                  "Ethics compliance declaration",
+                  "Conflict of interest statement"
+                ]}
+              />
+              
+              <FeatureCard
+                icon={Shield}
+                title="Quality Standards"
+                description="What we look for in submissions"
+                features={[
+                  "Original research contribution",
+                  "Clear methodology and results",
+                  "Proper citation and references",
+                  "High-quality figures and tables",
+                  "Adherence to ethical guidelines",
+                  "Relevance to journal scope",
+                  "Professional presentation"
+                ]}
+              />
+            </div>
+
+            <InfoBox type="warning" title="Important Notice">
+              Manuscripts that do not follow our guidelines will face automatic rejection during 
+              initial screening. Please review all requirements carefully before submission.
+            </InfoBox>
+
+            <div className="text-center">
+              <Link href="/dashboard">
+                <Button size="lg" className="px-8">
+                  <Upload className="w-5 h-5 mr-2" />
+                  Submit Your Manuscript
+                </Button>
               </Link>
-            </li>
-            <li>User Registration: New users must register for an account.</li>
-            <li>Existing users can log in with their credentials.</li>
-          </ul>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold mt-4">2. Submission Process</h2>
-          <ul className="list-disc pl-5 text-gray-700">
-            <li>
-              Complete the submission form with manuscript details (title,
-              abstract, keywords, authors).
-            </li>
-            <li>Choose a corresponding author for communication.</li>
-            <li>
-              Upload the manuscript file in <strong>PDF format</strong>.
-            </li>
-            <li>Attach a cover letter with the necessary details.</li>
-          </ul>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold mt-4">
-            3. Submission Checklist
-          </h2>
-          <ul className="list-disc pl-5 text-gray-700">
-            <li>Full manuscript in PDF format.</li>
-            <li>Cover letter (PDF).</li>
-            <li>Abstract (200-250 words).</li>
-            <li>4-5 keywords.</li>
-            <li>All author details (affiliations, addresses, contact info).</li>
-            <li>Compliance with ethical guidelines.</li>
-            <li>Declaration of any conflicts of interest.</li>
-          </ul>
-        </div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     ),
   },
   {
     title: "author-guidelines",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h1 className="text-4xl font-bold mb-4 w-full text-center">
-            Author Guidelines
-          </h1>
-          <p className="text-gray-700 mb-6">
-            The Journal of Embedded and Digital System Design (JEDSD) accepts
-            original manuscripts that satisfy the objective of the journal.
-            Manuscripts should be prepared as per the guidelines mentioned on
-            the website. Manuscripts that have not followed the journal
-            guidelines will face automatic rejection. Authors should take care
-            of the following points while preparing the manuscript.
-          </p>
-          <ul className="list-disc pl-6 text-gray-700">
-            <li>
-              <strong>Subject Area:</strong> Identify the sub-domain or article
-              type that best matches the manuscript.
-            </li>
-            <li>
-              <strong>Title:</strong> The title should be concise and
-              informative. It may contain the key invention and methodology.
-              Avoid abbreviations and formulae.
-            </li>
-            <li>
-              <strong>Abstract:</strong>The abstract may have 200-250 words,
-              summarizing the research question, methodology, results, and
-              conclusion. The abstract gives the reader an overview of the
-              manuscript.
-            </li>
-            <li>
-              <strong>Keywords:</strong> Authors must provide 4-5 keywords to
-              facilitate indexing and search. These keywords must be chosen
-              carefully to increase the visibility of their research work.
-            </li>
-          </ul>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Author Guidelines</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Comprehensive guidelines for preparing and submitting your research to the Journal of Embedded and Digital System Design (JEDSD)
+            </p>
+          </div>
 
-          <h2 className="text-xl font-semibold mt-4 inline">Main Text:</h2>
-          <p className="inline-block text-gray-700 mb-4">
-            Structured as Introduction, Theoretical Background, Proposed Work,
-            Results and Comparison, Discussion, and Conclusion.
-          </p>
-          <ul className="list-disc pl-6 text-gray-700">
-            <li>
-              <strong>Introduction:</strong> Context, objectives, and the
-              significance of the study. The topic of research should be
-              introduced in this section followed by a strong literature survey.
-              Prior works on the relevant topic must be discussed here.
-            </li>
-            <li>
-              <strong>Background Work:</strong> Brief theory, detailed
-              methodology (including materials), procedures, and analysis
-              techniques. Citing the original work is mandatory.
-            </li>
-            <li>
-              <strong>Proposed Work:</strong> The proposed work should be
-              discussed in detail with images, figures, and tables in this
-              section.
-            </li>
-            <li>
-              <strong>Results and Comparison:</strong> Clear and concise
-              presentation of findings with appropriate use of tables and
-              figures. Comparison of the results with state of the art works can
-              be presented here.
-            </li>
-            <li>
-              <strong>Discussion:</strong> Interpretation of results,
-              implications, limitations, and future directions.
-            </li>
-            <li>
-              <strong>Conclusion:</strong> Summary of findings and their
-              significance.
-            </li>
-          </ul>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              icon={FileText}
+              value="IEEE Style"
+              label="Citation Format"
+              description="Standard academic format"
+            />
+            <StatCard
+              icon={CheckCircle}
+              value="Quality"
+              label="Standards"
+              description="High publication standards"
+            />
+            <StatCard
+              icon={Clock}
+              value="Fast"
+              label="Review"
+              description="Efficient peer review"
+            />
+          </div>
 
-          <h2 className="text-xl font-semibold mt-4">Additional Guidelines:</h2>
-          <ul className="list-disc pl-6 text-gray-700">
-            <li>
-              <strong>References:</strong> We are following the IEEE citation
-              style for writing the references. There are no minimum or maximum
-              limits in citing relevant papers but authors must cite the
-              relevant works and no tables, images, and datasets should be used
-              without proper citation. JEDSD highly discourages improper
-              self-citation.
-            </li>
-            <li>
-              <strong>Figures:</strong> High-quality images should be used in
-              the manuscript. Images can be of formats .jpg, .jpeg, .png, or
-              pdf. Authors must be selective in choosing drawing tools like IPE
-              for latex, Microsoft Visio etc. can be used. Online drawing tools
-              like draw.io also can be used. Images may require the proper use
-              of legends, labels, or titles. All the high-quality images may be
-              asked for during the final submission of the manuscript after
-              acceptance. The caption for any image is to be written below an
-              image in sentence case with a citation if required. Multiple
-              figures or images are to be used in terms of subfigures with a
-              caption for each sub-figure.
-            </li>
-            <li>
-              <strong>Tables:</strong> Multiple tables may be required to
-              support the proposed work. Tables may contain a common row or a
-              common column. The contents of the table must be chosen in such a
-              way that it fits in the text width. Resizing the table using a
-              lower font size is not recommended. The caption for the tables
-              should be given above the table in sentence case with citation if
-              required. No table should be put in the form image means tables
-              should be editable.
-            </li>
-            <li>
-              <strong>Supplementary Material (Optional):</strong> Additional
-              data or material that supports the manuscript can be included
-              along with the main script.
-            </li>
-            <li>
-              <strong>Equations:</strong> Mathematical equations should be
-              written by the authors and images for the equations should not be
-              used. Equations should be readable and numbered. Numbering of the
-              equations is mandatory so that they can be referenced to.
-            </li>
-            <li>
-              <strong>Algorithms:</strong> All algorithms should be numbered and
-              should be written by the authors. Images for the algorithms should
-              not be provided.
-            </li>
-            <li>
-              <strong>Referring Figures, Tables, and Algorithms:</strong>{" "}
-              Figures to be referred to as Fig. 4, tables to be referred to as
-              Table IV, and algorithms to be referred to as Algorithm 4. For the
-              equation to be equation (1).
-            </li>
-          </ul>
+          <InfoBox 
+            type="warning"
+            title="Important Notice"
+            description="Manuscripts that have not followed the journal guidelines will face automatic rejection. Authors should carefully review all guidelines before submission."
+          />
+
+          <div className="space-y-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              <StepCard
+                step={1}
+                title="Subject Area & Title"
+                description="Choose the right category and craft an effective title"
+              >
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      <Target className="w-4 h-4 mr-2 text-blue-600" />
+                      Subject Area
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Identify the sub-domain or article type that best matches your manuscript for proper categorization.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      <FileText className="w-4 h-4 mr-2 text-blue-600" />
+                      Title Guidelines
+                    </h4>
+                    <ul className="space-y-1 text-sm text-gray-700">
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Concise and informative
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Include key invention and methodology
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Avoid abbreviations and formulae
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </StepCard>
+
+              <StepCard
+                step={2}
+                title="Abstract & Keywords"
+                description="Create compelling abstracts and strategic keywords"
+              >
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Abstract Requirements</h4>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-700">Word Count</span>
+                      <Badge variant="outline">200-250 words</Badge>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      Summarize research question, methodology, results, and conclusion
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Keywords Strategy</h4>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-700">Recommended Count</span>
+                      <Badge variant="outline">4-5 keywords</Badge>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      Choose carefully to increase research visibility and indexing
+                    </p>
+                  </div>
+                </div>
+              </StepCard>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Manuscript Structure</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <FeatureCard
+                  icon={BookOpen}
+                  title="Introduction"
+                  description="Context, objectives, and significance. Strong literature survey with prior works discussion."
+                />
+                <FeatureCard
+                  icon={Lightbulb}
+                  title="Background Work"
+                  description="Brief theory, detailed methodology, procedures, and analysis techniques with citations."
+                />
+                <FeatureCard
+                  icon={Zap}
+                  title="Proposed Work"
+                  description="Detailed discussion with images, figures, and tables supporting the methodology."
+                />
+                <FeatureCard
+                  icon={TrendingUp}
+                  title="Results & Comparison"
+                  description="Clear findings presentation with appropriate tables, figures, and state-of-art comparison."
+                />
+                <FeatureCard
+                  icon={MessageCircle}
+                  title="Discussion"
+                  description="Interpretation of results, implications, limitations, and future directions."
+                />
+                <FeatureCard
+                  icon={CheckCircle}
+                  title="Conclusion"
+                  description="Summary of findings and their significance to the research community."
+                />
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-gray-900 text-center">Technical Guidelines</h3>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <FileText className="w-5 h-5 mr-2 text-blue-600" />
+                    References (IEEE Style)
+                  </h4>
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Follow IEEE citation style. No minimum/maximum limits but cite relevant works appropriately.
+                    </p>
+                    <InfoBox 
+                      type="warning"
+                      title="Citation Ethics"
+                      description="JEDSD highly discourages improper self-citation. Cite all tables, images, and datasets properly."
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <Eye className="w-5 h-5 mr-2 text-blue-600" />
+                    Figures & Images
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <Badge variant="outline">JPG</Badge>
+                      <Badge variant="outline">JPEG</Badge>
+                      <Badge variant="outline">PNG</Badge>
+                      <Badge variant="outline">PDF</Badge>
+                    </div>
+                    <ul className="space-y-1 text-sm text-gray-700">
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        High-quality images required
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Proper legends, labels, and titles
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Captions below images in sentence case
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <Settings className="w-5 h-5 mr-2 text-blue-600" />
+                    Tables & Data
+                  </h4>
+                  <div className="space-y-3">
+                    <ul className="space-y-1 text-sm text-gray-700">
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Tables must be editable (not images)
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Captions above tables in sentence case
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Content fits within text width
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <Award className="w-5 h-5 mr-2 text-blue-600" />
+                    Mathematical Content
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Equations</span>
+                        <Badge variant="secondary">Numbered & Editable</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Algorithms</span>
+                        <Badge variant="secondary">Numbered & Written</Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      No images for equations or algorithms - must be written text
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
+              <h4 className="font-semibold text-gray-900 mb-4 text-center">Reference Format Guide</h4>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div className="bg-white rounded p-4">
+                  <strong className="text-blue-600">Figures:</strong> Fig. 4
+                </div>
+                <div className="bg-white rounded p-4">
+                  <strong className="text-green-600">Tables:</strong> Table IV
+                </div>
+                <div className="bg-white rounded p-4">
+                  <strong className="text-purple-600">Algorithms:</strong> Algorithm 4
+                </div>
+                <div className="bg-white rounded p-4">
+                  <strong className="text-orange-600">Equations:</strong> equation (1)
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 text-center">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Ready to Submit Your Manuscript?</h3>
+              <p className="text-gray-600 mb-6">
+                Ensure your manuscript follows all guidelines for the best chance of acceptance.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Guidelines PDF
+                </Button>
+                <Button variant="outline">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Submission Checklist
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     ),
@@ -491,86 +962,261 @@ export const data: GuideData[] = [
   {
     title: "ethical-guidelines",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md bg-clip-padding backdrop-filter  border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h1 className="text-4xl font-bold mb-4 w-full text-center">
-            Ethical Considerations
-          </h1>
-
-          <p className="text-gray-700 mb-6">
-            The Journal of Embedded and Digital System Design (JEDSD) invites
-            original manuscripts for publication. All manuscripts will undergo
-            originality checks before acceptance for review. Authors must adhere
-            to the following ethical guidelines when submitting their
-            manuscripts:
-          </p>
-
-          <div>
-            <h2 className="text-xl font-semibold mt-4">
-              1. Originality and Plagiarism:
-            </h2>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li>
-                <strong>Original Work:</strong> All manuscripts must be original
-                work and not be previously published or under consideration
-                elsewhere (any other journal). Submission of manuscripts in
-                multiple journals is a serious crime and if authors are found
-                doing so, they will be barred from submitting any further
-                manuscripts.
-              </li>
-              <li>
-                <strong>Plagiarism Screening:</strong> Authors must check for
-                plagiarism and a similarity of less than 10 percent (without
-                references) should be maintained. Submitted manuscripts will
-                again go through a screening process by our specialized software
-                for plagiarism checks. Any instance of plagiarism more than the
-                acceptable limit will result in the immediate rejection of the
-                manuscript.
-              </li>
-            </ul>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ethical Guidelines</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Comprehensive ethical standards ensuring research integrity and publication ethics
+            </p>
           </div>
 
-          <div>
-            <h2 className="text-xl font-semibold mt-4">2. Authorship:</h2>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li>
-                <strong>Author Contributions:</strong> All listed authors must
-                have made significant contributions to the research and
-                manuscript preparation. We strictly discourage adding ghost
-                authors who do not have any contribution to the preparation of
-                the manuscript. All authors should be added before acceptance of
-                the manuscript. In case of any changes in the order of the
-                authors, or the inclusion of an author, the corresponding author
-                must communicate with the editor-in-chief.
-              </li>
-              <li>
-                <strong>Corresponding Author:</strong> One author must be
-                designated as the corresponding author, responsible for all
-                communication with the journal. Change of corresponding
-                authorship will not be entertained unless a signed application
-                letter is accepted by the editor-in-chief.
-              </li>
-            </ul>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              icon={Shield}
+              value="< 10%"
+              label="Plagiarism Limit"
+              description="Excluding references"
+            />
+            <StatCard
+              icon={CheckCircle}
+              value="Original"
+              label="Work Required"
+              description="No prior publication"
+            />
+            <StatCard
+              icon={Users}
+              value="All Authors"
+              label="Contributions"
+              description="Significant involvement"
+            />
           </div>
 
-          <div>
-            <h2 className="text-xl font-semibold mt-4">
-              3. Data Fabrication and Falsification:
-            </h2>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li>
-                <strong>Data Integrity:</strong> Authors must ensure that all
-                data presented in the manuscript is accurate and has not been
-                manipulated. Manipulation of data is a serious crime and authors
-                must refrain from manipulating research data from any other
-                published manuscript.
-              </li>
-              <li>
-                <strong>Raw Data:</strong> Authors may be asked to provide raw
-                data for verification purposes. This is to stop the manipulation
-                of research data and to provide actual data in the manuscript.
-              </li>
-            </ul>
+          <InfoBox 
+            type="warning"
+            title="Mandatory Compliance"
+            description="All manuscripts undergo originality checks before review. Non-compliance with ethical guidelines results in immediate rejection and potential submission ban."
+          />
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Core Ethical Principles</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <StepCard
+                  step={1}
+                  title="Originality & Plagiarism"
+                  description="Maintain research integrity and avoid academic misconduct"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-4 border-l-4 border-red-500">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <AlertTriangle className="w-4 h-4 mr-2 text-red-600" />
+                        Strict Requirements
+                      </h4>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Must be original, unpublished work
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Not under consideration elsewhere
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Similarity ≤10% (excluding references)
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <InfoBox 
+                      type="error"
+                      title="Multiple Submission Ban"
+                      description="Authors found submitting to multiple journals simultaneously will be permanently barred from future submissions."
+                    />
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={2}
+                  title="Authorship Standards"
+                  description="Ensure fair and accurate author representation"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <Users className="w-4 h-4 mr-2 text-blue-600" />
+                        Contribution Requirements
+                      </h4>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Significant contribution to research
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Involvement in manuscript preparation
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          No ghost or honorary authors
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">Corresponding Author</h4>
+                      <p className="text-sm text-gray-600">
+                        Designated point of contact responsible for all journal communications. Changes require editor-in-chief approval.
+                      </p>
+                    </div>
+                  </div>
+                </StepCard>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Data Integrity & Research Ethics</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <StepCard
+                  step={3}
+                  title="Data Fabrication & Falsification"
+                  description="Maintain absolute data integrity throughout research"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border-l-4 border-purple-500">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <Shield className="w-4 h-4 mr-2 text-purple-600" />
+                        Data Standards
+                      </h4>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          All data must be accurate and unmanipulated
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          No fabrication or falsification
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Raw data available for verification
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <InfoBox 
+                      type="warning"
+                      title="Verification Process"
+                      description="Authors may be required to provide raw data for verification purposes to ensure research integrity."
+                    />
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={4}
+                  title="Publication Ethics"
+                  description="Adhere to international publication standards"
+                >
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <FeatureCard
+                        icon={FileText}
+                        title="Proper Citation"
+                        description="Acknowledge all sources and avoid improper self-citation practices"
+                      />
+                      <FeatureCard
+                        icon={Globe}
+                        title="International Standards"
+                        description="Follow COPE guidelines and international research ethics"
+                      />
+                      <FeatureCard
+                        icon={Award}
+                        title="Quality Assurance"
+                        description="Maintain high standards in research methodology and reporting"
+                      />
+                    </div>
+                  </div>
+                </StepCard>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
+              <h3 className="text-xl md:text-2xl font-bold text-center mb-4 text-gray-900">Plagiarism Detection Process</h3>
+              <div className="grid md:grid-cols-4 gap-4 text-center">
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Upload className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900">1. Submission</h4>
+                  <p className="text-xs text-gray-600">Author submits manuscript</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Search className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900">2. Screening</h4>
+                  <p className="text-xs text-gray-600">Automated plagiarism check</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Eye className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900">3. Review</h4>
+                  <p className="text-xs text-gray-600">Editorial assessment</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <CheckCircle className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900">4. Decision</h4>
+                  <p className="text-xs text-gray-600">Accept or reject</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 border-l-4 border-red-500">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
+                Consequences of Ethical Violations
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Immediate Actions</h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Manuscript rejection
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Author notification
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Documentation of violation
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Long-term Consequences</h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Submission ban (severe cases)
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Institution notification
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Professional reputation impact
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -579,81 +1225,279 @@ export const data: GuideData[] = [
   {
     title: "conflict-of-interest",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md bg-clip-padding backdrop-filter  border border-gray-100 shadow-lg rounded-2xl ">
-        <CardContent className="space-y-4">
-          <h1 className="text-4xl font-bold mb-4 w-full text-center">
-            Conflict of Interest
-          </h1>
-
-          <p className="text-gray-700 mb-6">
-            The editorial board will check the conflict of interest for each of
-            the manuscripts in the initial check or throughout the review
-            duration. It is also the authors&apos; responsibility to declare if
-            any conflict of interest is associated with their manuscripts.
-            Details regarding conflict of interests are as follows
-          </p>
-
-          <div>
-            <h2 className="text-xl font-semibold mt-4">1. Definition:</h2>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li>
-                <strong>Conflict of Interest:</strong> A conflict of interest
-                occurs when there are financial, personal, or professional
-                affiliations that could influence the research or interpretation
-                of the results.
-              </li>
-            </ul>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Conflict of Interest Policy</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Ensuring transparency and integrity in the publication process through comprehensive conflict disclosure
+            </p>
           </div>
 
-          <div>
-            <h2 className="text-xl font-semibold mt-4">
-              2. Disclosure Requirements:
-            </h2>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li>
-                <strong>Authors:</strong> All authors must disclose any
-                potential conflicts of interest in the manuscript, including
-                financial support, employment, consultancies, stock ownership,
-                honoraria, and paid expert testimony.
-                <ul className="list-disc pl-6 text-gray-700 mt-2">
-                  <li>
-                    All the authors who contributed to the manuscripts must be
-                    declared as co-authors.
-                  </li>
-                  <li>
-                    Financial sponsors should be acknowledged if any kind of
-                    financial help is taken in the preparation of the
-                    manuscripts.
-                  </li>
-                  <li>
-                    Permission is to be taken from the funding organizations if
-                    the manuscript is an outcome of a funded project.
-                  </li>
-                  <li>
-                    No images, tables, or figures should be used without
-                    permission from the concerned person.
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <strong>Reviewers:</strong> Reviewers must disclose any
-                potential conflicts of interest before accepting a review
-                assignment. If a conflict of interest is identified, the
-                reviewer will be recused from the review process.
-              </li>
-            </ul>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              icon={Shield}
+              value="100%"
+              label="Transparency"
+              description="Full disclosure required"
+            />
+            <StatCard
+              icon={Eye}
+              value="All Parties"
+              label="Coverage"
+              description="Authors, reviewers, editors"
+            />
+            <StatCard
+              icon={CheckCircle}
+              value="Mandatory"
+              label="Declaration"
+              description="Required for all submissions"
+            />
           </div>
 
-          <div>
-            <h2 className="text-xl font-semibold mt-4">3. Editorial Board:</h2>
-            <ul className="list-disc pl-6 text-gray-700">
-              <li>
-                <strong>Transparency:</strong> Editorial board members must
-                disclose any potential conflicts of interest related to the
-                manuscripts they handle. Board members will be recused from
-                handling manuscripts where a conflict of interest exists.
-              </li>
-            </ul>
+          <InfoBox 
+            type="info"
+            title="Comprehensive Review"
+            description="The editorial board checks for conflicts of interest during initial review and throughout the entire publication process. Authors must proactively declare any potential conflicts."
+          />
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Understanding Conflicts of Interest</h3>
+              
+              <StepCard
+                step={1}
+                title="Definition & Scope"
+                description="Understanding what constitutes a conflict of interest"
+              >
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-l-4 border-blue-500">
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      <Info className="w-4 h-4 mr-2 text-blue-600" />
+                      Conflict Definition
+                    </h4>
+                    <p className="text-sm text-gray-700">
+                      A conflict of interest occurs when financial, personal, or professional affiliations could influence research conduct, interpretation of results, or publication decisions.
+                    </p>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <FeatureCard
+                      icon={TrendingUp}
+                      title="Financial"
+                      description="Funding, employment, consultancies, stock ownership, honoraria"
+                    />
+                    <FeatureCard
+                      icon={Users}
+                      title="Personal"
+                      description="Family relationships, personal friendships, rivalries"
+                    />
+                    <FeatureCard
+                      icon={Award}
+                      title="Professional"
+                      description="Institutional affiliations, academic collaborations"
+                    />
+                  </div>
+                </div>
+              </StepCard>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Disclosure Requirements by Role</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <StepCard
+                  step={2}
+                  title="Author Responsibilities"
+                  description="Comprehensive disclosure requirements for all contributing authors"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <Users className="w-4 h-4 mr-2 text-green-600" />
+                        Required Disclosures
+                      </h4>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Financial support and funding sources
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Employment relationships
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Consultancy agreements
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Stock ownership and financial interests
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Paid expert testimony
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <InfoBox 
+                      type="warning"
+                      title="Additional Requirements"
+                      description="Authors must obtain permission from funding organizations for funded project publications and secure rights for all images, tables, and figures used."
+                    />
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={3}
+                  title="Reviewer & Editor Standards"
+                  description="Conflict identification and management for review process"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <Eye className="w-4 h-4 mr-2 text-purple-600" />
+                        Reviewer Obligations
+                      </h4>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Pre-review conflict assessment
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Immediate disclosure of conflicts
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Recusal when conflicts exist
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <Award className="w-4 h-4 mr-2 text-orange-600" />
+                        Editorial Board
+                      </h4>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Transparent conflict disclosure
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Recusal from conflicted manuscripts
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Alternative handling arrangements
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </StepCard>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
+              <h3 className="text-xl md:text-2xl font-bold text-center mb-6 text-gray-900">Conflict Management Process</h3>
+              <div className="grid md:grid-cols-4 gap-4">
+                <TimelineItem
+                  step={1}
+                  title="Declaration"
+                  description="Authors submit conflict disclosure forms"
+                  isActive={true}
+                />
+                <TimelineItem
+                  step={2}
+                  title="Assessment"
+                  description="Editorial board reviews potential conflicts"
+                  isActive={false}
+                />
+                <TimelineItem
+                  step={3}
+                  title="Management"
+                  description="Implement appropriate conflict mitigation"
+                  isActive={false}
+                />
+                <TimelineItem
+                  step={4}
+                  title="Documentation"
+                  description="Record conflict handling decisions"
+                  isActive={false}
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                  <Shield className="w-5 h-5 mr-2 text-blue-600" />
+                  Common Conflict Types
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span className="text-sm font-medium">Financial Sponsorship</span>
+                    <Badge variant="outline">High Risk</Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span className="text-sm font-medium">Institutional Affiliation</span>
+                    <Badge variant="outline">Medium Risk</Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span className="text-sm font-medium">Personal Relationships</span>
+                    <Badge variant="outline">Variable Risk</Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span className="text-sm font-medium">Previous Collaboration</span>
+                    <Badge variant="outline">Low-Medium Risk</Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                  <Settings className="w-5 h-5 mr-2 text-green-600" />
+                  Mitigation Strategies
+                </h4>
+                <div className="space-y-3">
+                  <div className="p-3 bg-green-50 rounded border-l-4 border-green-500">
+                    <h5 className="font-medium text-gray-900">Transparency</h5>
+                    <p className="text-xs text-gray-600">Full disclosure in published articles</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded border-l-4 border-blue-500">
+                    <h5 className="font-medium text-gray-900">Recusal</h5>
+                    <p className="text-xs text-gray-600">Remove conflicted parties from process</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded border-l-4 border-purple-500">
+                    <h5 className="font-medium text-gray-900">Independent Review</h5>
+                    <p className="text-xs text-gray-600">Additional oversight mechanisms</p>
+                  </div>
+                  <div className="p-3 bg-orange-50 rounded border-l-4 border-orange-500">
+                    <h5 className="font-medium text-gray-900">Documentation</h5>
+                    <p className="text-xs text-gray-600">Detailed record keeping</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 text-center">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Questions About Conflicts?</h3>
+              <p className="text-gray-600 mb-6">
+                When in doubt, disclose. Our editorial team is available to help assess potential conflicts of interest.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contact Editorial Office
+                </Button>
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Disclosure Form
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -662,33 +1506,259 @@ export const data: GuideData[] = [
   {
     title: "publishing-model",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-4">
-            Publishing Model
-          </h2>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            Journal of Embedded and Digital System Design (JEDSD) is a newly
-            launched platform where researchers can publish their full-length
-            manuscripts. This journal is new but it aims to become one of the
-            quality journals in the world in the aforesaid domain. The good
-            thing about it is that it focuses on a specific domain that is of
-            prime importance and emerging. Thus we are expecting a few
-            manuscripts to get published within a year and these manuscripts
-            will be peer reviewed by our esteemed reviewers from reputed
-            universities and the manuscripts will be improved based on their
-            comments.
-          </p>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            Index, citation, and impact factors are important factors to judge a
-            journal. We are starting afresh and applying for an International
-            Standard Serial (ISSN) number. Gradually we will opt for different
-            index systems. The quality of the manuscripts will be maintained so
-            that they will have maximum citations. No article processing charges
-            (APC) will be charged from the authors as of now for publication.
-            The redemption in APC charges will motivate the researchers to
-            publish quality manuscripts through this journal.
-          </p>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Publishing Model</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              A comprehensive approach to scholarly publishing in embedded and digital system design
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
+            <StatCard
+              icon={Target}
+              value="New"
+              label="Platform"
+              description="Fresh innovative approach"
+            />
+            <StatCard
+              icon={Users}
+              value="Expert"
+              label="Reviewers"
+              description="Reputed university faculty"
+            />
+            <StatCard
+              icon={Award}
+              value="Quality"
+              label="Focus"
+              description="High-impact research"
+            />
+            <StatCard
+              icon={TrendingUp}
+              value="0 APC"
+              label="Current Fee"
+              description="No processing charges"
+            />
+          </div>
+
+          <div className="space-y-8">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">Journal Vision & Mission</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Lightbulb className="w-5 h-5 mr-2 text-blue-600" />
+                    Our Vision
+                  </h4>
+                  <p className="text-gray-700 text-sm">
+                    To become one of the premier quality journals globally in embedded and digital system design, 
+                    focusing on a specific domain of prime importance and emerging technologies.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-green-600" />
+                    Our Mission
+                  </h4>
+                  <p className="text-gray-700 text-sm">
+                    To provide a platform for researchers to publish high-quality, peer-reviewed manuscripts 
+                    that advance the field of embedded and digital system design.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Publication Framework</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <StepCard
+                  step={1}
+                  title="Quality-Focused Approach"
+                  description="Emphasis on research excellence and innovation"
+                >
+                  <div className="space-y-4">
+                    <FeatureCard
+                      icon={BookOpen}
+                      title="Rigorous Peer Review"
+                      description="Manuscripts reviewed by esteemed experts from reputed universities worldwide"
+                    />
+                    <FeatureCard
+                      icon={TrendingUp}
+                      title="Continuous Improvement"
+                      description="Manuscripts enhanced based on comprehensive reviewer feedback"
+                    />
+                    <FeatureCard
+                      icon={Award}
+                      title="Excellence Standards"
+                      description="Maintaining high publication standards for maximum research impact"
+                    />
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={2}
+                  title="Indexing & Recognition Strategy"
+                  description="Building academic credibility and visibility"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <Globe className="w-4 h-4 mr-2 text-green-600" />
+                        Current Status
+                      </h4>
+                      <ul className="space-y-1 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Applying for ISSN number
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Planning for index systems
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Building citation impact
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <InfoBox 
+                      type="info"
+                      title="Progressive Indexing"
+                      description="Gradual application to different indexing systems to build journal credibility and academic recognition."
+                    />
+                  </div>
+                </StepCard>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Publication Timeline & Process</h3>
+              <div className="grid md:grid-cols-4 gap-4">
+                <TimelineItem
+                  step={1}
+                  title="Submission"
+                  description="Authors submit manuscripts via online system"
+                  isActive={true}
+                />
+                <TimelineItem
+                  step={2}
+                  title="Peer Review"
+                  description="Expert reviewers assess quality and significance"
+                  isActive={false}
+                />
+                <TimelineItem
+                  step={3}
+                  title="Revision"
+                  description="Authors address reviewer comments and suggestions"
+                  isActive={false}
+                />
+                <TimelineItem
+                  step={4}
+                  title="Publication"
+                  description="Accepted manuscripts published with full indexing"
+                  isActive={false}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Financial Model & Accessibility</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border-l-4 border-green-500">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+                    No Article Processing Charges (APC)
+                  </h4>
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-700">
+                      Currently, no APC charges are applied to encourage quality research submissions and support emerging researchers.
+                    </p>
+                    <div className="bg-white rounded-lg p-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-800">Current Processing Fee</span>
+                        <Badge className="bg-green-100 text-green-800">$0 USD</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border-l-4 border-blue-500">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+                    Supporting Research Community
+                  </h4>
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-700">
+                      The waiver of APC charges motivates researchers to publish quality manuscripts and removes financial barriers to publication.
+                    </p>
+                    <ul className="space-y-1 text-sm text-gray-700">
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Open access to quality research
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Support for early-career researchers
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                        Global accessibility
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-center mb-4 text-gray-900">Growth Metrics & Projections</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <FileText className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Annual Publications</h4>
+                  <p className="text-2xl font-bold text-blue-600">Targeted Growth</p>
+                  <p className="text-xs text-gray-600">Quality over quantity approach</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Star className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Impact Factor</h4>
+                  <p className="text-2xl font-bold text-purple-600">Building</p>
+                  <p className="text-xs text-gray-600">Through quality citations</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Globe className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Global Reach</h4>
+                  <p className="text-2xl font-bold text-green-600">Expanding</p>
+                  <p className="text-xs text-gray-600">International indexing plans</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 text-center">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Join Our Growing Community</h3>
+              <p className="text-gray-600 mb-6">
+                Be part of a journal that prioritizes quality research and supports the global research community in embedded and digital systems.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Submit Manuscript
+                </Button>
+                <Button variant="outline">
+                  <Users className="w-4 h-4 mr-2" />
+                  Join Review Board
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     ),
@@ -696,66 +1766,196 @@ export const data: GuideData[] = [
   {
     title: "call-for-papers",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md bg-clip-padding backdrop-filter  border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h1 className="text-4xl font-bold mb-4 w-full text-center">
-            Call For Papers/ Scope
-          </h1>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+        <CardContent className="space-y-8">
+          <div className="text-center">
+            <Badge className="mb-4 bg-green-100 text-green-800 px-4 py-2">
+              <span className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span>SUBMISSIONS OPEN</span>
+              </span>
+            </Badge>
+            <h1 className="text-4xl font-bold mb-4 text-gray-900">Call For Papers</h1>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              We invite original, high-quality research manuscripts that advance the field of 
+              embedded and digital system design. Join our community of innovative researchers.
+            </p>
+          </div>
 
-          <p className="text-gray-700 mb-6">
-            The Journal of Embedded and Digital System Design (JEDSD) expects
-            the submission of original high quality research manuscripts related
-            to the development of innovative ideas on embedded and digital
-            system design. The sub-domains can be listed as
-          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <StatCard
+              icon={Clock}
+              value="Year-Round"
+              label="Submission Window"
+              description="Always accepting papers"
+            />
+            <StatCard
+              icon={BookOpen}
+              value="7 Domains"
+              label="Research Areas"
+              description="Core focus areas"
+            />
+            <StatCard
+              icon={Users}
+              value="Global"
+              label="Author Base"
+              description="Worldwide submissions"
+            />
+          </div>
 
-          <ol className="list-decimal pl-6 text-gray-700 space-y-2">
-            <li>
-              <strong>FPGA Implementation</strong> - FPGA is a very important
-              reconfigurable hardware to implement digital systems. Digital
-              subsystems or algorithms can be of any domain like signal
-              processing (SP), image processing (IP), video processing (VP),
-              audio processing (AP), natural language processing (NLP), machine
-              learning (ML), neural networks (NN) or of any other domains.
-            </li>
-            <li>
-              <strong>VLSI or ASIC Implementation</strong> - Any digital system
-              specifically implemented for ASIC or digital VLSI implementation
-              of any aforesaid algorithms.
-            </li>
-            <li>
-              <strong>Processor or Controller-Based Implementations</strong> -
-              CPU, GPU, or DSP processor-based implementations of digital
-              systems or algorithms.
-            </li>
-            <li>
-              <strong>Embedded System Implementations</strong> - Embedded
-              system-based implementation of specific tasks that may include
-              input devices, electronic controllers, and output devices.
-            </li>
-            <li>
-              <strong>Development in the Internet of Things (IoT)</strong> -
-              Recent developments (advancement in communication protocols and
-              techniques, development in controllers, or development in
-              peripherals) on IoT.
-            </li>
-            <li>
-              <strong>IoT or Industrial IoT application</strong> - Application
-              of IoT or IIoT having an impact on our daily life, industry
-              sector, health care, or in the defense sector.
-            </li>
-            <li>
-              <strong>Theoretical development</strong> - Novelty algorithms or
-              techniques that can play a crucial role in developing promising
-              embedded or digital hardware systems.
-            </li>
-          </ol>
+          <InfoBox type="success" title="Open Submission Policy">
+            Authors can submit their manuscripts throughout the year through our online portal. 
+            We welcome both theoretical contributions and practical implementations.
+          </InfoBox>
 
-          <p className="text-gray-700 mt-6">
-            Authors can submit their manuscripts throughout the year through our
-            online portal. If any issues are faced in the online portal, then
-            authors can contact us to submit their manuscripts.
-          </p>
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">Research Scope & Domains</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <FeatureCard
+                  icon={Settings}
+                  title="FPGA Implementation"
+                  description="Reconfigurable hardware for digital systems"
+                  features={[
+                    "Signal processing algorithms",
+                    "Image and video processing",
+                    "Machine learning implementations",
+                    "Neural network accelerators",
+                    "Digital signal processing"
+                  ]}
+                />
+
+                <FeatureCard
+                  icon={Zap}
+                  title="VLSI & ASIC Design"
+                  description="Custom silicon implementations"
+                  features={[
+                    "Application-specific designs",
+                    "Low-power implementations",
+                    "High-performance computing",
+                    "Custom processor designs",
+                    "System-on-chip solutions"
+                  ]}
+                />
+
+                <FeatureCard
+                  icon={Globe}
+                  title="Processor-Based Systems"
+                  description="CPU, GPU, and DSP implementations"
+                  features={[
+                    "Embedded processor design",
+                    "Parallel processing systems",
+                    "Real-time implementations",
+                    "Multi-core architectures",
+                    "Hardware-software co-design"
+                  ]}
+                />
+
+                <FeatureCard
+                  icon={Target}
+                  title="Embedded Systems"
+                  description="Complete system implementations"
+                  features={[
+                    "IoT device development",
+                    "Sensor integration",
+                    "Control system design",
+                    "Automotive electronics",
+                    "Medical device systems"
+                  ]}
+                />
+
+                <FeatureCard
+                  icon={Shield}
+                  title="IoT & Industrial IoT"
+                  description="Connected system innovations"
+                  features={[
+                    "Communication protocols",
+                    "Edge computing solutions",
+                    "Industrial automation",
+                    "Smart city applications",
+                    "Healthcare IoT systems"
+                  ]}
+                />
+
+                <FeatureCard
+                  icon={Lightbulb}
+                  title="Theoretical Development"
+                  description="Algorithm and technique innovation"
+                  features={[
+                    "Novel algorithms",
+                    "Optimization techniques",
+                    "Design methodologies",
+                    "Performance analysis",
+                    "Security frameworks"
+                  ]}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8">
+              <h3 className="text-2xl font-bold text-center mb-6 text-gray-900">Special Focus Areas</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="text-lg font-semibold mb-3 text-blue-900">Emerging Technologies</h4>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>AI/ML hardware acceleration</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>Quantum computing interfaces</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>Edge AI implementations</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>5G/6G embedded systems</span>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold mb-3 text-purple-900">Application Domains</h4>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>Healthcare and biomedical</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>Automotive and transportation</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>Defense and security</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>Environmental monitoring</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <InfoBox type="info" title="Submission Support">
+              If you experience any issues with our online portal, please contact our editorial team. 
+              We&apos;re here to assist authors throughout the submission process.
+            </InfoBox>
+
+            <div className="text-center">
+              <Link href="/dashboard">
+                <Button size="lg" className="px-8">
+                  <Upload className="w-5 h-5 mr-2" />
+                  Submit Your Research
+                </Button>
+              </Link>
+            </div>
+          </div>
         </CardContent>
       </Card>
     ),
@@ -763,39 +1963,274 @@ export const data: GuideData[] = [
   {
     title: "how-we-publish",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-4">
-            How We Publish
-          </h2>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            The Journal of Embedded and Digital System Design (JEDSD) follows a
-            rigorous publication process to ensure the highest quality of
-            research dissemination. Our publication process includes the
-            following steps:
-          </p>
-          <ol className="list-decimal list-inside mb-4">
-            <li>
-              <strong>Submission:</strong> Authors submit their manuscripts
-              through our online submission system.
-            </li>
-            <li>
-              <strong>Peer Review:</strong> All submissions undergo a thorough
-              peer-review process by experts in the field.
-            </li>
-            <li>
-              <strong>Revisions:</strong> Authors may be required to revise
-              their manuscripts based on reviewer feedback.
-            </li>
-            <li>
-              <strong>Publication:</strong> Accepted manuscripts are published
-              online and made available to the research community.
-            </li>
-          </ol>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            For more information about our publication process, please visit our
-            website or contact the editorial office.
-          </p>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How We Publish</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Our comprehensive publication process ensures rigorous quality control and efficient dissemination of research
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
+            <StatCard
+              icon={Upload}
+              value="Online"
+              label="Submission"
+              description="Digital platform"
+            />
+            <StatCard
+              icon={Users}
+              value="Expert"
+              label="Review"
+              description="Field specialists"
+            />
+            <StatCard
+              icon={CheckCircle}
+              value="Quality"
+              label="Control"
+              description="Rigorous standards"
+            />
+            <StatCard
+              icon={Globe}
+              value="Open"
+              label="Access"
+              description="Global availability"
+            />
+          </div>
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Publication Workflow</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StepCard
+                  step={1}
+                  title="Manuscript Submission"
+                  description="Authors submit through our online system"
+                >
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 mb-1">Platform Features</h5>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>• User-friendly interface</li>
+                        <li>• Real-time status tracking</li>
+                        <li>• Secure file upload</li>
+                        <li>• Automated confirmations</li>
+                      </ul>
+                    </div>
+                    <div className="text-center">
+                      <Badge variant="outline" className="text-xs">
+                        24/7 Available
+                      </Badge>
+                    </div>
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={2}
+                  title="Peer Review Process"
+                  description="Thorough evaluation by field experts"
+                >
+                  <div className="space-y-3">
+                    <div className="bg-green-50 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 mb-1">Review Standards</h5>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>• Double-blind review</li>
+                        <li>• Multiple expert reviewers</li>
+                        <li>• Comprehensive evaluation</li>
+                        <li>• Constructive feedback</li>
+                      </ul>
+                    </div>
+                    <div className="text-center">
+                      <Badge variant="outline" className="text-xs">
+                        Expert Panel
+                      </Badge>
+                    </div>
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={3}
+                  title="Revision & Improvement"
+                  description="Authors enhance manuscripts based on feedback"
+                >
+                  <div className="space-y-3">
+                    <div className="bg-purple-50 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 mb-1">Revision Support</h5>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>• Detailed reviewer comments</li>
+                        <li>• Editorial guidance</li>
+                        <li>• Multiple revision rounds</li>
+                        <li>• Quality enhancement</li>
+                      </ul>
+                    </div>
+                    <div className="text-center">
+                      <Badge variant="outline" className="text-xs">
+                        Collaborative
+                      </Badge>
+                    </div>
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={4}
+                  title="Publication & Distribution"
+                  description="Global research community access"
+                >
+                  <div className="space-y-3">
+                    <div className="bg-orange-50 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 mb-1">Publication Features</h5>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>• Online publication</li>
+                        <li>• Global accessibility</li>
+                        <li>• DOI assignment</li>
+                        <li>• Indexing submission</li>
+                      </ul>
+                    </div>
+                    <div className="text-center">
+                      <Badge variant="outline" className="text-xs">
+                        Worldwide
+                      </Badge>
+                    </div>
+                  </div>
+                </StepCard>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
+              <h3 className="text-xl md:text-2xl font-bold text-center mb-6 text-gray-900">Publication Timeline</h3>
+              <div className="grid md:grid-cols-5 gap-4">
+                <TimelineItem
+                  step={1}
+                  title="Initial Review"
+                  description="1-2 weeks for preliminary assessment"
+                  isActive={true}
+                />
+                <TimelineItem
+                  step={2}
+                  title="Peer Review"
+                  description="4-6 weeks for expert evaluation"
+                  isActive={false}
+                />
+                <TimelineItem
+                  step={3}
+                  title="Author Response"
+                  description="2-4 weeks for revisions"
+                  isActive={false}
+                />
+                <TimelineItem
+                  step={4}
+                  title="Final Review"
+                  description="1-2 weeks for final decision"
+                  isActive={false}
+                />
+                <TimelineItem
+                  step={5}
+                  title="Publication"
+                  description="1 week for online publication"
+                  isActive={false}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Quality Assurance Framework</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <FeatureCard
+                  icon={Shield}
+                  title="Editorial Standards"
+                  description="Rigorous editorial oversight ensures consistent quality and adherence to publication ethics"
+                />
+                <FeatureCard
+                  icon={Users}
+                  title="Expert Network"
+                  description="Carefully selected reviewers from leading universities worldwide provide specialized expertise"
+                />
+                <FeatureCard
+                  icon={Award}
+                  title="Continuous Improvement"
+                  description="Regular feedback incorporation and process refinement for enhanced publication quality"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                  Pre-Publication Checklist
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                    Manuscript format compliance
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                    Plagiarism screening completed
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                    Peer review recommendations addressed
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                    Final editorial approval obtained
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                    Metadata and indexing prepared
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                  <Globe className="w-5 h-5 mr-2 text-blue-600" />
+                  Post-Publication Services
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <Star className="w-3 h-3 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
+                    DOI assignment and registration
+                  </li>
+                  <li className="flex items-start">
+                    <Star className="w-3 h-3 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
+                    Indexing database submission
+                  </li>
+                  <li className="flex items-start">
+                    <Star className="w-3 h-3 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
+                    Citation tracking and metrics
+                  </li>
+                  <li className="flex items-start">
+                    <Star className="w-3 h-3 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
+                    Author notification services
+                  </li>
+                  <li className="flex items-start">
+                    <Star className="w-3 h-3 mr-2 text-yellow-500 mt-1 flex-shrink-0" />
+                    Ongoing archival maintenance
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 text-center">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Questions About Our Process?</h3>
+              <p className="text-gray-600 mb-6">
+                Our editorial team is here to guide you through every step of the publication journey.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contact Editorial Office
+                </Button>
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Publication Guide
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     ),
@@ -803,65 +2238,321 @@ export const data: GuideData[] = [
   {
     title: "templates",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
-            Author Resources
-          </h2>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            All the manuscripts should be prepared according to the guidelines
-            provided by the journal. If any manuscript does not follow the
-            proper journal template, then it will be rejected during the initial
-            check-up stage only. The templates for the manuscripts are given
-            here.
-          </p>
-          <ul className="list-decimal">
-            <li className="font-bold">
-              Templates for Manuscripts
-              <ul className="list-disc pl-6">
-                <li>
-                  <strong>Latex Template:</strong>The authors are highly
-                  encouraged to prepare their manuscript according to the latex
-                  template. Manuscripts can be easily prepared by the latex
-                  template provided here. This template can be directly uploaded
-                  to overleaf.com or can be prepared by the latest test live
-                  tools.
-                </li>
-                <li>
-                  <strong>Microsoft Word Template:</strong>The manuscripts can
-                  also be prepared by Microsoft Word template. However, authors
-                  should submit the manuscript only in pdf format with proper
-                  format.
-                </li>
-              </ul>
-            </li>
-            <li className="font-bold mt-2">
-              Templates for Tutorials
-              <ul className="list-disc pl-6">
-                <li>
-                  the case of tutorials, separate latex and word templates
-                  should be followed.
-                </li>
-              </ul>
-            </li>
-          </ul>
-          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">
-            Some of templates are here which can help you.
-          </h3>
-          <a
-            className="text-blue-600 p-6"
-            download
-            href="/Journal_Template_word.docx"
-          >
-            Download word file
-          </a>
-          <a
-            className="text-blue-600 p-6"
-            download
-            href="/Journal_Template_latex.zip"
-          >
-            Download Zip folder
-          </a>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+        <CardContent className="space-y-6 md:space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Author Resources & Templates</h2>
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
+              Professional manuscript templates and comprehensive resources to ensure your submission meets our publication standards
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              icon={FileText}
+              value="2 Formats"
+              label="Templates"
+              description="LaTeX & Word options"
+            />
+            <StatCard
+              icon={CheckCircle}
+              value="Required"
+              label="Compliance"
+              description="Template adherence mandatory"
+            />
+            <StatCard
+              icon={Download}
+              value="Free"
+              label="Download"
+              description="No cost access"
+            />
+          </div>
+
+          <InfoBox 
+            type="warning"
+            title="Template Compliance Required"
+            description="Manuscripts that do not follow the proper journal template will be rejected during the initial review stage. Please ensure strict adherence to formatting guidelines."
+          />
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Manuscript Templates</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <StepCard
+                  step={1}
+                  title="LaTeX Template (Recommended)"
+                  description="Professional typesetting with precise formatting control"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border-l-4 border-green-500">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <Award className="w-4 h-4 mr-2 text-green-600" />
+                        Preferred Format
+                      </h4>
+                      <p className="text-sm text-gray-700 mb-3">
+                        Authors are highly encouraged to use the LaTeX template for optimal formatting and compliance.
+                      </p>
+                      <ul className="space-y-1 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Direct Overleaf.com compatibility
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          TeX Live tools supported
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Automatic formatting compliance
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Professional mathematical typesetting
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div className="text-center">
+                      <a
+                        href="/Journal_Template_latex.zip"
+                        download
+                        className="inline-flex"
+                      >
+                        <Button className="w-full">
+                          <Download className="w-4 h-4 mr-2" />
+                          Download LaTeX Template (.zip)
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                </StepCard>
+
+                <StepCard
+                  step={2}
+                  title="Microsoft Word Template"
+                  description="Alternative format for Word users with strict guidelines"
+                >
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-l-4 border-blue-500">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <FileText className="w-4 h-4 mr-2 text-blue-600" />
+                        Word Template Guidelines
+                      </h4>
+                      <p className="text-sm text-gray-700 mb-3">
+                        Word template available for authors who prefer Microsoft Word environment.
+                      </p>
+                      <ul className="space-y-1 text-sm text-gray-700">
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Pre-formatted styles included
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Must submit final PDF format
+                        </li>
+                        <li className="flex items-start">
+                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
+                          Strict formatting adherence required
+                        </li>
+                        <li className="flex items-start">
+                          <AlertTriangle className="w-3 h-3 mr-2 text-orange-500 mt-1 flex-shrink-0" />
+                          Manual formatting verification needed
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div className="text-center">
+                      <a
+                        href="/Journal_Template_word.docx"
+                        download
+                        className="inline-flex"
+                      >
+                        <Button variant="outline" className="w-full">
+                          <Download className="w-4 h-4 mr-2" />
+                          Download Word Template (.docx)
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                </StepCard>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Tutorial Templates</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <BookOpen className="w-4 h-4 mr-2 text-purple-600" />
+                    Special Tutorial Format
+                  </h4>
+                  <p className="text-sm text-gray-700">
+                    Separate templates are available for tutorial submissions with specialized formatting requirements.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <Settings className="w-4 h-4 mr-2 text-blue-600" />
+                    Both Formats Available
+                  </h4>
+                  <p className="text-sm text-gray-700">
+                    Tutorial templates provided in both LaTeX and Microsoft Word formats for author convenience.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Template Features & Benefits</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <FeatureCard
+                  icon={Zap}
+                  title="Automated Formatting"
+                  description="Pre-configured styles ensure consistent formatting throughout your manuscript"
+                />
+                <FeatureCard
+                  icon={CheckCircle}
+                  title="Compliance Guarantee"
+                  description="Templates designed to meet all journal requirements and submission guidelines"
+                />
+                <FeatureCard
+                  icon={Clock}
+                  title="Time Saving"
+                  description="Focus on content while templates handle formatting, reducing preparation time"
+                />
+                <FeatureCard
+                  icon={Award}
+                  title="Professional Quality"
+                  description="Industry-standard formatting ensures professional appearance of your research"
+                />
+                <FeatureCard
+                  icon={Users}
+                  title="Editorial Approved"
+                  description="Templates reviewed and approved by our editorial board for optimal compatibility"
+                />
+                <FeatureCard
+                  icon={Globe}
+                  title="Universal Access"
+                  description="Compatible with major word processing software and online platforms"
+                />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Template Usage Instructions</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <FileText className="w-4 h-4 mr-2 text-green-600" />
+                    LaTeX Template Setup
+                  </h4>
+                  <ol className="space-y-2 text-sm text-gray-700">
+                    <li className="flex items-start">
+                      <span className="bg-green-100 text-green-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">1</span>
+                      Download the LaTeX template zip file
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-green-100 text-green-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">2</span>
+                      Extract files to your working directory
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-green-100 text-green-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">3</span>
+                      Upload to Overleaf or use local TeX installation
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-green-100 text-green-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">4</span>
+                      Replace placeholder content with your research
+                    </li>
+                  </ol>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <FileText className="w-4 h-4 mr-2 text-blue-600" />
+                    Word Template Setup
+                  </h4>
+                  <ol className="space-y-2 text-sm text-gray-700">
+                    <li className="flex items-start">
+                      <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">1</span>
+                      Download the Word template file
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">2</span>
+                      Open in Microsoft Word (2016 or later)
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">3</span>
+                      Use pre-defined styles for consistency
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">4</span>
+                      Export final manuscript as PDF
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 border-l-4 border-red-500">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
+                Important Submission Requirements
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Format Compliance</h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Template usage is mandatory for all submissions
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Non-compliant manuscripts face automatic rejection
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      All formatting elements must remain unchanged
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">File Submission</h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      PDF format required for final submission
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Source files may be requested during review
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      High-quality figures and tables required
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 text-center">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Need Help with Templates?</h3>
+              <p className="text-gray-600 mb-6">
+                Our editorial support team is available to assist with template usage and formatting questions.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Template Support
+                </Button>
+                <Button variant="outline">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Formatting Guide
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     ),
@@ -869,92 +2560,151 @@ export const data: GuideData[] = [
   {
     title: "peer-review-process",
     content: (
-      <Card className="max-w-4xl bg-blue-200/20  backdrop-blur-md  bg-clip-padding backdrop-filter   border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-4">
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-4">
-            Peer Review Process
-          </h2>
-          <p className="text-gray-600 text-lg leading-relaxed mb-4">
-            The quality of the journal is most important to us. Each manuscript
-            has to have some level of innovation and it should not be
-            plagiarized. Journal of Embedded and Digital System Design (JEDSD)
-            ensures that each manuscript will go through a peer review and
-            plagiarism check process. All the manuscripts will go through a peer
-            review process and each manuscript will be reviewed by at least
-            three anonymous reviewers, from reputed institutions, selected by
-            the editorial teams. Out of these reviewers, two reviewers will be
-            from the core or primary area and one reviewer will be selected from
-            the application or secondary area. The reviewer&apos;s comments will
-            be sent to the editor-in-chief for decision-making. The total review
-            process will be approximately 4-6 weeks. Authors may experience
-            delay in the review process only if reviewers have not accepted the
-            manuscript for review or reviewers have delayed giving their
-            comments due to some reasons. There are four steps between the
-            submission of a manuscript and its publication. These steps are
-            discussed in detail below
-          </p>
-       
-        <div>
-          <h2 className="text-xl font-semibold mt-4">
-            1. Initial Checkup
-          </h2>
-          <ul className="list-disc pl-6 text-gray-700">
-            <li>
-              <strong>Manuscript Submission Check:</strong> Authors submit their manuscripts through the online submission system, which automatically checks if all files are uploaded correctly in PDF format. Sometimes a cover letter may be uploaded only in PDF format.
-            </li>
-            <li>
-              <strong>Preliminary Check:</strong> The editorial office conducts an initial screening to ensure the manuscript adheres to the journal&apos;s formatting and ethical guidelines. Manuscripts that do not meet these criteria are returned to the authors for correction.
-            </li>
-          </ul>
-        </div>
+      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+        <CardContent className="space-y-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Peer Review Process</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Our rigorous peer review process ensures the highest quality publications through 
+              expert evaluation and constructive feedback from leading researchers in the field.
+            </p>
+          </div>
 
-        <div>
-          <h2 className="text-xl font-semibold mt-4">
-            2. Assignment to Associate Editor
-          </h2>
-          <ul className="list-disc pl-6 text-gray-700">
-            <li>
-              <strong>Editor Assignment:</strong> The Editor-in-Chief assigns the manuscript to an appropriate Associate Editor based on the manuscript&apos;s subject area.
-            </li>
-            <li>
-              <strong>Reviewer Selection:</strong> The Associate Editor selects three or more independent reviewers with expertise in the relevant field.
-            </li>
-          </ul>
-        </div>
+          <div className="grid md:grid-cols-4 gap-6">
+            <StatCard
+              icon={Users}
+              value="3+"
+              label="Expert Reviewers"
+              description="Per manuscript"
+            />
+            <StatCard
+              icon={Clock}
+              value="4-6 weeks"
+              label="Review Timeline"
+              description="Average duration"
+            />
+            <StatCard
+              icon={Eye}
+              value="Double-Blind"
+              label="Review Type"
+              description="Anonymous process"
+            />
+            <StatCard
+              icon={Award}
+              value="95%"
+              label="Author Satisfaction"
+              description="Positive feedback"
+            />
+          </div>
 
-        <div>
-          <h2 className="text-xl font-semibold mt-4">
-            3. Peer Review
-          </h2>
-          <ul className="list-disc pl-6 text-gray-700">
-            <li>
-              <strong>Under Review:</strong> JEDSD follows a blind review process where the reviewers will remain anonymous to authors.
-            </li>
-            <li>
-              <strong>Review Criteria:</strong> Reviewers evaluate the manuscript based on originality, technical quality, significance, clarity, and relevance to the journal&apos;s scope.
-            </li>
-            <li>
-              <strong>Reviewer Reports:</strong> Reviewers provide detailed feedback and recommendations: accept, minor revisions, major revisions, or reject.
-            </li>
-          </ul>
-        </div>
+          <InfoBox type="info" title="Quality Assurance">
+            Each manuscript is reviewed by at least three anonymous reviewers from reputed institutions, 
+            with two from the core area and one from the application domain, ensuring comprehensive evaluation.
+          </InfoBox>
 
-        <div>
-          <h2 className="text-xl font-semibold mt-4">
-            4. Final Decision
-          </h2>
-          <ul className="list-disc pl-6 text-gray-700">
-            <li>
-              <strong>Comments by Reviewers:</strong> All the reviewers&apos;comments will be collected by the associate editor.
-            </li>
-            <li>
-              <strong>Comment by Editor:</strong> The associate editor will make comments on the manuscript and summarize the comments by the reviewers.
-            </li>
-            <li>
-              <strong>Final Decision:</strong> Based on all the comments by the reviewers and the associate editor, the final decision for the manuscript will be conveyed to the authors only through email by the editor-in-chief office.
-            </li>
-          </ul>
-        </div>
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold mb-6 text-gray-900">Review Timeline</h3>
+              <div className="space-y-4">
+                <TimelineItem
+                  title="Initial Submission"
+                  description="Manuscript submitted through online portal"
+                  duration="Day 0"
+                  isCompleted
+                />
+                <TimelineItem
+                  title="Initial Screening"
+                  description="Editorial team checks formatting and scope alignment"
+                  duration="1-3 days"
+                  isCompleted
+                />
+                <TimelineItem
+                  title="Reviewer Assignment"
+                  description="Associate editor selects qualified reviewers"
+                  duration="3-7 days"
+                  isActive
+                />
+                <TimelineItem
+                  title="Peer Review"
+                  description="Expert reviewers evaluate and provide feedback"
+                  duration="3-4 weeks"
+                />
+                <TimelineItem
+                  title="Editorial Decision"
+                  description="Final decision based on reviewer recommendations"
+                  duration="1-2 days"
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="text-2xl font-bold mb-6 text-gray-900">Review Process Steps</h3>
+              <div className="space-y-6">
+                <StepCard
+                  step={1}
+                  title="Initial Checkup"
+                  description="Manuscript submission verification, format compliance, and preliminary ethical screening by editorial office."
+                  icon={Search}
+                />
+                <StepCard
+                  step={2}
+                  title="Associate Editor Assignment"
+                  description="Editor-in-Chief assigns manuscript to appropriate Associate Editor based on subject expertise."
+                  icon={Users}
+                />
+                <StepCard
+                  step={3}
+                  title="Peer Review"
+                  description="Anonymous expert reviewers evaluate originality, technical quality, significance, and clarity."
+                  icon={MessageCircle}
+                />
+                <StepCard
+                  step={4}
+                  title="Editorial Decision"
+                  description="Final decision communicated to authors with detailed reviewer feedback and recommendations."
+                  icon={CheckCircle}
+                  isLast
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <FeatureCard
+                icon={Shield}
+                title="Review Criteria"
+                description="What our reviewers evaluate"
+                features={[
+                  "Originality and novelty of research",
+                  "Technical quality and methodology",
+                  "Significance to the field",
+                  "Clarity of presentation",
+                  "Relevance to journal scope",
+                  "Proper citation and references",
+                  "Ethical compliance"
+                ]}
+              />
+              
+              <FeatureCard
+                icon={Target}
+                title="Decision Categories"
+                description="Possible review outcomes"
+                features={[
+                  "Accept - Ready for publication",
+                  "Minor Revisions - Small changes needed",
+                  "Major Revisions - Significant improvements required",
+                  "Reject and Resubmit - Substantial revision needed",
+                  "Reject - Not suitable for publication"
+                ]}
+              />
+            </div>
+
+            <InfoBox type="success" title="Author Support">
+              We provide detailed feedback to help authors improve their manuscripts, even for rejected papers. 
+              Our goal is to advance research quality in embedded and digital system design.
+            </InfoBox>
+          </div>
         </CardContent>
       </Card>
     ),

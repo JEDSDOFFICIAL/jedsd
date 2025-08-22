@@ -37,7 +37,7 @@ const contributorSchema = z.object({
 
 const formSchema = z.object({
   title: z.string().min(20, "Paper Title is required (min 20 chars)").max(200, "Paper Title must be less than 200 characters"),
-  abstract: z.string().min(350, "Abstract is required (min 350 chars)").max(1000, "Abstract must be less than 1000 characters"),
+  abstract: z.string().min(350, "Abstract is required (min 350 chars)").max(3000, "Abstract must be less than 1000 characters"),
   keywords: z.string().min(1, "Keywords are required"),
   contributors: z
     .array(contributorSchema)

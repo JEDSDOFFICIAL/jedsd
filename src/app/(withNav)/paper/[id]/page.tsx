@@ -21,6 +21,11 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Navbar from "@/components/home/Navbar";
+import Footer from "@/components/home/Footer";
+
+const MemoizedNavbar = React.memo(Navbar);
+const MemoizedFooter = React.memo(Footer);
 import {
   Card,
   CardContent,

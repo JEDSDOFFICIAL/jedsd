@@ -187,8 +187,8 @@ if (!mounted) return null;
   }
 
   return (
-    <div className="w-full max-w-full h-fit bg-white shadow-md overflow-x-hidden">
-      <header className="bg-gray-600 text-white w-full max-w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20 overflow-x-hidden">
+    <div className="w-full max-w-full h-fit bg-white shadow-md">
+      <header className="bg-gray-600 text-white w-full max-w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20">
         <div className="flex items-center gap-4 w-full max-w-full h-full min-w-0">
           <Image
             src="/logored.jpg"
@@ -204,10 +204,10 @@ if (!mounted) return null;
               <Search/></Link>
               <SmNavbar session={session} />
             </div>
-            <div className="w-full max-w-full lg:h-1/2 hidden md:block bg-white border-2 border-black rounded-md py-1 overflow-x-hidden">
+            <div className="w-full  lg:h-1/2 hidden md:block bg-white border-2 border-black rounded-md py-1 relative">
               <NavigationMenuDemo session={session} />
             </div>
-            <div className="w-full max-w-full lg:h-1/2 hidden lg:flex gap-3 py-1 overflow-x-hidden">
+            <div className="w-full max-w-full lg:h-1/2 hidden lg:flex gap-3 py-1">
               <Input
                 type="text"
                 placeholder="Search papers..."
@@ -253,9 +253,10 @@ export default Navbar;
 
 function NavigationMenuDemo({ session }: { session: any }) {
   return (
-    <div className="flex justify-center items-center w-full h-full">
-      <NavigationMenu viewport={false} className="w-full h-fit px-6">
+    <div className="flex justify-center items-center w-full h-full relative z-[60] px-3">
+      <NavigationMenu viewport={false} className="w-full h-fit">
         <NavigationMenuList className="w-full h-full flex items-center justify-between text-black">
+          {/* Home - Left Side */}
           <NavigationMenuItem>
             <NavigationMenuLink asChild>
               <Link href="/">
@@ -266,11 +267,12 @@ function NavigationMenuDemo({ session }: { session: any }) {
             </NavigationMenuLink>
           </NavigationMenuItem>
 
+          {/* Center Navigation Items */}
           <div className="flex items-center gap-4">
             <NavigationMenuItem>
               <NavigationMenuTrigger>About Us</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2">
+                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2 p-4">
                   {aboutus.map((item) => (
                     <ListItem
                       key={item.title}
@@ -288,7 +290,7 @@ function NavigationMenuDemo({ session }: { session: any }) {
             <NavigationMenuItem>
               <NavigationMenuTrigger>Policies</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2">
+                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2 p-4">
                   {Policies.map((item) => (
                     <ListItem
                       key={item.title}
@@ -306,7 +308,7 @@ function NavigationMenuDemo({ session }: { session: any }) {
             <NavigationMenuItem>
               <NavigationMenuTrigger>Publishing Model</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2">
+                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2 p-4">
                   {PublishingModel.map((item) => (
                     <ListItem
                       key={item.title}
@@ -320,6 +322,7 @@ function NavigationMenuDemo({ session }: { session: any }) {
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
+
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link href="/paper">
@@ -329,6 +332,7 @@ function NavigationMenuDemo({ session }: { session: any }) {
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
+
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link href="/pre-publish">
@@ -340,28 +344,26 @@ function NavigationMenuDemo({ session }: { session: any }) {
             </NavigationMenuItem>
           </div>
 
+         
+        </NavigationMenuList>
+        
+      </NavigationMenu>
           {session?.user ? (
-            <NavigationMenuItem className="h-fit w-fit">
+            <div className="h-fit w-fit">
               <DropdownMenuProfile
                 profileImage={session.user.image}
               />
-            </NavigationMenuItem>
+            </div>
           ) : (
-            <NavigationMenuItem>
-              <NavigationMenuLink
-                asChild
-                className={navigationMenuTriggerStyle()}
-              >
+           
                 <Link href="/signup">
                   <div className="flex items-center gap-2 text-black font-medium">
                     <User className="size-6 text-black" /> Sign-Up
                   </div>
                 </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+          
           )}
-        </NavigationMenuList>
-      </NavigationMenu>
+      
     </div>
   );
 }
@@ -379,9 +381,9 @@ function ListItem({
   return (
     <li {...props}>
       <NavigationMenuLink asChild>
-        <Link href={href} className="block">
-          <div className="flex items-center gap-2">
-            {icon}
+        <Link href={href} className="block p-3 rounded-md hover:bg-accent transition-colors">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-primary">{icon}</span>
             <div className="font-medium text-sm">{title}</div>
           </div>
           <p className="text-sm leading-snug text-muted-foreground line-clamp-2">
