@@ -46,9 +46,7 @@ export const DashboardItems = [
     icon: Brain,
     access: ["EDITOR"],
     items: [
-      { title: "Assign Reviewers", url: "/dashboard/editor/reviewer-allocation", icon: UserCheck },
-      { title: "Manage Reviews", url: "/dashboard/editor/paper-reviews", icon: FileSignature },
-      { title: "Manage Publications", url: "/dashboard/editor/publications", icon: BookOpenCheck },
+      { title: "Editor Workflow", url: "/dashboard/editor", icon: UserCheck },
     ],
   },
   {
