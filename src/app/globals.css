@@ -8,6 +8,8 @@ html, body {
   padding: 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  overflow-x: hidden; /* Prevent horizontal scrolling globally */
+  max-width: 100%;
 }
 
 /* Performance optimizations */
@@ -15,6 +17,18 @@ html, body {
   font-family: "Chicle", serif;
   font-weight: 400;
   font-style: normal;
+  box-sizing: border-box; /* Ensure box-sizing is consistent */
+}
+
+/* Prevent horizontal scroll on all elements */
+* {
+  max-width: 100%;
+}
+
+/* Container classes to prevent overflow */
+.container, .max-w-screen-xl, .max-w-7xl {
+  max-width: 100% !important;
+  overflow-x: hidden;
 }
 
 /* GPU acceleration for better performance */

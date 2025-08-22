@@ -2,10 +2,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { comparePassword, hashPassword } from "@/lib/hash";
-
 import { z } from "zod";
-
 import { sendVerificationEmail } from "@/helper/mail/sendVarificationMail";
+import { getEffectiveUserType } from "@/lib/userDetailsUtils";
 
 const signupSchema = z.object({
   name: z.string().min(2),
@@ -43,6 +42,9 @@ export async function POST(req: Request) {
     }
   }
 
+  // Get the effective userType for this email using utility function
+  const userType = await getEffectiveUserType(email);
+
   const hashedPassword = await hashPassword(password);
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -54,6 +56,7 @@ export async function POST(req: Request) {
       password: hashedPassword,
       profileImage:"/profileImage.png",
       isVerified: false,
+      userType: userType, // Set the correct userType based on UserDetails
       verificationCode: otp,
       verificationCodeExpiry: new Date(Date.now() + 1000 * 60 * 60), // 1 hour
     },
@@ -61,5 +64,8 @@ export async function POST(req: Request) {
 
   await sendVerificationEmail(email, name, otp);
 
-  return NextResponse.json({ message: "Verification email sent" });
+  return NextResponse.json({ 
+    message: "Verification email sent",
+    userType: userType // Optionally return the assigned userType
+  });
 }

@@ -281,3 +281,101 @@ export async function DELETE(req: Request) {
     );
   }
 }
+
+// Schema for updating a research paper (PUT request)
+const updatePaperSchema = z.object({
+  paperId: z.string().uuid("Invalid paperId format."),
+  title: z.string().min(1, "Title is required.").optional(),
+  abstract: z.string().min(1, "Abstract is required.").optional(),
+  filePath: z.string().url("Invalid file path URL.").optional(),
+  keywords: z.array(z.string().min(1, "Keyword cannot be empty.")).optional(),
+  coverLetterPath: z.string().url("Invalid cover letter path URL.").optional().nullable(),
+  contributors: z.array(contactInfoSchema).optional(),
+  pointOfContact: contactInfoSchema.optional(),
+});
+
+// PUT /api/paper - Update an existing research paper
+export async function PUT(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const paperId = url.searchParams.get("paperId");
+
+    if (!paperId) {
+      return NextResponse.json(
+        { success: false, message: "paperId is required as query parameter." },
+        { status: 400 }
+      );
+    }
+
+    const body = await req.json();
+    const validationResult = updatePaperSchema.safeParse({ ...body, paperId });
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: "Invalid request data.", 
+          errors: validationResult.error.errors 
+        },
+        { status: 400 }
+      );
+    }
+
+    const { paperId: validatedPaperId, ...updateData } = validationResult.data;
+
+    // Check if paper exists
+    const existingPaper = await prisma.researchPaper.findUnique({
+      where: { id: validatedPaperId }
+    });
+
+    if (!existingPaper) {
+      return NextResponse.json(
+        { success: false, message: "Research paper not found." },
+        { status: 404 }
+      );
+    }
+
+    // Update the paper
+    const updatedPaper = await prisma.researchPaper.update({
+      where: { id: validatedPaperId },
+      data: {
+        ...updateData,
+        lastUpdated: new Date()
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            affiliation: true
+          }
+        },
+        reviews: {
+          include: {
+            reviewer: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Research paper updated successfully.",
+      data: updatedPaper
+    });
+
+  } catch (error: any) {
+    console.error("Error updating research paper:", error);
+    return NextResponse.json(
+      { success: false, message: "Server error", error: error.message },
+      { status: 500 }
+    );
+  }
+}

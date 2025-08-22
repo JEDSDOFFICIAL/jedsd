@@ -77,16 +77,17 @@ export default function ReviewerActionPage() {
     setSuccess("");
 
     try {
-      const response = await fetch("/api/paper/reviewer-action", {
+      const response = await fetch("/api/paper/review", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           paperId,
-          action,
+          reviewerId: session?.user?.id,
           reviewText,
           rating,
+          reviewerStatus: action === "accept" ? "ACCEPTED_FOR_PUBLICATION" : "REJECTED_FOR_PUBLICATION",
           correspondingFile: correspondingFile || undefined,
         }),
       });

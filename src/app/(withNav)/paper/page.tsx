@@ -38,7 +38,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MemoizedFooter, MemoizedNavbar } from "@/components/MemoizedComponents";
 
 interface ResearchPaper {
   id: string;
@@ -370,10 +369,9 @@ function PaperSearchContent() {
   }
 
   return (
-    <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
-    <MemoizedNavbar />
+    <div className="w-full min-h-screen max-w-full overflow-x-hidden scroll-smooth">
     
-    <div className="container mx-auto px-4 max-w-full lg:pt-36 md:pt-40 pt-36">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full lg:pt-8 md:pt-8 pt-8">
       {/* Header */}
       <div className="mt-8 mb-2 w-full text-center border-b-2 border-black pb-3">
         <h1 className="text-3xl font-bold mb-2">
@@ -391,13 +389,13 @@ function PaperSearchContent() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
+          <Card className="sticky top-4 bg-card border shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Search className="h-5 w-5 text-primary" />
                 Advanced Search
                 {(filters.titleQuery || filters.keywordQuery || filters.authorQuery || filters.abstractQuery) && (
-                  <Badge variant="secondary" className="ml-auto">
+                  <Badge variant="secondary" className="ml-auto text-xs">
                     Active
                   </Badge>
                 )}
@@ -405,86 +403,108 @@ function PaperSearchContent() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Title Search */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Search by Title</Label>
-                <Input
-                  placeholder="Enter title keywords..."
-                  value={filters.titleQuery}
-                  onChange={(e) => handleFilterChange("titleQuery", e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="w-full"
-                />
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground">Search by Title</Label>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Enter title keywords..."
+                    value={filters.titleQuery}
+                    onChange={(e) => handleFilterChange("titleQuery", e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                    className="pl-10 border-input"
+                  />
+                </div>
               </div>
 
               {/* Keywords Search */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Search by Keywords</Label>
-                <Input
-                  placeholder="AI, machine learning, etc."
-                  value={filters.keywordQuery}
-                  onChange={(e) => handleFilterChange("keywordQuery", e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Separate keywords with commas</p>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground">Search by Keywords</Label>
+                <div className="relative">
+                  <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="AI, machine learning, etc."
+                    value={filters.keywordQuery}
+                    onChange={(e) => handleFilterChange("keywordQuery", e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                    className="pl-10 border-input"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Separate keywords with commas</p>
               </div>
 
               {/* Author Search */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Search by Author</Label>
-                <Input
-                  placeholder="Author name or email..."
-                  value={filters.authorQuery}
-                  onChange={(e) => handleFilterChange("authorQuery", e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="w-full"
-                />
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground">Search by Author</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Author name or email..."
+                    value={filters.authorQuery}
+                    onChange={(e) => handleFilterChange("authorQuery", e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                    className="pl-10 border-input"
+                  />
+                </div>
               </div>
 
               {/* Abstract Search */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Search in Abstract</Label>
-                <Input
-                  placeholder="Search abstract content..."
-                  value={filters.abstractQuery}
-                  onChange={(e) => handleFilterChange("abstractQuery", e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="w-full"
-                />
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground">Search in Abstract</Label>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search abstract content..."
+                    value={filters.abstractQuery}
+                    onChange={(e) => handleFilterChange("abstractQuery", e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                    className="pl-10 border-input"
+                  />
+                </div>
               </div>
 
               {/* Search Button */}
               <Button 
                 onClick={handleSearch} 
                 disabled={loading}
-                className="w-full"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                size="lg"
               >
                 <Search className="h-4 w-4 mr-2" />
                 {loading ? "Searching..." : "Search Papers"}
               </Button>
 
-              <Separator />
+              <Separator className="my-4" />
 
               {/* Sort By */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Sort By</Label>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <SortAsc className="h-4 w-4" />
+                  Sort By
+                </Label>
                 <Select value={filters.sortBy} onValueChange={(value: any) => handleFilterChange("sortBy", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-input">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="submissionDate">Submission Date</SelectItem>
-                    <SelectItem value="acceptedDate">Publication Date</SelectItem>
-                    <SelectItem value="title">Title</SelectItem>
+                    <SelectItem value="submissionDate">📅 Submission Date</SelectItem>
+                    <SelectItem value="acceptedDate">🎯 Publication Date</SelectItem>
+                    <SelectItem value="title">📝 Title</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Sort Order */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Sort Order</Label>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  {filters.sortOrder === "desc" ? 
+                    <SortDesc className="h-4 w-4" /> : 
+                    <SortAsc className="h-4 w-4" />
+                  }
+                  Sort Order
+                </Label>
                 <Select value={filters.sortOrder} onValueChange={(value: any) => handleFilterChange("sortOrder", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-input">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -505,16 +525,19 @@ function PaperSearchContent() {
               </div>
 
               {/* Year Filter */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Filter by Year</Label>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Filter by Year
+                </Label>
                 <Select value={filters.yearFilter || "all"} onValueChange={(value) => handleFilterChange("yearFilter", value === "all" ? "" : value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-input">
                     <SelectValue placeholder="All Years" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Years</SelectItem>
+                    <SelectItem value="all">🗓️ All Years</SelectItem>
                     {availableYears.map(year => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                      <SelectItem key={year} value={year}>📅 {year}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -537,9 +560,10 @@ function PaperSearchContent() {
                   window.history.replaceState({}, "", window.location.pathname);
                   setTimeout(() => fetchPapers(true), 0);
                 }}
-                className="w-full"
+                className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                size="lg"
               >
-                Clear All Filters
+                🗑️ Clear All Filters
               </Button>
             </CardContent>
           </Card>
@@ -594,12 +618,12 @@ function PaperSearchContent() {
           </Card>
         ) : (
           papers.map((paper) => (
-            <Card key={paper.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
+            <Card key={paper.id} className="hover:shadow-lg hover:border-primary/50 transition-all duration-300 bg-card border-border">
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle 
-                      className="text-xl mb-2 cursor-pointer hover:text-blue-300 transition-colors duration-300 hover:underline"
+                      className="text-xl mb-2 cursor-pointer hover:text-primary transition-colors duration-300 hover:underline line-clamp-2"
                       onClick={() => viewPaperDetails(paper.id)}
                     >
                       {paper.title}
@@ -608,19 +632,19 @@ function PaperSearchContent() {
                     {/* Author and Date Badges */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       {paper.author && (
-                        <Badge variant="secondary" className="flex items-center gap-1">
+                        <Badge variant="secondary" className="flex items-center gap-1 bg-secondary/80">
                           <User className="h-3 w-3" />
                           {paper.author.name}
                         </Badge>
                       )}
                       
-                      <Badge variant="outline" className="flex items-center gap-1">
+                      <Badge variant="outline" className="flex items-center gap-1 border-muted-foreground/20">
                         <Calendar className="h-3 w-3" />
                         Submitted: {formatDate(paper.submissionDate)}
                       </Badge>
                       
                       {paper.acceptedDate && (
-                        <Badge variant="default" className="flex items-center gap-1">
+                        <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100 dark:border-green-800">
                           <Calendar className="h-3 w-3" />
                           Published: {formatDate(paper.acceptedDate)}
                         </Badge>
@@ -631,13 +655,13 @@ function PaperSearchContent() {
                     {paper.keywords && paper.keywords.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {paper.keywords.slice(0, 5).map((keyword, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge key={index} variant="outline" className="text-xs bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
                             <Tag className="h-3 w-3 mr-1" />
                             {keyword}
                           </Badge>
                         ))}
                         {paper.keywords.length > 5 && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs bg-muted">
                             +{paper.keywords.length - 5} more
                           </Badge>
                         )}
@@ -650,6 +674,7 @@ function PaperSearchContent() {
                       variant="outline"
                       size="sm"
                       onClick={() => viewPaperDetails(paper.id)}
+                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       Details
@@ -731,7 +756,6 @@ function PaperSearchContent() {
       </div>
     </div>
     
-    <MemoizedFooter />
     </div>
   );
 }
@@ -740,8 +764,7 @@ export default function PaperSearchPage() {
   return (
     <Suspense fallback={
       <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
-        <MemoizedNavbar />
-        <div className="container mx-auto px-4 max-w-full lg:pt-36 md:pt-40 pt-36">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full lg:pt-8 md:pt-8 pt-8">
           <div className="mt-8 mb-2 w-full text-center border-b-2 border-black pb-3">
             <div className="h-8 bg-muted rounded w-1/2 mx-auto mb-2 animate-pulse"></div>
             <div className="h-4 bg-muted rounded w-3/4 mx-auto animate-pulse"></div>
@@ -759,7 +782,6 @@ export default function PaperSearchPage() {
             </div>
           </div>
         </div>
-        <MemoizedFooter />
       </div>
     }>
       <PaperSearchContent />

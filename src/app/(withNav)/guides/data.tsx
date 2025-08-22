@@ -76,7 +76,7 @@ export const data: GuideData[] = [
             duration={1}
             animate
             once
-            className="text-gray-600 text-lg leading-relaxed mb-4"
+            className="text-gray-600 text-lg mb-4 text-justify"
           >
             A nation&rsquo;s dream is to build a ubiquitous digital
             infrastructure so that this will ensure ease of living for the
@@ -90,7 +90,7 @@ export const data: GuideData[] = [
             delay={1}
             duration={2}
             once
-            className="text-gray-600 text-lg leading-relaxed mb-4"
+            className="text-gray-600 text-lg  mb-4 text-justify"
           >
             Journal of Embedded and Digital System Design (JEDSD) is a platform
             where researchers can publish emerging techniques for the design of
@@ -105,7 +105,7 @@ export const data: GuideData[] = [
             duration={3}
             animate
             once
-            className="text-gray-600 text-lg leading-relaxed"
+            className="text-gray-600 text-lg  text-justify"
           >
             The objective of this journal is to motivate students right from
             graduation to focus on developing innovative designs, to inspire

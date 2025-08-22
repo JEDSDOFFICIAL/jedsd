@@ -245,11 +245,9 @@ export async function publishPaper(paperId:string,onSuccess?:()=>void){
   }
 }
 
-export async function acceptPaper(paperId: string, editorNotes?: string, onSuccess?: () => void) {
+export async function acceptPaper(paperId: string, onSuccess?: () => void) {
   try {
-    const res = await axios.patch(`/api/paper/${paperId}/accept`, {
-      editorNotes
-    });
+    const res = await axios.patch(`/api/paper/${paperId}/accept`);
     console.log("Accepted paper:", res.data);
     toast.success("Paper accepted for publication successfully!");
     onSuccess?.();
@@ -257,6 +255,22 @@ export async function acceptPaper(paperId: string, editorNotes?: string, onSucce
   } catch (error) {
     console.error("Failed to accept paper:", error);
     toast.error("Failed to accept paper.");
+    return null;
+  }
+}
+
+export async function rejectPaper(paperId: string, onSuccess?: () => void) {
+  try {
+    const res = await axios.patch(`/api/paper/${paperId}/publish`, {
+      status: "REJECTED",
+    });
+    console.log("Rejected paper:", res.data);
+    toast.success("Paper rejected successfully!");
+    onSuccess?.();
+    return res.data;
+  } catch (error) {
+    console.error("Failed to reject paper:", error);
+    toast.error("Failed to reject paper.");
     return null;
   }
 }

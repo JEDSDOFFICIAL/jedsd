@@ -31,7 +31,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { MemoizedFooter, MemoizedNavbar } from "@/components/MemoizedComponents";
 
 interface ResearchPaper {
   id: string;

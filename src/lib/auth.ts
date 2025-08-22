@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { comparePassword } from "@/lib/hash";
 import { NextAuthOptions } from "next-auth";
 import { sendSuccessAuthMail } from "@/helper/mail/sendSuccessAuthMail";
+import { getEffectiveUserType } from "@/lib/userDetailsUtils";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -28,24 +29,18 @@ export const authOptions: NextAuthOptions = {
         );
         if (!isValid || !user.isVerified) return null;
 
-        const userDetails = await prisma.userDetails.findUnique({
-          where: { email: credentials.email },
-        });
+        // Get the most up-to-date userType from UserDetails
+        const finalUserType = await getEffectiveUserType(credentials.email);
 
-        const finalUserType =
-          userDetails &&
-          ["ADMIN", "REVIEWER", "EDITOR", "USER"].includes(userDetails.userType)
-            ? userDetails.userType
-            : "USER";
-
-        // Sync userType to main user table
-        await prisma.user.update({
-          where: { email: credentials.email },
-          data: {
-            userType: finalUserType,
-            isVerified: true,
-          },
-        });
+        // Sync userType to main user table if it differs
+        if (user.userType !== finalUserType) {
+          await prisma.user.update({
+            where: { email: credentials.email },
+            data: {
+              userType: finalUserType,
+            },
+          });
+        }
 
         await sendSuccessAuthMail(user.email, user.name);
 
@@ -95,30 +90,17 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, account }) {
       if (user && account?.provider === "google") {
-        const existingUserDetails = await prisma.userDetails.findUnique({
-          where: { email: user.email! },
-        });
-
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
         });
 
-        const resolvedUserType =
-          existingUser?.userType &&
-          ["ADMIN", "REVIEWER", "EDITOR", "USER"].includes(
-            existingUser.userType
-          )
-            ? existingUser.userType
-            : existingUserDetails?.userType &&
-                ["ADMIN", "REVIEWER", "EDITOR", "USER"].includes(
-                  existingUserDetails.userType
-                )
-              ? existingUserDetails.userType
-              : "USER";
+        // Get the effective userType using utility function
+        const resolvedUserType = await getEffectiveUserType(user.email!);
 
         let currentUser;
 
         if (!existingUser) {
+          // Create new user with correct userType from UserDetails
           currentUser = await prisma.user.create({
             data: {
               email: user.email!,
@@ -131,13 +113,14 @@ export const authOptions: NextAuthOptions = {
             },
           });
         } else {
+          // Update existing user, sync userType from UserDetails if needed
           currentUser = await prisma.user.update({
             where: { email: user.email! },
             data: {
               name: user.name?.trim() || "Unnamed",
               isVerified: true,
               profileImage: user.image,
-              userType: resolvedUserType,
+              userType: resolvedUserType, // Always sync from UserDetails
             },
           });
         }

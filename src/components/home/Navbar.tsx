@@ -187,9 +187,9 @@ if (!mounted) return null;
   }
 
   return (
-    <div className="w-full h-fit bg-white shadow-md overflow-x-hidden">
-      <header className="bg-gray-600 text-white w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20 overflow-x-hidden">
-        <div className="flex items-center gap-4 w-full h-full min-w-0">
+    <div className="w-full max-w-full h-fit bg-white shadow-md overflow-x-hidden">
+      <header className="bg-gray-600 text-white w-full max-w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20 overflow-x-hidden">
+        <div className="flex items-center gap-4 w-full max-w-full h-full min-w-0">
           <Image
             src="/logored.jpg"
             alt="Logo"
@@ -197,17 +197,17 @@ if (!mounted) return null;
             height={100}
             className="h-full w-auto flex-shrink-0"
           />
-          <div className="flex flex-col w-full h-full md:justify-center md:items-center min-w-0">
+          <div className="flex flex-col w-full max-w-full h-full md:justify-center md:items-center min-w-0">
             <div className="flex items-center justify-end md:hidden h-full gap-4">
               <DropdownMenuProfile profileImage={session?.user?.image ?? undefined} />
               <Link href="/paper" className="text-white font-semibold text-lg">
               <Search/></Link>
               <SmNavbar session={session} />
             </div>
-            <div className="w-full lg:h-1/2 hidden md:block bg-white border-2 border-black rounded-md py-1">
+            <div className="w-full max-w-full lg:h-1/2 hidden md:block bg-white border-2 border-black rounded-md py-1 overflow-x-hidden">
               <NavigationMenuDemo session={session} />
             </div>
-            <div className="w-full lg:h-1/2 hidden lg:flex gap-3 py-1 max-w-full">
+            <div className="w-full max-w-full lg:h-1/2 hidden lg:flex gap-3 py-1 overflow-x-hidden">
               <Input
                 type="text"
                 placeholder="Search papers..."

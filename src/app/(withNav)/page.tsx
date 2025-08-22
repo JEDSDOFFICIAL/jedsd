@@ -12,7 +12,7 @@ const MemoizedTimeline = memo(Timeline);
 export default function Home() {
    
   return (
-    <div className="w-full overflow-x-hidden scroll-smooth">
+    <div className="w-full max-w-full overflow-x-hidden scroll-smooth">
       <MemoizedHomePage />
       <MemoizedAboutUs />
       <MemoizedTimeline />
