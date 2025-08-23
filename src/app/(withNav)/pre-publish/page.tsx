@@ -625,7 +625,7 @@ function PrePublishContent() {
                         {paper.author && (
                           <div className="flex items-center gap-1">
                             <User className="h-4 w-4" />
-                            <span>{paper.author.name}</span>
+                            <span>{paper.contributors[0].fullName}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-1">
@@ -686,26 +686,7 @@ function PrePublishContent() {
                         )}
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex gap-2">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => viewPaperDetails(paper.id)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(paper.filePath, '_blank')}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Download Paper
-                        </Button>
-                      </div>
+                
                     </CardContent>
                   </Card>
                 ))}
