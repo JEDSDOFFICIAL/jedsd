@@ -85,7 +85,6 @@ import {
 import { DataTable } from "@/components/dashboard/data-table";
 
 import { fetchReviewerPapers, reviewerAcceptancy, submitReview } from "@/lib/Frontend-actions";
-import { uploadFileToFirebase } from "@/lib/Firebase-Action";
 
 // Data Types
 interface Paper {
@@ -381,15 +380,12 @@ export default function ReviewerDashboard() {
       let uploadedFileUrl = null;
 
       if (reviewForm.correspondingFile) {
-        uploadedFileUrl = await uploadFileToFirebase(
-          reviewForm.correspondingFile, 
-          `reviews/${selectedPaper.id}`
-        );
-        
-        if (!uploadedFileUrl) {
-          toast.error("Failed to upload file", { id: toastId });
-          return;
-        }
+        const formData = new FormData();
+        formData.append("file", reviewForm.correspondingFile);
+        formData.append("path", `reviews/${selectedPaper.id}`);
+
+        const uploadResponse = await axios.post("/api/upload", formData);
+        uploadedFileUrl = uploadResponse.data.url;
       }
 
       await submitReview(

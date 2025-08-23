@@ -42,6 +42,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AuthorOrContact } from "@/types/dataTypes";
 import { IconAffiliate } from "@tabler/icons-react";
+import { DropdownMenu, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenuContent } from "@/components/ui/dropdown-menu";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 
 interface ResearchPaper {
   id: string;
@@ -722,31 +725,40 @@ function PrePublishContent() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col w-max justify-between items-start gap-4 text-sm text-muted-foreground mb-4">
+                      <div className="flex flex-row w-max justify-between items-start gap-4 text-sm text-muted-foreground ">
                         {paper.contributors &&
                           (paper.contributors.length > 0 ? (
                             paper.contributors.map((contributor, index) => (
-                              <div
+                              <NavigationMenu
                                 key={index}
-                                className="flex items-center gap-2 w-full justify-between"
                               >
-                                <Badge variant="outline" className="bg-green-100 flex items-center gap-2">
+                                <NavigationMenuItem>
+
+                                <NavigationMenuTrigger  className="text-xs flex items-center gap-1 p-2">
                                   <User className="h-4 w-4" />
                                   <span>{contributor.fullName}</span>
-                                </Badge>
+                                </NavigationMenuTrigger>
+                                <NavigationMenuContent className="flex flex-col">
+                                  <div className="flex flex-col w-auto h-auto gap-1">
+
+                                
                                 {contributor.affiliation?.split(",").map((affil, i) => (
-                                  <Badge key={i} variant="outline" className="bg-green-100 flex items-center gap-2">
+                                  <Badge key={i} variant="default" className=" flex items-center gap-2">
                                     <IconAffiliate />
                                     <span>{affil}</span>
                                   </Badge>
                                 ))}
-                              </div>
+                                  </div>
+                                </NavigationMenuContent>
+                                </NavigationMenuItem>
+
+                              </NavigationMenu>
                             ))
                           ) : (
                             <span>No contributors found</span>
                           ))}
                       </div>
-                      <div className="flex gap-3">
+                      <div className="flex gap-3 mb-3">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         <span>
