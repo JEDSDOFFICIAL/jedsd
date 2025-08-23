@@ -200,7 +200,7 @@ export default function PaperDetailsPage() {
 
   return (
     <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
-      <MemoizedNavbar />
+
       <div className="container mx-auto px-4 py-8 w-full lg:pt-36 md:pt-40 pt-36">
         {/* Header */}
         <div className="my-6">
@@ -468,7 +468,7 @@ export default function PaperDetailsPage() {
           </div>
         </div>
       </div>
-      <MemoizedFooter />
+
     </div>
   );
 }
