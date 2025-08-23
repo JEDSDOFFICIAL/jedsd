@@ -136,7 +136,8 @@ const updatePaperSchema = z.object({
   filePath: z.string().url("Invalid file path URL.").min(1, "File path cannot be empty.").optional(),
   keywords: z.array(z.string().min(1, "Keyword cannot be empty.")).min(1, "At least one keyword is required.").optional(),
   rating: z.number().int().min(1).max(5).optional(), // Assuming rating is between 1 and 5
- 
+  submissionDate: z.coerce.date().optional(), // Expecting an ISO date string
+  acceptedDate: z.coerce.date().optional(), // Expecting an ISO date string
 });
 
 
@@ -196,6 +197,8 @@ export async function PATCH(
         { status: 404 }
       );
     }
+
+    
 
     const updatedPaper = await prisma.researchPaper.update({
       where: { id: paperId },
