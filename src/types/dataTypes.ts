@@ -27,7 +27,7 @@ export const DashboardItems = [
       { title: "Home", url: "/", icon: Home },
       { title: "Overview Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Upload Research Paper", url: "/dashboard/paper/upload", icon: Upload },
-      { title: "Search Papers", url: "/dashboard/paper/search", icon: Search },
+      { title: "Search Papers", url: "/search", icon: Search },
       { title: "Analytics & Reports", url: "/dashboard/analytics", icon: LineChart },
     ],
   },
