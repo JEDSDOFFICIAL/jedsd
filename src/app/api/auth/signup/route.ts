@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { comparePassword, hashPassword } from "@/lib/hash";
 import { z } from "zod";
-import { sendVerificationEmail } from "@/helper/mail/sendVarificationMail";
+import { sendVerificationMail } from "@/helper/send_Verification_Mail";
 import { getEffectiveUserType } from "@/lib/userDetailsUtils";
 
 const signupSchema = z.object({
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     },
   });
 
-  await sendVerificationEmail(email, name, otp);
+  await sendVerificationMail({email,otp,username:name});
 
   return NextResponse.json({ 
     message: "Verification email sent",

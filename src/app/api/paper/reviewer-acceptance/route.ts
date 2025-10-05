@@ -1,14 +1,12 @@
 // app/api/reviews/route.ts (or pages/api/reviews.ts if using Pages Router)
 
-import { NextResponse } from "next/server";
-import { PrismaClient, ReviewerStatus, UserType } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import {  ReviewerStatus, UserType } from "@prisma/client";
 import { z } from "zod";
+import prisma from "@/lib/prisma";
+import { sendReviewerAcceptanceMail } from "@/helper/send_reviewer_acceptance_mail";
 
-const prisma = new PrismaClient();
 
-// --- Zod Schemas for Request Validation ---
-
-// Schema for PATCH request to update a review's status
 const patchReviewSchema = z.object({
   paperId: z.string().uuid("Invalid paperId format."),
   reviewerId: z.string().uuid("Invalid reviewerId format."),
@@ -17,22 +15,13 @@ const patchReviewSchema = z.object({
   }),
 });
 
-// Schema for GET request (query parameters)
-const getReviewsSchema = z.object({
-  paperId: z.string().uuid("Invalid paperId format."),
-});
-
-// Schema for POST request to reassign a reviewer
 const postReassignReviewerSchema = z.object({
   paperId: z.string().uuid("Invalid paperId format."),
   rejectedReviewerId: z.string().uuid("Invalid rejectedReviewerId format."),
   newReviewerId: z.string().uuid("Invalid newReviewerId format."),
 });
 
-// --- API Route Handlers ---
-
-// PATCH /api/reviews - Update a reviewer's decision for a specific paper like accept/reject for review or publication
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
     console.log("Received PATCH request with body:", body);
@@ -50,6 +39,13 @@ export async function PATCH(req: Request) {
     const paperReview = await prisma.paperReview.findFirst({
       where: { paperId, reviewerId },
     });
+    const paper = await prisma.researchPaper.findUnique({
+      where: { id: paperId },
+    });
+    const reviewer = await prisma.user.findUnique({
+      where: { id: reviewerId },
+    });
+
 
     if (!paperReview) {
       return NextResponse.json(
@@ -62,7 +58,8 @@ export async function PATCH(req: Request) {
       where: { id: paperReview.id },
       data: { reviewerStatus: status },
     });
-
+    const EmailSendToEditor = await sendReviewerAcceptanceMail({paperTitle:paper?.title || 'Untitled Paper', reviewerName: reviewer?.name || 'Reviewer', acceptanceStatus: status})
+    console.log("Email sent to editor:", EmailSendToEditor);
     return NextResponse.json({
       success: true,
       message: "Reviewer decision updated successfully",
@@ -78,8 +75,6 @@ export async function PATCH(req: Request) {
   }
 }
 
-
-// POST /api/reviews - Reassign a reviewer (delete old, create new)
 export async function POST(req: Request) {
   try {
     const body = await req.json();

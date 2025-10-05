@@ -63,12 +63,10 @@ model ResearchPaper {
   lastUpdated     DateTime    @updatedAt
   acceptedDate    DateTime?
   status          PaperStatus @default(UPLOAD)
-
   authorId String?
   author   User?   @relation("PaperAuthor", fields: [authorId], references: [id])
   contributors   Json 
   pointOfContact Json 
-
   reviews        PaperReview[]  @relation("PaperToReviews")
 }
 
@@ -77,7 +75,6 @@ enum PaperStatus {
   UPLOAD
   REVIEWER_ALLOCATION
   ON_REVIEW
-  EDITOR_ALLOCATION
   ON_EDIT
   PUBLISH
   ACCEPTED
@@ -87,6 +84,8 @@ enum ReviewerStatus {
   ACCEPTED_FOR_PUBLICATION
   REJECTED_FOR_PUBLICATION
   ACCEPTED_FOR_REVIEW
+  MINOR_REVISION
+  MAJOR_REVISION
   REJECTED_FOR_REVIEW
   PENDING
 }

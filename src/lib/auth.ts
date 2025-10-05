@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 import { comparePassword } from "@/lib/hash";
 import { NextAuthOptions } from "next-auth";
-import { sendSuccessAuthMail } from "@/helper/mail/sendSuccessAuthMail";
+import { sendSuccessAuthenticationMail } from "@/helper/send_Successful_Auth_Mail";
 import { getEffectiveUserType } from "@/lib/userDetailsUtils";
 
 export const authOptions: NextAuthOptions = {
@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
-        await sendSuccessAuthMail(user.email, user.name);
+        await sendSuccessAuthenticationMail(user.email, user.name);
 
         return {
           id: user.id,
@@ -125,7 +125,7 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
-        await sendSuccessAuthMail(currentUser.email, currentUser.name);
+        await sendSuccessAuthenticationMail(currentUser.email, currentUser.name);
 
         token.id = currentUser.id;
         token.email = currentUser.email;

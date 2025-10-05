@@ -88,7 +88,7 @@ export default function SearchPage() {
   }, [searchFilters, papers]);
 
   const filterPapers = () => {
-    let filtered = papers.filter(paper => {
+    const filtered = papers.filter(paper => {
       const titleMatch = !searchFilters.titleQuery || 
         paper.title.toLowerCase().includes(searchFilters.titleQuery.toLowerCase());
       

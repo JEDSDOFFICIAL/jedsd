@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, PaperStatus } from "@prisma/client";
+import {  PaperStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
-import { sendAuthorPaperStatusUpdateMail } from "@/helper/mail/sendAuthorPaperStatusUpdateMail";
-import { sendAdminPaperNotificationMail } from "@/helper/mail/sendAdminPaperNotificationMail";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
 
 // Schema for validating the paperId from the URL parameters
 const paperIdSchema = z.object({

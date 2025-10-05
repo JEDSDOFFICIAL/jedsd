@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       where: { id: paperId },
       include: {
         author: {
-          select: { id: true, name: true, email: true, username: true },
+          select: { id:  true, name: true, email: true, username: true },
         },
         reviews: {
           select: {

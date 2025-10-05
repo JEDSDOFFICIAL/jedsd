@@ -11,13 +11,7 @@ import {
     Container,
   } from "@react-email/components";
   
-  interface VerificationEmailProps {
-    name: string;
-    username: string;
-
-  }
-
-  export default function SuccessAuthentication({ name, username }: VerificationEmailProps) {
+  export default function SuccessAuthentication( name:string) {
     return (
       <Html lang="en" dir="ltr">
         <Head>
@@ -35,7 +29,7 @@ import {
         </Head>
         <Preview>Welcome to JEDSD, {name}!</Preview>
         <Preview>Thank you for registering with JEDSD</Preview>
-        <Preview>Your Username is {username}</Preview>
+       
         <Container style={{ backgroundColor: "#f4f4f4", padding: "20px", borderRadius: "8px" }}>
           <Section style={{ backgroundColor: "#ffffff", padding: "30px", borderRadius: "8px", textAlign: "center", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}>
             <Heading as="h2" style={{ color: "#333", fontSize: "24px", marginBottom: "10px" }}>

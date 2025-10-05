@@ -38,6 +38,7 @@ export async function PATCH(
         { status: 400 }
       );
     }
+
     const validatedPaperId = paperIdValidationResult.data.paperId;
 
 
@@ -56,7 +57,7 @@ export async function PATCH(
 
     // 3. Find the paper and update its status
     const updatedPaper = await prisma.researchPaper.update({
-      where: { id: paperId },
+      where: { id: validatedPaperId },
       data: {
         status: status,
         // Optionally, set acceptedDate if status is ACCEPTED

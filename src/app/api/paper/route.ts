@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient, PaperStatus } from "@prisma/client";
 import { z } from "zod";
+import { sendPaperUploadMail } from "@/helper/send_Author_and_POC_Paper_Upload_Mail";
 
 const prisma = new PrismaClient();
 
@@ -96,6 +97,21 @@ export async function POST(req: Request) {
         status: PaperStatus.UPLOAD, // Default status for new uploads
       },
     });
+    // Collect all emails: contributors + point of contact + author
+    // Collect all emails: contributors + point of contact + author
+    const sendingEmails: string[] = [
+      author.email, // Main author email
+      pointOfContact.email, // Point of contact email
+      ...contributors.map(contributor => contributor.email), // All contributors' emails
+    ];
+
+    // Remove duplicates (in case same person is listed multiple times)
+    const uniqueEmails = [...new Set(sendingEmails)];
+
+    console.log("Sending emails to:", uniqueEmails);
+
+
+    const sendMail = await sendPaperUploadMail({paper:newPaper,emails:uniqueEmails})
 
     return NextResponse.json(
       {

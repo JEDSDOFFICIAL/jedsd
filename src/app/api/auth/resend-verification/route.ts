@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { sendVerificationEmail } from "@/helper/mail/sendVarificationMail";
+import { sendVerificationMail } from "@/helper/send_Verification_Mail";
 
 const resendVerificationSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -53,7 +53,11 @@ export async function POST(req: Request) {
     });
 
     // Send verification email
-    await sendVerificationEmail(email, user.name, otp);
+    await sendVerificationMail({
+      otp,
+      username: user.name || "User",
+      email: user.email,
+    });
 
     return NextResponse.json({
       message: "Verification email sent successfully",

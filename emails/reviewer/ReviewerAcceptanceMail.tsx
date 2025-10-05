@@ -1,3 +1,4 @@
+import { ResearchPaper, ReviewerStatus } from '@prisma/client';
 import {
   Html,
   Head,
@@ -11,26 +12,9 @@ import {
   Hr,
 } from '@react-email/components';
 
-interface ReviewerAcceptanceEmailProps {
-  editorName: string;
-  reviewerName: string;
-  paperTitle: string;
-  paperId: string;
-  acceptanceStatus: 'ACCEPTED_FOR_REVIEW' | 'REJECTED_FOR_REVIEW';
-  reviewDeadline?: string;
-  dashboardUrl?: string;
-}
 
-export default function ReviewerAcceptanceEmail({
-  editorName,
-  reviewerName,
-  paperTitle,
-  paperId,
-  acceptanceStatus,
-  reviewDeadline,
-  dashboardUrl = 'http://localhost:3000/dashboard'
-}: ReviewerAcceptanceEmailProps) {
-  const isAccepted = acceptanceStatus === 'ACCEPTED_FOR_REVIEW';
+export default function ReviewerAcceptanceEmail({paperTitle, reviewerName, acceptanceStatus}:{paperTitle:string, reviewerName:string, acceptanceStatus: ReviewerStatus}) {
+  const isAccepted = acceptanceStatus === ReviewerStatus.ACCEPTED_FOR_REVIEW;
   
   return (
     <Html lang="en" dir="ltr">
@@ -58,7 +42,7 @@ export default function ReviewerAcceptanceEmail({
           </Heading>
           
           <Text style={greetingStyle}>
-            Dear {editorName},
+            Dear JEDSD Editor,
           </Text>
           
           <Text style={textStyle}>
@@ -73,9 +57,6 @@ export default function ReviewerAcceptanceEmail({
               <strong>Paper:</strong> {paperTitle}
             </Text>
             <Text style={detailItemStyle}>
-              <strong>Paper ID:</strong> {paperId}
-            </Text>
-            <Text style={detailItemStyle}>
               <strong>Reviewer:</strong> {reviewerName}
             </Text>
             <Text style={detailItemStyle}>
@@ -84,11 +65,6 @@ export default function ReviewerAcceptanceEmail({
                 {isAccepted ? ' ACCEPTED FOR REVIEW' : ' DECLINED REVIEW'}
               </span>
             </Text>
-            {isAccepted && reviewDeadline && (
-              <Text style={detailItemStyle}>
-                <strong>Review Deadline:</strong> {reviewDeadline}
-              </Text>
-            )}
           </Section>
           
           <Section style={instructionsBoxStyle}>
@@ -108,7 +84,7 @@ export default function ReviewerAcceptanceEmail({
           </Section>
           
           <Section style={buttonSectionStyle}>
-            <Button href={dashboardUrl} style={buttonStyle}>
+            <Button href={"/https://www.jedsd.com/dashboard/editor"} style={buttonStyle}>
               Go to Editor Dashboard
             </Button>
           </Section>

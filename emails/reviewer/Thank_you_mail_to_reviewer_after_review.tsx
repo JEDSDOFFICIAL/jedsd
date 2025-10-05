@@ -1,3 +1,4 @@
+import { PaperReview } from '@prisma/client';
 import {
   Html,
   Head,
@@ -12,79 +13,70 @@ import {
 } from '@react-email/components';
 
 interface ReviewSubmissionEmailProps {
-  editorName: string;
-  reviewerName: string;
   paperTitle: string;
-  authorName: string;
-  reviewScore: number;
-  recommendation: 'ACCEPT' | 'MINOR_REVISION' | 'MAJOR_REVISION' | 'REJECT';
-  reviewComments: string;
-  submissionDate: string;
-  paperUrl: string;
-  dashboardUrl: string;
+  reviewerName: string;
+  paperId: string;
+  editorName: string;
+  review: PaperReview;
 }
 
-export default function ReviewSubmissionEmail({
-  editorName,
-  reviewerName,
+export default function ReviewerThankYouEmail({
   paperTitle,
-  authorName,
-  reviewScore,
-  recommendation,
-  reviewComments,
-  submissionDate,
-  paperUrl,
-  dashboardUrl,
+  reviewerName,
+  paperId,
+  editorName,
+  review,
 }: ReviewSubmissionEmailProps) {
-  const getRecommendationColor = () => {
-    switch (recommendation) {
-      case 'ACCEPT': return '#28a745';
-      case 'MINOR_REVISION': return '#ffc107';
-      case 'MAJOR_REVISION': return '#fd7e14';
-      case 'REJECT': return '#dc3545';
-      default: return '#6c757d';
+  
+  const getRecommendationText = () => {
+    switch(review.reviewerStatus) {
+      case 'ACCEPTED_FOR_PUBLICATION': return 'Accept';
+      case 'REJECTED_FOR_PUBLICATION': return 'Reject';
+      case 'MAJOR_REVISION': return 'Major Revision';
+      case 'MINOR_REVISION': return 'Minor Revision';
+      default: return 'Pending';
     }
   };
 
-  const getRecommendationText = () => {
-    switch (recommendation) {
-      case 'ACCEPT': return 'Accept';
-      case 'MINOR_REVISION': return 'Minor Revision Required';
-      case 'MAJOR_REVISION': return 'Major Revision Required';
-      case 'REJECT': return 'Reject';
-      default: return 'Under Review';
+  const getRecommendationColor = () => {
+    switch(review.reviewerStatus) {
+      case 'ACCEPTED_FOR_PUBLICATION': return '#28a745';
+      case 'REJECTED_FOR_PUBLICATION': return '#dc3545';
+      case 'MAJOR_REVISION': return '#ffc107';
+      case 'MINOR_REVISION': return '#17a2b8';
+      default: return '#6c757d';
     }
   };
 
   return (
     <Html lang="en" dir="ltr">
       <Head>
-        <title>JEDSD - Review Submitted</title>
+        <title>JEDSD - Thank You for Your Review</title>
         <Font
           fontFamily="Arial"
           fallbackFontFamily="sans-serif"
           webFont={{
-            url: 'https://fonts.gstatic.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+            url: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2',
             format: 'woff2',
           }}
           fontWeight={400}
           fontStyle="normal"
         />
       </Head>
-      <Preview>Review submitted for: {paperTitle}</Preview>
+      <Preview>Thank you for your valuable review, {reviewerName}</Preview>
       
       <Container style={containerStyle}>
         <Section style={cardStyle}>
           <Heading as="h2" style={headingStyle}>
-            Review Submitted
+            Thank You for Your Review
           </Heading>
           
           <Text style={greetingStyle}>
-            Dear {editorName},
+            Dear {reviewerName},
           </Text>
           
           <Text style={textStyle}>
-            A review has been submitted by <strong>{reviewerName}</strong> for the following paper:
+            Thank you for taking the time to review the manuscript and provide your valuable feedback. Your expertise and insights are essential to maintaining the quality of our journal.
           </Text>
           
           <Section style={paperDetailsBoxStyle}>
@@ -92,25 +84,19 @@ export default function ReviewSubmissionEmail({
               Paper Details:
             </Heading>
             <Text style={detailItemStyle}>
+              <strong>Paper ID:</strong> {paperId}
+            </Text>
+            <Text style={detailItemStyle}>
               <strong>Title:</strong> {paperTitle}
-            </Text>
-            <Text style={detailItemStyle}>
-              <strong>Author:</strong> {authorName}
-            </Text>
-            <Text style={detailItemStyle}>
-              <strong>Submission Date:</strong> {submissionDate}
-            </Text>
-            <Text style={detailItemStyle}>
-              <strong>Reviewer:</strong> {reviewerName}
             </Text>
           </Section>
           
           <Section style={reviewSummaryBoxStyle}>
             <Heading as="h3" style={subHeadingStyle}>
-              Review Summary:
+              Your Review Summary:
             </Heading>
             <Text style={detailItemStyle}>
-              <strong>Score:</strong> {reviewScore}/10
+              <strong>Score:</strong> {review.rating}/10
             </Text>
             <Section style={{
               ...recommendationBadgeStyle,
@@ -122,36 +108,37 @@ export default function ReviewSubmissionEmail({
             </Section>
           </Section>
           
-          <Section style={commentsBoxStyle}>
-            <Heading as="h4" style={commentsHeadingStyle}>
-              Reviewer Comments:
-            </Heading>
-            <Text style={commentsTextStyle}>
-              {reviewComments}
+          <Section style={appreciationBoxStyle}>
+            <Text style={appreciationTextStyle}>
+              Your thorough evaluation and constructive feedback will help the authors improve their work and contribute to the advancement of research in this field. We greatly appreciate the time and effort you dedicated to this review.
             </Text>
           </Section>
           
           <Section style={actionBoxStyle}>
             <Text style={actionTextStyle}>
-              <strong>Next Steps:</strong><br />
-              Please review the feedback and make a decision on the paper. You can accept, request revisions, or reject the submission based on the reviewer's recommendations.
+              <strong>What's Next:</strong><br />
+              We will carefully consider your recommendations along with other reviews as we make our editorial decision. You will be notified once a final decision has been made on this manuscript.
             </Text>
           </Section>
           
           <Section style={buttonSectionStyle}>
-            <Button style={primaryButtonStyle} href={paperUrl}>
-              Review Paper
-            </Button>
-            <Button style={secondaryButtonStyle} href={dashboardUrl}>
-              View Dashboard
+            <Button style={primaryButtonStyle} href={`https://jedsd.com/dashboard`}>
+              View Your Dashboard
             </Button>
           </Section>
           
           <Hr style={hrStyle} />
           
           <Text style={footerStyle}>
-            This is an automated notification from JEDSD.<br />
-            Please do not reply to this email.
+            Thank you again for your contribution to JEDSD.<br />
+            <br />
+            Best regards,<br />
+            {editorName}<br />
+            Editor, JEDSD
+          </Text>
+          
+          <Text style={disclaimerStyle}>
+            This is an automated notification from JEDSD.
           </Text>
         </Section>
       </Container>
@@ -241,28 +228,19 @@ const recommendationTextStyle = {
   fontWeight: 'bold',
 };
 
-const commentsBoxStyle = {
-  backgroundColor: '#f8f9fa',
+const appreciationBoxStyle = {
+  backgroundColor: '#fff3cd',
   padding: '20px',
   borderRadius: '8px',
   margin: '20px 0',
-  border: '1px solid #e9ecef',
+  borderLeft: '4px solid #ffc107',
 };
 
-const commentsHeadingStyle = {
-  color: '#2c3e50',
-  marginBottom: '10px',
-  fontSize: '16px',
-  fontWeight: '600',
-  margin: '0 0 10px 0',
-};
-
-const commentsTextStyle = {
-  color: '#5d6d7e',
+const appreciationTextStyle = {
+  margin: '0',
+  color: '#856404',
   fontSize: '14px',
   lineHeight: '1.6',
-  margin: '0',
-  whiteSpace: 'pre-wrap' as const,
 };
 
 const actionBoxStyle = {
@@ -294,19 +272,6 @@ const primaryButtonStyle = {
   fontWeight: 'bold',
   display: 'inline-block',
   fontSize: '16px',
-  margin: '0 10px 10px 0',
-};
-
-const secondaryButtonStyle = {
-  backgroundColor: '#6c757d',
-  color: 'white',
-  padding: '14px 30px',
-  textDecoration: 'none',
-  borderRadius: '6px',
-  fontWeight: 'bold',
-  display: 'inline-block',
-  fontSize: '16px',
-  margin: '0 10px 10px 0',
 };
 
 const hrStyle = {
@@ -316,8 +281,16 @@ const hrStyle = {
 };
 
 const footerStyle = {
+  color: '#34495e',
+  fontSize: '13px',
+  textAlign: 'center' as const,
+  margin: '0 0 15px 0',
+  lineHeight: '1.6',
+};
+
+const disclaimerStyle = {
   color: '#6c757d',
-  fontSize: '12px',
+  fontSize: '11px',
   textAlign: 'center' as const,
   margin: '0',
   lineHeight: '1.5',
