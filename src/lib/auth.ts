@@ -41,8 +41,8 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
-
-        await sendSuccessAuthenticationMail(user.email, user.name);
+        console.log("User logged in:", user.email, "with userType:", user.name);
+        await sendSuccessAuthenticationMail({email: user.email, name: user.name});
 
         return {
           id: user.id,
@@ -124,8 +124,8 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
-
-        await sendSuccessAuthenticationMail(currentUser.email, currentUser.name);
+        console.log("User signed in with Google:", currentUser.email, "with userType:", currentUser.name);
+        await sendSuccessAuthenticationMail({email: currentUser.email, name: currentUser.name});
 
         token.id = currentUser.id;
         token.email = currentUser.email;
