@@ -90,7 +90,7 @@ export default function PaperUploadEmail( paper:ResearchPaper ) {
           <Text style={signatureStyle}>
             <strong>The JEDSD Editorial Team</strong>
             <br />
-            Journal of Engineering, Design and Sustainable Development
+            Journal of Embedded and Digital System Design
           </Text>
         </Section>
 

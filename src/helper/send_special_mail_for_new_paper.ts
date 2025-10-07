@@ -4,7 +4,7 @@ import { resend } from "@/lib/mailer";
 import specialMail from "../../emails/specialMail";
 
 
-export const sendPaperUploadMail = async (paper: ResearchPaper) => {
+export const sendSpecialPaperUploadMailToEditor = async (paper: ResearchPaper) => {
 try{
     const mailRes = await resend.emails.send({
         from: process.env.NEXT_ENV_FROM_MAIL as string,

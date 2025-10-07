@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient, PaperStatus } from "@prisma/client";
 import { z } from "zod";
 import { sendPaperUploadMail } from "@/helper/send_Author_and_POC_Paper_Upload_Mail";
+import { sendSpecialPaperUploadMailToEditor } from "@/helper/send_special_mail_for_new_paper";
 
 const prisma = new PrismaClient();
 
@@ -112,6 +113,8 @@ export async function POST(req: Request) {
 
 
     const sendMail = await sendPaperUploadMail({paper:newPaper,emails:uniqueEmails})
+    console.log("Paper upload email sent:", sendMail);
+    const editorMail = await sendSpecialPaperUploadMailToEditor(newPaper)
 
     return NextResponse.json(
       {
