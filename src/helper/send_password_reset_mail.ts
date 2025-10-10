@@ -11,7 +11,7 @@ try{
         from: process.env.NEXT_ENV_FROM_MAIL as string,
         to: email,
         subject: "Reset your password",
-        react: PasswordResetEmail({ resetUrl:`${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password?token=${otp}`, name: name })
+        react: PasswordResetEmail({ resetUrl:`${process.env.NEXTAUTH_URL}/auth/reset-password?token=${otp}`, name: name })
     })
     return mailRes;
 }
