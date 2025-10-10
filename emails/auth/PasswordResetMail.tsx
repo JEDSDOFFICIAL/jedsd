@@ -13,12 +13,12 @@ import {
 } from '@react-email/components';
 
 interface PasswordResetEmailProps {
-  username: string;
+  name: string;
   resetUrl: string;
 }
 
 export default function PasswordResetEmail({
-  username,
+  name,
   resetUrl,
 }: PasswordResetEmailProps) {
   return (
@@ -45,7 +45,7 @@ export default function PasswordResetEmail({
           </Heading>
           
           <Text style={greetingStyle}>
-            Hello {username},
+            Hello {name},
           </Text>
           
           <Text style={textStyle}>

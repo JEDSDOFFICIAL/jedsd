@@ -2,10 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { ReviewerStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { sendReviewerAllocationMail } from "@/helper/send_reviewer_allocation_mail";
+import { z } from "zod";
 
-export async function POST(req: NextRequest) {
+const uuidSchema = z.string().uuid();
+
+export async function POST(req: NextRequest,context: { params: Promise<{ paperId: string }> }) {
   try {
-    const { paperId, reviewerIds } = await req.json();
+    const params = await context.params;
+    const paperIdParam = params.paperId;
+    const paperId = uuidSchema.safeParse(paperIdParam);
+    if (!paperId.success) {
+      return NextResponse.json({
+        success: false,
+        message: "Invalid paperId format.",
+        errors: paperId.error.errors
+      }, { status: 400 });
+    }
+
+    const { reviewerIds } = await req.json();
     console.log("paper id is", paperId, "reviewerIds are", reviewerIds);
 
     // Validate input
@@ -16,9 +30,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
+    console.log("Validated paperId:", paperId.data);
     // Ensure paper exists
-    const paper = await prisma.researchPaper.findUnique({ where: { id: paperId } });
+    const paper = await prisma.researchPaper.findUnique({ where: { id: paperId.data } });
     if (!paper) {
       console.error("Paper not found for ID:", paperId);
       return NextResponse.json({ success: false, message: "Paper not found" }, { status: 404 });
@@ -40,7 +54,7 @@ export async function POST(req: NextRequest) {
     // Check for existing reviews (more comprehensive check)
     const existingReviews = await prisma.paperReview.findMany({
       where: {
-        paperId,
+        paperId: paperId.data,
         reviewerId: { in: reviewerIds }
       }
     });
@@ -63,7 +77,7 @@ export async function POST(req: NextRequest) {
       reviewerIds.map((rid) =>
         prisma.paperReview.create({
           data: {
-            paperId,
+            paperId: paperId.data,
             reviewerId: rid,
             reviewText: "",
             reviewerStatus: ReviewerStatus.PENDING
@@ -109,7 +123,7 @@ export async function POST(req: NextRequest) {
 
     // Update paper status to ON_REVIEW
     await prisma.researchPaper.update({
-      where: { id: paperId },
+      where: { id: paperId.data },
       data: { status: "ON_REVIEW" }
     });
 

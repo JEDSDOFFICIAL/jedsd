@@ -1,26 +1,15 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  
 }
 
 datasource db {
   provider = "cockroachdb"
   url      = env("DATABASE_URL")
-  
 }
-
-
 
 model User {
   id                     String          @id @default(uuid())
   name                   String
-  username               String          @unique
   email                  String          @unique
   password               String?
   affiliation            String?
@@ -33,43 +22,52 @@ model User {
   verificationCodeExpiry DateTime?
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
+  reviews                PaperReview[]   @relation("UserToReviews")
   authoredPapers         ResearchPaper[] @relation("PaperAuthor")
-  reviews               PaperReview[]   @relation("UserToReviews")
+
+  @@index([email])
+  @@index([resetToken])
+  @@index([verificationCode])
 }
+
 model PaperReview {
   id                String          @id @default(uuid())
   paperId           String
-  paper             ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id])
   reviewerId        String
-  reviewer          User            @relation("UserToReviews", fields: [reviewerId], references: [id])
   reviewText        String
   correspondingFile String?
   rating            Int?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   reviewerStatus    ReviewerStatus?
+  paper             ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id])
+  reviewer          User            @relation("UserToReviews", fields: [reviewerId], references: [id])
 }
 
-
 model ResearchPaper {
-  id              String   @id @default(uuid())
+  id              String        @id @default(uuid())
   title           String
   abstract        String
   filePath        String
   keywords        String[]
   rating          Int?
   coverLetterPath String?
-  submissionDate  DateTime    @default(now())
-  lastUpdated     DateTime    @updatedAt
+  submissionDate  DateTime      @default(now())
+  lastUpdated     DateTime      @updatedAt
   acceptedDate    DateTime?
-  status          PaperStatus @default(UPLOAD)
-  authorId String?
-  author   User?   @relation("PaperAuthor", fields: [authorId], references: [id])
-  contributors   Json 
-  pointOfContact Json 
-  reviews        PaperReview[]  @relation("PaperToReviews")
+  status          PaperStatus   @default(UPLOAD)
+  authorId        String?
+  contributors    Json
+  pointOfContact  Json
+  reviews         PaperReview[] @relation("PaperToReviews")
+  author          User?         @relation("PaperAuthor", fields: [authorId], references: [id])
 }
 
+model UserDetails {
+  id       String   @id @default(uuid())
+  email    String   @unique
+  userType UserType
+}
 
 enum PaperStatus {
   UPLOAD
@@ -80,14 +78,15 @@ enum PaperStatus {
   ACCEPTED
   REJECTED
 }
+
 enum ReviewerStatus {
   ACCEPTED_FOR_PUBLICATION
   REJECTED_FOR_PUBLICATION
   ACCEPTED_FOR_REVIEW
-  MINOR_REVISION
-  MAJOR_REVISION
   REJECTED_FOR_REVIEW
   PENDING
+  MINOR_REVISION
+  MAJOR_REVISION
 }
 
 enum UserType {
@@ -95,11 +94,4 @@ enum UserType {
   REVIEWER
   EDITOR
   ADMIN
-}
-
-
-model UserDetails {
-  id       String   @id @default(uuid())
-  email    String   @unique
-  userType UserType
 }

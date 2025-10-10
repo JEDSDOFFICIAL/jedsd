@@ -87,6 +87,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { IconCheck, IconCloud } from "@tabler/icons-react";
 import { AuthorOrContact } from "@/types/dataTypes";
+import AllPapers from "./components/All-papers";
 
 // Extended interface to include relations
 interface PaperReviewWithReviewer extends PaperReview {
@@ -427,6 +428,7 @@ export default function EditorPage() {
                     Reject Paper
                   </DropdownMenuItem>
                   <DropdownMenuItem>
+                    
                     <Link
                       href={`/review/${paper.id}`}
                       className="flex flex-row gap-2 text-sm w-full"
@@ -450,158 +452,6 @@ export default function EditorPage() {
       ],
       []
     );
-
-  // Column definitions for Tab 1: All Papers
-  const reviewer_Allocation_table: ColumnDef<PaperWithRelations>[] = [
-    {
-      accessorKey: "title",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-auto p-0 text-left justify-start font-medium"
-          >
-            Title
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="max-w-[200px] truncate">{row.getValue("title")}</div>
-      ),
-    },
-    {
-      accessorKey: "author",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-auto p-0 text-left justify-start font-medium"
-          >
-            Author
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <div className="flex flex-col gap-2 items-center justify-center">
-            <Badge className="bg-green-100/80">{row.original.author?.name}</Badge>
-            <Badge className="bg-green-100/80">{row.original.author?.email}</Badge>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-auto p-0 text-left justify-start font-medium"
-          >
-            Status
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const status = row.getValue("status") as PaperStatus;
-        return (
-          <Badge variant={status === "UPLOAD" ? "default" : "secondary"}>
-            {status}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "submissionDate",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-auto p-0 text-left justify-start font-medium"
-          >
-            Submission Date
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const date = row.getValue("submissionDate") as Date;
-        return new Date(date).toLocaleDateString();
-      },
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const paper = row.original;
-        const canAssignReviewer = (paper: PaperWithRelations) => {
-          return (
-            paper.status === "UPLOAD" ||
-            paper.status === "REVIEWER_ALLOCATION" ||
-            (paper.reviews && paper.reviews.length < 3)
-          );
-        };
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Paper Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem
-                onClick={() => window.open(paper.filePath, "_blank")}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                View Paper
-              </DropdownMenuItem>
-
-              {canAssignReviewer(paper) && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedPaper(paper);
-                    setActionType("ASSIGN_REVIEWER");
-                  }}
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  Allocate Reviewer
-                </DropdownMenuItem>
-              )}
-
-              {paper.reviews && paper.reviews.length > 0 && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedPaper(paper);
-                    setActionType("REASSIGN_REVIEWER");
-                  }}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Reallocate Reviewer
-                </DropdownMenuItem>
-              )}
-
-              <DropdownMenuItem onClick={() => handleUpdatePaper(paper.id)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Update Paper
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
-
 
   const publish_paper_table: ColumnDef<PaperWithRelations>[] = React.useMemo(
       () => [
@@ -715,24 +565,6 @@ export default function EditorPage() {
       []
     );
   
-  // TanStack table instances for each tab
-  const allPapersTable = useReactTable({
-    data: allPapers,
-    columns: reviewer_Allocation_table,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setAllPapersSorting,
-    onColumnFiltersChange: setAllPapersColumnFilters,
-    onGlobalFilterChange: setAllPapersGlobalFilter,
-    state: {
-      sorting: allPapersSorting,
-      columnFilters: allPapersColumnFilters,
-      globalFilter: allPapersGlobalFilter,
-    },
-  });
-
   const allocatedPapersTable = useReactTable({
     data: allocatedPapers,
     columns: column_paper_review_table,
@@ -780,143 +612,13 @@ export default function EditorPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all-papers">All Papers</TabsTrigger>
+          <TabsTrigger value="all-papers">New Manuscripts</TabsTrigger>
           <TabsTrigger value="allocated-papers">Allocated Papers</TabsTrigger>
           <TabsTrigger value="final-papers">Final Decision</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all-papers" className="mt-6">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold">All Papers</h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              View, allocate reviewers, reallocate reviewers, and update papers
-            </p>
-          </div>
-          
-          {/* Search Bar */}
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search papers..."
-                value={allPapersGlobalFilter ?? ""}
-                onChange={(event) => setAllPapersGlobalFilter(event.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {allPapersTable.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={reviewer_Allocation_table.length}
-                      className="h-24 text-center"
-                    >
-                      <div className="flex items-center justify-center space-x-2">
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                        <span>Loading...</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : allPapersTable.getRowModel().rows?.length ? (
-                  allPapersTable.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={reviewer_Allocation_table.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between space-x-2 py-4">
-            <div className="text-sm text-muted-foreground">
-              Showing {allPapersTable.getRowModel().rows.length} of {allPapers.length} papers
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => allPapersTable.setPageIndex(0)}
-                disabled={!allPapersTable.getCanPreviousPage()}
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => allPapersTable.previousPage()}
-                disabled={!allPapersTable.getCanPreviousPage()}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center space-x-1">
-                <span className="text-sm">Page</span>
-                <span className="text-sm font-medium">
-                  {allPapersTable.getState().pagination.pageIndex + 1} of{" "}
-                  {allPapersTable.getPageCount()}
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => allPapersTable.nextPage()}
-                disabled={!allPapersTable.getCanNextPage()}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => allPapersTable.setPageIndex(allPapersTable.getPageCount() - 1)}
-                disabled={!allPapersTable.getCanNextPage()}
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <AllPapers />
         </TabsContent>
 
         <TabsContent value="allocated-papers" className="mt-6">

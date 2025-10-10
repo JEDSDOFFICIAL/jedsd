@@ -18,7 +18,6 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    username: "",
     bio: "",
     affiliation: "",
     phone: "",
@@ -30,7 +29,6 @@ export default function ProfilePage() {
       setFormData({
         name: session.user.name || "",
         email: session.user.email || "",
-        username: session.user.username || "",
         bio: "",
         affiliation: "",
         phone: "",
@@ -153,16 +151,6 @@ export default function ProfilePage() {
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="Enter your full name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  placeholder="Enter username"
                 />
               </div>
             </div>

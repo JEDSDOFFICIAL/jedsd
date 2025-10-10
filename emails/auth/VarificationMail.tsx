@@ -13,11 +13,11 @@ import {
 } from '@react-email/components';
 
 interface VerificationEmailProps {
-  username?: string;
+  name?: string;
   otp: string;
 }
 
-export default function VerificationEmail({ username, otp }: VerificationEmailProps) {
+export default function VerificationEmail({ name, otp }: VerificationEmailProps) {
   return (
     <Html lang="en" dir="ltr">
       <Head>
@@ -56,7 +56,7 @@ export default function VerificationEmail({ username, otp }: VerificationEmailPr
                 color: '#111827',
               }}
             >
-              👋 Hello {username || 'there'},
+              👋 Hello {name || 'there'},
             </Heading>
           </Row>
 

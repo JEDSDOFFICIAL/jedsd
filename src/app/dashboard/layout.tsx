@@ -65,10 +65,6 @@ console.log("User Details:", session?.user);
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>{userDetails?.username}</BreadcrumbPage>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
                 <BreadcrumbPage>{userDetails?.email}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>

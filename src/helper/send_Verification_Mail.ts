@@ -3,13 +3,13 @@ import { resend } from "@/lib/mailer";
 import { sendVerificationMailProps } from "./emailInterface";
 
 
-export const sendVerificationMail = async ({otp,username,email}:sendVerificationMailProps) => {
+export const sendVerificationMail = async ({otp,name,email}:sendVerificationMailProps) => {
 try{
     const mailRes = await resend.emails.send({
         from: process.env.NEXT_ENV_FROM_MAIL as string,
         to: email,
         subject: "Verify your email",
-        react: VerificationEmail({ otp, username })
+        react: VerificationEmail({ otp, name: name })
     })
     return mailRes;
 }

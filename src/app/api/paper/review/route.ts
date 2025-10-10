@@ -173,27 +173,24 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
 export async function GET(req: NextRequest) {
   try {
-   
-
-
     // Get query parameters for pagination
     const { searchParams } = new URL(req.url);
     const reviewerId = searchParams.get('reviewerId');
+    
     if (!reviewerId) {
       return NextResponse.json(
         { success: false, message: "Reviewer ID is required." },
         { status: 400 }
       );
     }
-    const paperId = searchParams.get('paperId');
+    
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
-    // Get total count for pagination
+    // Get total count of papers assigned to this reviewer
     const totalCount = await prisma.researchPaper.count({
       where: {
         reviews: {
@@ -224,8 +221,7 @@ export async function GET(req: NextRequest) {
         reviews: {
           where: {
             reviewerId: reviewerId
-          },
-         
+          }
         }
       },
       orderBy: {
@@ -258,7 +254,6 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
 
 // PUT handler for updating review status (for editors/admins)
 export async function PUT(req: NextRequest) {

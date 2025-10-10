@@ -2,7 +2,7 @@ import { PaperReview, ResearchPaper, ReviewerStatus, User } from "@prisma/client
 
 export interface sendVerificationMailProps {
   otp: string;
-  username: string;
+  name: string;
   email: string;
 }
 

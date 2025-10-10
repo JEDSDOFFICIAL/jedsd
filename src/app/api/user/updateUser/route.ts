@@ -9,7 +9,6 @@ const prisma = new PrismaClient();
 const updateUserSchema = z.object({
   userId: z.string().uuid("Invalid user ID format."),
   name: z.string().min(1, "Name is required.").optional(),
-  username: z.string().min(1, "Username is required.").optional(),
   email: z.string().email("Invalid email format.").optional(),
   affiliation: z.string().optional(),
   profileImage: z.string().url("Invalid profile image URL.").optional(),

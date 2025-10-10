@@ -204,7 +204,7 @@ export async function GET(request: Request) {
         where,
         include: {
           author: {
-            select: { id: true, name: true, email: true, username: true },
+            select: { id: true, name: true, email: true, userType: true },
           },
           reviews: {
             select: {

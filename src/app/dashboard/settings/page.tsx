@@ -105,10 +105,6 @@ export default function SettingsPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Username</Label>
-                <Input value={session.user.username || ""} disabled />
-              </div>
-              <div>
                 <Label>User Type</Label>
                 <div className="mt-2">
                   <Badge variant="secondary">{session.user.userType}</Badge>

@@ -146,9 +146,9 @@ export async function fetchAllUser(){
   }
 }
 
-export async function fetchReviewerPapers(page: number = 1, limit: number = 10) {
+export async function fetchReviewerPapers(reviewerId:string,page: number = 1, limit: number = 10) {
   try {
-    const res = await axios.get(`/api/paper/reviewer-papers`, {
+    const res = await axios.get(`/api/paper/reviewer-papers?reviewerId=${reviewerId}`, {
       params: { page, limit }
     });
     console.log("Fetched reviewer papers:", res.data);

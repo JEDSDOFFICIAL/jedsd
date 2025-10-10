@@ -52,7 +52,6 @@ export async function POST(req: Request) {
     data: {
       email,
       name: name.trim(),
-      username: email.split("@")[0].toLowerCase(),
       password: hashedPassword,
       profileImage:"/profileImage.png",
       isVerified: false,
@@ -62,7 +61,7 @@ export async function POST(req: Request) {
     },
   });
 
-  await sendVerificationMail({email,otp,username:name});
+  await sendVerificationMail({email,otp,name:name});
 
   return NextResponse.json({ 
     message: "Verification email sent",

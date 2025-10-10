@@ -31,7 +31,8 @@ import {
   Filter,
   Search,
   Calendar,
-  User,
+  LoaderCircle,
+  PaperclipIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -87,32 +88,6 @@ import { DataTable } from "@/components/dashboard/data-table";
 import { fetchReviewerPapers, reviewerAcceptancy, submitReview } from "@/lib/Frontend-actions";
 import { uploadFileToFirebase } from "@/lib/Firebase-Action";
 
-// Data Types
-interface Paper {
-  id: string;
-  title: string;
-  abstract: string;
-  filePath: string;
-  submissionDate: string;
-  status: string;
-  keywords?: string[];
-  author: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  reviews?: {
-    id: string;
-    reviewerId: string;
-    reviewText?: string;
-    rating?: number;
-    reviewerStatus: string;
-    correspondingFile?: string | null;
-    createdAt: string;
-    updatedAt: string;
-  }[];
-}
-
 interface ReviewForm {
   reviewText: string;
   rating: number;
@@ -131,7 +106,7 @@ export default function ReviewerDashboard() {
   const { data: session, status: sessionStatus } = useSession();
   
   // State Management
-  const [papers, setPapers] = React.useState<Paper[]>([]);
+  const [papers, setPapers] = React.useState<PaperWithRelations[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [pagination, setPagination] = React.useState<PaginationInfo>({
     page: 1,
@@ -152,7 +127,7 @@ export default function ReviewerDashboard() {
   const [dateFilter, setDateFilter] = React.useState<string>("all");
   
   // Dialog States
-  const [selectedPaper, setSelectedPaper] = React.useState<Paper | null>(null);
+  const [selectedPaper, setSelectedPaper] = React.useState<PaperWithRelations | null>(null);
   const [reviewForm, setReviewForm] = React.useState<ReviewForm>({
     reviewText: "",
     rating: 1,
@@ -163,7 +138,7 @@ export default function ReviewerDashboard() {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = React.useState(false);
 
   // Utility Functions
-  const getUserReviewStatus = (paper: Paper) => {
+  const getUserReviewStatus = (paper: PaperWithRelations) => {
     if (!paper.reviews || !session?.user?.id) return "PENDING";
     const userReview = paper.reviews.find(
       (review) => review.reviewerId === session.user.id
@@ -171,7 +146,7 @@ export default function ReviewerDashboard() {
     return userReview?.reviewerStatus || "PENDING";
   };
 
-  const hasSubmittedReview = (paper: Paper) => {
+  const hasSubmittedReview = (paper: PaperWithRelations) => {
     const status = getUserReviewStatus(paper);
     return status === "ACCEPTED_FOR_PUBLICATION" || status === "REJECTED_FOR_PUBLICATION";
   };
@@ -194,7 +169,7 @@ export default function ReviewerDashboard() {
   };
 
   // Column Definitions (Following Editor Dashboard Structure)
-  const columns: ColumnDef<Paper>[] = [
+  const columns: ColumnDef<PaperWithRelations>[] = [
     {
       accessorKey: "title",
       header: ({ column }) => (
@@ -208,14 +183,22 @@ export default function ReviewerDashboard() {
       ),
       cell: ({ row }) => (
         <div className="max-w-[300px]">
-          <div className="font-medium truncate">{row.getValue("title")}</div>
+          <div className="font-medium truncate">{<PaperDetailsDialog
+                  paperId={row.original.id}
+                  trigger={
+                    <Button
+                      variant="link"
+                      className="p-0 m-0 min-h-0 min-w-0 align-baseline text-primary cursor-pointer"
+                    >
+                      {row.original.title.length > 25
+                        ? `${row.original.title.slice(0, 25)}...`
+                        : row.original.title}
+                    </Button>
+                  }
+                />}</div>
           {row.original.keywords && (
             <div className="text-xs text-blue-600 mt-1">
-              Keywords: {row.original.keywords.map((keyword) => (
-                <span key={keyword.trim()} className="mr-1">
-                  {keyword.trim()},
-                </span>
-              ))}
+              Keywords: {row.original.keywords.join(", ").length > 30 ? row.original.keywords.join(", ").slice(0, 30) + "..." : row.original.keywords.join(", ")}
             </div>
           )}
         </div>
@@ -259,7 +242,7 @@ export default function ReviewerDashboard() {
         const status = getUserReviewStatus(row.original);
         return (
           <Badge variant={getStatusBadgeVariant(status)}>
-            {status.replace(/_/g, " ")}
+            {row.original.reviews && row.original.reviews.length > 0 ? row.original.reviews.find((review) => review.reviewerId === session?.user.id)?.reviewerStatus : "PENDING"}
           </Badge>
         );
       },
@@ -328,9 +311,10 @@ export default function ReviewerDashboard() {
     
     setLoading(true);
     try {
-      const response = await fetchReviewerPapers(page, limit);
-      if (response && response.papers) {
-        setPapers(response.papers);
+      console.log("session id is: ", session.user.id);
+      const response = await fetchReviewerPapers(session.user.id, page, limit);
+      if (response && response.data) {
+        setPapers(response.data);
         setPagination({
           page: response.page || 1,
           totalPages: response.totalPages || 1,
@@ -346,6 +330,7 @@ export default function ReviewerDashboard() {
       setPapers([]);
     } finally {
       setLoading(false);
+      console.log("Papers loaded:", papers);
     }
   };
 
@@ -712,5 +697,313 @@ export default function ReviewerDashboard() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+import { User } from "@prisma/client";
+
+// Extended interface to include relations
+interface PaperReviewWithReviewer extends PaperReview {
+  reviewer: User;
+}
+
+interface PaperWithRelations {
+  id: string;
+  title: string;
+  abstract: string;
+  filePath: string;
+  keywords: string[];
+  rating: number | null;
+  coverLetterPath: string | null;
+  submissionDate: Date;
+  lastUpdated: Date;
+  acceptedDate: Date | null;
+  status: string;
+  authorId: string | null;
+  contributors: AuthorOrContact[];
+  pointOfContact: AuthorOrContact;
+  reviews: PaperReviewWithReviewer[];
+  author: User;
+}
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+
+  User as UserIcon,
+  Tag,
+
+} from "lucide-react";
+import { PaperReview } from "@prisma/client";
+import { AuthorOrContact } from "@/types/dataTypes";
+
+type PaperDetailsDialogProps = {
+  paperId: string;
+  trigger: React.ReactNode;
+};
+
+function PaperDetailsDialog({
+  paperId,
+  trigger,
+}: PaperDetailsDialogProps) {
+  const [open, setOpen] = React.useState(false);
+  const [paperDetails, setPaperDetails] =
+    React.useState<PaperWithRelations | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const fetchPaperDetails = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`/api/paper/${paperId}`);
+      console.log("API Response:", response.data.paper);
+      setPaperDetails(response.data.paper);
+    } catch (error) {
+      console.error("Error fetching paper details:", error);
+      setError("Failed to load paper details");
+      setPaperDetails(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (open && paperId) fetchPaperDetails();
+  }, [open, paperId]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+
+      <DialogContent className="w-6xl max-w-screen bg-blue-100/30 backdrop-blur-lg">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+            <FileText className="h-5 w-5 text-blue-600" />
+            Paper Details
+          </DialogTitle>
+        </DialogHeader>
+
+        <ScrollArea className="px-6 pb-6 h-[70vh] scroll-smooth">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              <LoaderCircle className="animate-spin h-8 w-8 text-blue-600" />
+              <p className="text-muted-foreground">Loading paper details...</p>
+            </div>
+          ) : error ? (
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="flex items-center gap-3 p-6">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+                <p className="text-red-800">{error}</p>
+              </CardContent>
+            </Card>
+          ) : paperDetails ? (
+            <div className="space-y-6">
+              {/* Title */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg leading-relaxed font-semibold">
+                    <span className="flex items-center">
+                      <FileText className="h-5 w-5 inline mr-2 text-green-600" />
+                      Title:
+                    </span>
+                    {paperDetails.title}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+
+              {/* Abstract */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <FileText className="h-4 w-4" />
+                    Abstract
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {paperDetails.abstract}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Keywords */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                      <Tag className="h-4 w-4" />
+                      Keywords
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {paperDetails.keywords?.map((keyword, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs"
+                        >
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Status */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                      <AlertCircle className="h-4 w-4" />
+                      Status
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge
+                      variant={
+                        paperDetails.status === "PUBLISHED"
+                          ? "default"
+                          : "secondary"
+                      }
+                      className="text-sm px-3 py-1"
+                    >
+                      {paperDetails.status}
+                    </Badge>
+                  </CardContent>
+                </Card>
+
+                {/* Submission Date */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                      <Calendar className="h-4 w-4" />
+                      Submission Date
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(paperDetails.submissionDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Contact */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <UserIcon className="h-4 w-4" />
+                    Point of Contact
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1">
+                    <p className="font-medium">
+                      {paperDetails.pointOfContact.fullName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {paperDetails.pointOfContact.email}
+                    </p>
+                    {paperDetails.pointOfContact.affiliation && (
+                      <p className="text-sm text-muted-foreground">
+                        {paperDetails.pointOfContact.affiliation}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contributors */}
+              {paperDetails.contributors &&
+                paperDetails.contributors.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                        <UserIcon className="h-4 w-4" />
+                        Contributors ({paperDetails.contributors.length})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {paperDetails.contributors.map((contributor, index) => (
+                          <div
+                            key={index}
+                            className="p-3 border rounded-lg bg-muted/30"
+                          >
+                            <p className="font-medium text-sm">
+                              {contributor.fullName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {contributor.email}
+                            </p>
+                            {contributor.affiliation && (
+                              <p className="text-xs text-muted-foreground">
+                                {contributor.affiliation}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+            </div>
+          ) : (
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="flex items-center gap-3 p-6">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+                <p className="text-amber-800">No paper details available.</p>
+              </CardContent>
+            </Card>
+          )}
+        </ScrollArea>
+
+        <DialogFooter className="flex justify-end gap-3 px-6 pb-6">
+          {paperDetails && (
+            <div className="flex flex-col sm:flex-row gap-2 mr-auto">
+              <Button
+                onClick={() => window.open(paperDetails.filePath, "_blank")}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                View Paper
+              </Button>
+              {paperDetails.coverLetterPath && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    window.open(paperDetails.coverLetterPath!, "_blank")
+                  }
+                  className=""
+                >
+                  <PaperclipIcon className="h-4 w-4 mr-2" />
+                  View Cover Letter
+                </Button>
+              )}
+            </div>
+          )}
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

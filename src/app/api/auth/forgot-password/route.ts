@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     // Send reset email
     await sendPasswordResetEmail({
       otp: resetToken,
-      username: user.name || "User",
+      name: user.name || "User",
       email: user.email,
     });
 

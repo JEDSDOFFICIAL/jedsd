@@ -8,10 +8,13 @@ const uuidSchema = z.string().uuid("Invalid UUID format.");
 
 // GET /api/reviews/[paperId]/fetch-reviews?reviewerId=optional
 export async function GET(
-  req: Request
+  req: Request,
+  context: { params: Promise<{ paperId: string }> }
 ) {
   try {
-    const paperId = req.url.split('/').slice(-2);
+    const paperId = await context.params.then((p) => p.paperId);
+    console.log("Fetching reviews for paperId:", paperId);
+    
 
     // Validate paperId
     const paperIdResult = uuidSchema.safeParse(paperId);
@@ -45,7 +48,7 @@ export async function GET(
       prisma.paperReview.findMany({
         where,
         include: {
-          reviewer: { select: { id: true, name: true, email: true, username: true } },
+          reviewer: { select: { id: true, name: true, email: true, userType: true } },
         },
         orderBy: { createdAt: "asc" },
       })

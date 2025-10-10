@@ -1,7 +1,7 @@
 
 
 import prisma from "@/lib/prisma"; // Assuming your PrismaClient instance is exported from this path
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { PaperStatus } from "@prisma/client"; // Import PaperStatus enum
 
@@ -21,14 +21,11 @@ const updatePaperStatusSchema = z.object({
 });
 
 // PATCH /api/research-papers/[paperId]/status - Update a research paper's publication status
-export async function PATCH(
-  req: Request) {
+export async function PATCH(req: NextRequest,context: { params: Promise<{ paperId: string }> }) {
   try {
-   
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split("/");
-    // The paperId is expected to be the second to last segment, e.g., /api/research-papers/PAPER_ID/status
-    const paperId = pathSegments[pathSegments.length - 2];
+
+    const paperId = await context.params.then((p) => p.paperId);
+    console.log("Updating status for paperId:", paperId);
 
     // Validate the extracted paperId
     const paperIdValidationResult = paperIdParamSchema.safeParse({ paperId });
@@ -38,7 +35,7 @@ export async function PATCH(
         { status: 400 }
       );
     }
-
+   
     const validatedPaperId = paperIdValidationResult.data.paperId;
 
 

@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     // Send verification email
     await sendVerificationMail({
       otp,
-      username: user.name || "User",
+      name: user.name || "User",
       email: user.email,
     });
 

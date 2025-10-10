@@ -15,14 +15,14 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, username, bio, affiliation, phone, expertise } = body;
+    const { name, bio, affiliation, phone, expertise } = body;
 
     // Update user profile
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         name: name || undefined,
-        username: username || undefined,
+        affiliation: affiliation || undefined,
         // Add other fields as needed to your user schema
       }
     });
@@ -58,8 +58,9 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         email: true,
-        username: true,
         userType: true,
+        affiliation: true,
+        profileImage: true,
         // Add other profile fields as needed
       }
     });
