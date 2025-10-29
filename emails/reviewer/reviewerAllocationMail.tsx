@@ -70,7 +70,7 @@ export default function ReviewerAllocationEmail({
               <tbody>
                 <tr>
                   <td style={labelCellStyle}>Manuscript ID:</td>
-                  <td style={valueCellStyle}>{paper.id}</td>
+                  <td style={valueCellStyle}>{paper.paperId}</td>
                 </tr>
                 <tr>
                   <td style={labelCellStyle}>Title:</td>

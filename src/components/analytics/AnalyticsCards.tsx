@@ -345,7 +345,7 @@ export function AnalyticsCards({ data, loading = false }: AnalyticsCardsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {userType === "USER" && renderUserAnalytics()}
+      {userType === "AUTHOR" && renderUserAnalytics()}
       {userType === "REVIEWER" && renderReviewerAnalytics()}
       {userType === "EDITOR" && renderEditorAnalytics()}
       {userType === "ADMIN" && renderAdminAnalytics()}

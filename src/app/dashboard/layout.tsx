@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import axios from "axios";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarInset,
@@ -12,70 +10,87 @@ import {
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
   BreadcrumbPage,
+  BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { User } from "@prisma/client";
+import { Badge } from "@/components/ui/badge";
+import { useUserData } from "@/hooks/use-user-data";
+import { RoleProvider, useRole } from "@/contexts/RoleContext";
 
+function DashboardHeader() {
+  const { userDetails, isLoading } = useUserData();
+  const { currentRole, isRoleSwitched } = useRole();
+
+  return (
+    <header className="flex h-16 items-center gap-2 px-4">
+      <SidebarTrigger className="-ml-1" />
+      <Separator orientation="vertical" className="mr-2 h-4" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem className="hidden md:block">
+            <BreadcrumbPage>
+              {isLoading ? "Loading..." : userDetails?.name}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator className="hidden md:block" />
+          <BreadcrumbItem>
+            <BreadcrumbPage>
+              {isLoading ? "..." : userDetails?.email}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+          {currentRole && (
+            <>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <Badge variant={isRoleSwitched ? "secondary" : "default"}>
+                  {currentRole}
+                  {isRoleSwitched && " (Switched)"}
+                </Badge>
+              </BreadcrumbItem>
+            </>
+          )}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </header>
+  );
+}
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
+  const { userDetails, isLoading } = useUserData();
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted to true to avoid SSR mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Re-render guard for SSR
+  if (!mounted) return null;
+
+  return (
+    <SidebarProvider className="h-screen w-full">
+      {userDetails && !isLoading && <AppSidebar userData={userDetails} />}
+      <SidebarInset className="flex h-full w-full flex-col gap-1 overflow-hidden">
+        <DashboardHeader />
+        {/* Main content */}
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
-  const [userDetails, setUserDetails] = useState<User | undefined>(undefined);
-const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        if (session?.user?.email) {
-          const res = await axios.get(`/api/user?email=${session.user.email}`);
-          setUserDetails(res.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch user details:", error);
-      }
-    };
-
-    fetchUserDetails();
-  }, [session]);
-console.log("User Details:", session?.user);
-  if (!mounted) return null;
   return (
-    <SidebarProvider className="h-screen w-full">
-      {userDetails && <AppSidebar userData={userDetails} />}
-      <SidebarInset className="flex h-full w-full flex-col gap-1 overflow-hidden ">
-        {/* Header with SidebarTrigger and Breadcrumb */}
-     
-        <header className="flex h-16 items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-               <BreadcrumbPage>{userDetails?.name}</BreadcrumbPage>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{userDetails?.email}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
-        <div className="flex-1 overflow-y-auto">
-
-
-        {children}
-        </div>
-     </SidebarInset>
-    </SidebarProvider>
+    <RoleProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </RoleProvider>
   );
 }

@@ -11,13 +11,16 @@ model User {
   id                     String          @id @default(uuid())
   name                   String
   email                  String          @unique
+  areaOfInterest         String[]       @default([])
+  bio                    String?
   password               String?
   affiliation            String?
   profileImage           String?
   resetToken             String?         @unique
   resetTokenExpiry       DateTime?
   isVerified             Boolean         @default(false)
-  userType               UserType        @default(USER)
+  userType               UserType        @default(AUTHOR)
+  variableUserType       UserType        @default(AUTHOR)       // Track original type for role switching
   verificationCode       String?
   verificationCodeExpiry DateTime?
   createdAt              DateTime        @default(now())
@@ -46,6 +49,8 @@ model PaperReview {
 
 model ResearchPaper {
   id              String        @id @default(uuid())
+  paperId         String        @unique
+  doi             String?        @unique
   title           String
   abstract        String
   filePath        String
@@ -61,6 +66,7 @@ model ResearchPaper {
   pointOfContact  Json
   reviews         PaperReview[] @relation("PaperToReviews")
   author          User?         @relation("PaperAuthor", fields: [authorId], references: [id])
+  @@index([paperId])
 }
 
 model UserDetails {
@@ -73,7 +79,7 @@ enum PaperStatus {
   UPLOAD
   REVIEWER_ALLOCATION
   ON_REVIEW
-  ON_EDIT
+  EDITOR_DECISION
   PUBLISH
   ACCEPTED
   REJECTED
@@ -90,7 +96,7 @@ enum ReviewerStatus {
 }
 
 enum UserType {
-  USER
+  AUTHOR
   REVIEWER
   EDITOR
   ADMIN

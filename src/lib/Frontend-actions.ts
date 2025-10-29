@@ -148,11 +148,15 @@ export async function fetchAllUser(){
 
 export async function fetchReviewerPapers(reviewerId:string,page: number = 1, limit: number = 10) {
   try {
-    const res = await axios.get(`/api/paper/reviewer-papers?reviewerId=${reviewerId}`, {
-      params: { page, limit }
-    });
+    const res = await axios.get(`/api/paper/reviewer-papers?reviewerId=${reviewerId}&page=${page}&limit=${limit}`);
     console.log("Fetched reviewer papers:", res.data);
-    return res.data;
+    return {
+      data: res.data.data,
+      page: page,
+      totalPages: Math.ceil(res.data.count / limit) || 1,
+      total: res.data.count || 0,
+      limit: limit
+    };
   } catch (error) {
     console.error("Failed to fetch reviewer papers:", error);
     toast.error("Failed to fetch reviewer papers.");
@@ -162,7 +166,7 @@ export async function fetchReviewerPapers(reviewerId:string,page: number = 1, li
 
 export async function reviewerAllocation(paperId:string,reviewerIds:string[],onSuccess?:()=>void){
   try {
-    const res = await axios.post(`/api/paper/assign-reviewer`, {
+    const res = await axios.post(`/api/paper/${paperId}/assign-reviewer`, {
       paperId,
       reviewerIds,
     });

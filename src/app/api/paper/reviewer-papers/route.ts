@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
-
+    console.log("reviewer id",reviewerId);
+    
     const papers = await prisma.researchPaper.findMany({
       take: limit,
       skip: skip,

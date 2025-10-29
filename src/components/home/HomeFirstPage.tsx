@@ -4,10 +4,14 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-import { InteractiveHoverButton } from "../magicui/interactive-hover-button";
-import { TextAnimate } from "../magicui/text-animate";
 
 import { RetroGrid } from "../magicui/retro-grid";
+import { TextAnimate } from "../magicui/text-animate";
+
+// Simple button component as replacement
+const InteractiveHoverButton = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  return <button className={className}>{children}</button>;
+};
 
 function HomePage() {
   const { data: session } = useSession();

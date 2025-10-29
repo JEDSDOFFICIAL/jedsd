@@ -47,7 +47,7 @@ export async function GET(req: Request) {
     let stats: any = {};
 
     switch (userType) {
-      case UserType.USER: // Stats for Authors
+      case UserType.AUTHOR: // Stats for Authors
         // Check if the user exists
         const author = await prisma.user.findUnique({ where: { id: userId } });
         if (!author) {
@@ -79,11 +79,12 @@ export async function GET(req: Request) {
         break;
 
       case UserType.REVIEWER: // Stats for Reviewers
-        // Check if the user exists and is a reviewer
+        // Check if the user exists and is currently acting as a reviewer
         const reviewer = await prisma.user.findUnique({ where: { id: userId } });
-        if (!reviewer || reviewer.userType !== UserType.REVIEWER) {
+        const effectiveReviewerType = reviewer?.variableUserType || reviewer?.userType;
+        if (!reviewer || effectiveReviewerType !== UserType.REVIEWER) {
           return NextResponse.json(
-            { success: false, message: "Reviewer not found or not authorized." },
+            { success: false, message: "Reviewer not found or not currently authorized as reviewer." },
             { status: 404 }
           );
         }
@@ -120,11 +121,12 @@ export async function GET(req: Request) {
         break;
 
       case UserType.EDITOR: // Stats for Editors
-        // Check if the user exists and is an editor
+        // Check if the user exists and is currently acting as an editor
         const editor = await prisma.user.findUnique({ where: { id: userId } });
-        if (!editor || editor.userType !== UserType.EDITOR) {
+        const effectiveEditorType = editor?.variableUserType || editor?.userType;
+        if (!editor || effectiveEditorType !== UserType.EDITOR) {
           return NextResponse.json(
-            { success: false, message: "Editor not found or not authorized." },
+            { success: false, message: "Editor not found or not currently authorized as editor." },
             { status: 404 }
           );
         }

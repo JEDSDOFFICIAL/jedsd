@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import UserType_add_input from "@/components/dashboard/UserType_add_input";
+
 import { useSession } from "next-auth/react";
 import {
   ColumnDef,
@@ -16,7 +16,7 @@ import {
   VisibilityState,
   flexRender, // Added for rendering headers/cells
 } from "@tanstack/react-table";
-import { ArrowUpDown, Copy, MoreHorizontal, ShieldCheck, Trash2 } from "lucide-react";
+import { ArrowUpDown, Copy, MoreHorizontal, ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {
@@ -46,6 +46,26 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { UserDetails } from "@prisma/client";
 import {
   IconChevronDown,
@@ -55,6 +75,170 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
 } from "@tabler/icons-react"; // Imported missing icons
+
+// Form schema for adding special role users
+const addUserSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  userType: z.enum(["REVIEWER", "ADMIN", "EDITOR"], {
+    required_error: "Please select a user type",
+  }),
+});
+
+type AddUserFormValues = z.infer<typeof addUserSchema>;
+
+// Add User Form Component
+function AddUserForm({ onUserAdded }: { onUserAdded: () => void }) {
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const form = useForm<AddUserFormValues>({
+    resolver: zodResolver(addUserSchema),
+    defaultValues: {
+      email: "",
+      userType: "REVIEWER",
+    },
+  });
+
+  const onSubmit = async (values: AddUserFormValues) => {
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post("/api/user/reviewer", {
+        email: values.email,
+        userType: values.userType,
+      });
+
+      if (response.data.success || response.status === 200) {
+        toast.success(`${values.userType} added successfully!`);
+        form.reset();
+        onUserAdded(); // Refresh the data
+      } else {
+        toast.error(response.data.message || "Failed to add user");
+      }
+    } catch (error: any) {
+      console.error("Failed to add user:", error);
+      toast.error(
+        error.response?.data?.message || 
+        "Failed to add user. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <UserPlus className="h-5 w-5" />
+          Add Special Role User
+        </CardTitle>
+        <CardDescription>
+          Add a new user with special privileges (Reviewer, Editor, or Admin)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="user@example.com"
+                      type="email"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Enter the email address of the user you want to add
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="userType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>User Role</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isSubmitting}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="REVIEWER">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                          Reviewer
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="EDITOR">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                          Editor
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="ADMIN">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full" />
+                          Admin
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Select the role you want to assign to this user
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="flex gap-3">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4" />
+                    Add User
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => form.reset()}
+                disabled={isSubmitting}
+              >
+                Reset
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
 
 function FacultyList() {
   const { data: session } = useSession();
@@ -295,41 +479,56 @@ function FacultyList() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col gap-4 justify-around items-center overflow-hidden md:px-10 px-2 ">
-      <p className="dark:text-white text-black text-xl font-bold border-b border-black dark:border-white py-3 text-center w-full sm:text-2xl">
-        Add Special User Type and their email
-      </p>
-      <UserType_add_input />
-      <p className="dark:text-white text-black text-xl font-bold py-3 text-center w-full sm:text-2xl">
-        List of Reviewer and Admin
-      </p>
-      <Tabs defaultValue="outline" className="w-full flex-col gap-6">
-        <div className="flex items-center justify-between px-4 lg:px-6">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {table.getAllColumns()
-                .filter((col) => col.getCanHide() && typeof col.accessorFn !== "undefined")
-                .map((col) => (
-                  <DropdownMenuCheckboxItem
-                    key={col.id}
-                    checked={col.getIsVisible()}
-                    onCheckedChange={(value) => col.toggleVisibility(!!value)}
-                    className="capitalize"
-                  >
-                    {col.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+    <div className="w-full h-full flex flex-col gap-6 justify-start items-center overflow-hidden md:px-10 px-2 py-6">
+      <div className="w-full text-center">
+        <h1 className="dark:text-white text-black text-2xl font-bold border-b border-black dark:border-white py-3 sm:text-3xl">
+          User Role Management
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Add special role users and manage existing ones
+        </p>
+      </div>
+      
+      {/* Add User Form */}
+      <div className="w-full max-w-2xl">
+        <AddUserForm onUserAdded={fetchData} />
+      </div>
+      
+      {/* Users List */}
+      <div className="w-full">
+        <h2 className="dark:text-white text-black text-xl font-bold py-3 text-center w-full sm:text-2xl">
+          Current Reviewers and Admins
+        </h2>
+        <h2 className="dark:text-white text-black text-xl font-bold py-3 text-center w-full sm:text-2xl">
+          Current Reviewers and Admins
+        </h2>
+        <Tabs defaultValue="outline" className="w-full flex-col gap-6">
+          <div className="flex items-center justify-between px-4 lg:px-6">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <IconLayoutColumns />
+                  <span className="hidden lg:inline">Customize Columns</span>
+                  <span className="lg:hidden">Columns</span>
+                  <IconChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {table.getAllColumns()
+                  .filter((col) => col.getCanHide() && typeof col.accessorFn !== "undefined")
+                  .map((col) => (
+                    <DropdownMenuCheckboxItem
+                      key={col.id}
+                      checked={col.getIsVisible()}
+                      onCheckedChange={(value) => col.toggleVisibility(!!value)}
+                      className="capitalize"
+                    >
+                      {col.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
         <TabsContent value="outline" className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
           <div className="overflow-hidden rounded-lg border">
@@ -437,7 +636,8 @@ function FacultyList() {
             </div>
           </div>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }

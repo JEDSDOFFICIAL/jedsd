@@ -20,7 +20,7 @@ const uploadFileToFirebase = async (file: File, folder: string) => {
     const filename = `paper${dateStr}:${timeStr}.${file.name.split(".").pop()}`;
     const fileRef = ref(storage, `${folder}/${filename}`);
 
-    toast.loading(`Uploading paper to Firebase...`);
+    toast.loading(`Uploading Manuscript...`);
 
     const snapshot = await uploadBytes(fileRef, file);
     const url = await getDownloadURL(snapshot.ref);
@@ -31,7 +31,7 @@ const uploadFileToFirebase = async (file: File, folder: string) => {
     return url;
   } catch (error) {
     toast.dismiss();
-    console.error(`Firebase ${folder} upload failed`, error);
+    console.error(`Manuscript ${folder} upload failed`, error);
     toast.error(`Upload failed`);
     return null;
   }

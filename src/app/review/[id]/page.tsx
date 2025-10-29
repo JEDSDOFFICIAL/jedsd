@@ -23,7 +23,7 @@ interface Paper {
   status: string;
   reviewerStatus: string;
   author: {
-    name: string;
+    fullName: string;
     email: string;
   };
 }
@@ -134,7 +134,7 @@ export default function ReviewerActionPage() {
     );
   }
 
-  if (session?.user?.userType === "USER") {
+  if (session?.user?.userType === "AUTHOR") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -167,7 +167,7 @@ export default function ReviewerActionPage() {
             <div className="flex justify-between items-start">
               <div>
                 <CardTitle className="text-2xl mb-2">{paper.title}</CardTitle>
-                <p className="text-gray-600">Author: {paper.author.name}</p>
+                <p className="text-gray-600">Author: {paper.author.fullName}</p>
                 <p className="text-sm text-gray-500">
                   Submitted: {new Date(paper.submissionDate).toLocaleDateString()}
                 </p>

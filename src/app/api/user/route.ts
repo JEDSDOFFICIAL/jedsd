@@ -63,7 +63,11 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { userId, userType, name, affiliation } = await req.json();
+    const searchParams = req.nextUrl.searchParams;
+    const userId = searchParams.get("userId");
+    const userType = searchParams.get("userType") as UserType | null;
+    const name = searchParams.get("name");
+    const affiliation = searchParams.get("affiliation");
 
     if (!userId) {
       return NextResponse.json(

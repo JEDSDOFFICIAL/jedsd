@@ -28,7 +28,7 @@ export function AppSidebar({ userData,...props }: { userData: User } & React.Com
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <UserTypeSwitcher {...userData} />
+        <UserTypeSwitcher user={userData} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain {...userData} />

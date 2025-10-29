@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient, UserType } from "@prisma/client";
 import { z } from "zod";
-import { syncUserDetails } from "@/lib/userDetailsUtils";
 
 const prisma = new PrismaClient();
 
@@ -9,11 +8,13 @@ const prisma = new PrismaClient();
 const updateUserSchema = z.object({
   userId: z.string().uuid("Invalid user ID format."),
   name: z.string().min(1, "Name is required.").optional(),
-  email: z.string().email("Invalid email format.").optional(),
   affiliation: z.string().optional(),
   profileImage: z.string().url("Invalid profile image URL.").optional(),
-  userType: z.enum(["USER", "REVIEWER", "EDITOR", "ADMIN"]).optional(),
+  userType: z.enum(["AUTHOR", "REVIEWER", "EDITOR", "ADMIN"]).optional(),
+  originalUserType: z.enum(["AUTHOR", "REVIEWER", "EDITOR", "ADMIN"]).optional(),
   isVerified: z.boolean().optional(),
+  bio: z.string().max(500, "Bio must be at most 500 characters.").optional(),
+  areaOfInterest: z.array(z.string()).optional(),
 });
 
 // POST /api/user/updateUser - Update user details
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { userId, userType, email, ...updateData } = validationResult.data;
+    const { userId, ...updateData } = validationResult.data;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -47,43 +48,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // If email is being updated, check for uniqueness
-    if (email && email !== existingUser.email) {
-      const emailExists = await prisma.user.findUnique({
-        where: { email }
-      });
-
-      if (emailExists) {
-        return NextResponse.json(
-          { success: false, message: "Email already exists." },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Handle UserDetails logic for role changes using utility
-    if (userType && userType !== existingUser.userType) {
-      const finalEmail = email || existingUser.email;
-      
-      // Use the utility function to sync UserDetails
-      const syncResult = await syncUserDetails(finalEmail, userType as UserType);
-      
-      if (!syncResult.success) {
-        return NextResponse.json(
-          { success: false, message: "Failed to sync user role." },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Update the user (userType will be updated by syncUserDetails if needed)
+    // Update the user
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: {
-        ...updateData,
-        ...(email && { email }),
-        // Don't update userType here as it's handled by syncUserDetails
-      }
+      data: updateData
     });
 
     // Remove sensitive information from response

@@ -18,12 +18,12 @@ const eslintConfig = [
 
       // Allow unused variables (like unused imports)
       "@typescript-eslint/no-unused-vars": "off",
-
+      "react/no-unescaped-entities": "off",
       // Disable missing hook dependency warnings
       "react-hooks/exhaustive-deps": "off",
-      '@typescript-eslint/no-empty-interface': 'off', // if you still want empty interfaces
-    '@typescript-eslint/no-unused-expressions': 'warn',
-    'react-hooks/rules-of-hooks': 'error', // KEEP THIS
+      "@typescript-eslint/no-empty-interface": "off", // if you still want empty interfaces
+      "@typescript-eslint/no-unused-expressions": "warn",
+      "react-hooks/rules-of-hooks": "error", // KEEP THIS
     },
   },
 ];

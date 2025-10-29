@@ -47,6 +47,19 @@ const deletePapersSchema = z.object({
 
 // POST /api/research-papers - Upload a new research paper
 export async function POST(req: Request) {
+  const generateUniquePaperId = async () => {
+    let paperId;
+    let existingPaper;
+
+    do {
+      paperId = `JEDSD-P-${Math.floor(100000 + Math.random() * 900000)}-${Math.floor(1000 + Math.random() * 9000)}`;
+      existingPaper = await prisma.researchPaper.findUnique({
+        where: { paperId: paperId },
+      });
+    } while (existingPaper);
+
+    return paperId;
+  };
   try {
     const body = await req.json();
     const validationResult = uploadPaperSchema.safeParse(body);
@@ -84,9 +97,11 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
-
+   const paperId = await generateUniquePaperId();
+    // Create the research paper entry
     const newPaper = await prisma.researchPaper.create({
       data: {
+        paperId, // Generated unique paper ID
         title,
         abstract,
         filePath,
@@ -145,6 +160,10 @@ export async function GET(request: Request) {
     const authorId = searchParams.get("authorId");
     if (authorId) {
       where.authorId = authorId;
+    }
+    const paperId = searchParams.get("paperId");
+    if (paperId) {
+      where.paperId = paperId;
     }
 
     const reviewerId = searchParams.get("reviewerId");
@@ -212,14 +231,18 @@ export async function GET(request: Request) {
               reviewerId: true,
               reviewer: {
                 select: {
+                  id: true,
                   name: true,
                   email: true,
+                  affiliation: true,
                 },
               },
-
               reviewText: true,
+              correspondingFile: true,
               rating: true,
               reviewerStatus: true,
+              createdAt: true,
+              updatedAt: true,
             },
           },
         },

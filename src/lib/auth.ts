@@ -4,7 +4,36 @@ import prisma from "@/lib/prisma";
 import { comparePassword } from "@/lib/hash";
 import { NextAuthOptions } from "next-auth";
 import { sendSuccessAuthenticationMail } from "@/helper/send_Successful_Auth_Mail";
-import { getEffectiveUserType } from "@/lib/userDetailsUtils";
+import { UserType } from "@prisma/client";
+
+// Utility function to get effective user type
+async function getEffectiveUserType(email: string): Promise<UserType> {
+  try {
+    // First, check UserDetails table
+    const userDetails = await prisma.userDetails.findUnique({
+      where: { email },
+    });
+
+    if (userDetails) {
+      return userDetails.userType;
+    }
+
+    // If not found in UserDetails, check User table
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user) {
+      return user.userType;
+    }
+
+    // Default to AUTHOR if no record exists
+    return UserType.AUTHOR;
+  } catch (error) {
+    console.error("Error fetching effective user type:", error);
+    return UserType.AUTHOR;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -52,7 +81,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Get the most up-to-date userType from UserDetails
+          // Get the effective userType
           const finalUserType = await getEffectiveUserType(credentials.email);
 
           // Sync userType to main user table if it differs
@@ -61,6 +90,7 @@ export const authOptions: NextAuthOptions = {
               where: { email: credentials.email },
               data: {
                 userType: finalUserType,
+                variableUserType: finalUserType, // Ensure variableUserType is also updated
               },
             });
           }
@@ -69,10 +99,12 @@ export const authOptions: NextAuthOptions = {
           await sendSuccessAuthenticationMail({email: user.email, name: user.name});
 
           return {
-            id: String(user.id), // Ensure ID is returned as string
+            id: String(user.id),
             email: user.email,
             name: user.name,
             userType: finalUserType,
+            variableUserType: finalUserType,
+            image: user.profileImage || null,
           };
         } catch (error) {
           console.error("Credentials authorization error:", error);
@@ -85,7 +117,7 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       httpOptions: {
-        timeout: 10000, // 10 seconds instead of default 3.5 seconds
+        timeout: 10000,
       },
       authorization: {
         params: {
@@ -104,7 +136,6 @@ export const authOptions: NextAuthOptions = {
 
   debug: process.env.NODE_ENV === "development",
 
-  // Add timeout and retry configuration
   events: {
     async signIn(message) {
       console.log("Sign in event:", message);
@@ -139,6 +170,7 @@ export const authOptions: NextAuthOptions = {
                 password: null,
                 profileImage: user.image,
                 userType: resolvedUserType,
+                variableUserType: resolvedUserType,
               },
             });
             console.log("Created new Google user:", currentUser.email, "ID:", currentUser.id);
@@ -150,7 +182,8 @@ export const authOptions: NextAuthOptions = {
                 name: user.name?.trim() || "Unnamed",
                 isVerified: true,
                 profileImage: user.image,
-                userType: resolvedUserType, // Always sync from UserDetails
+                userType: resolvedUserType,
+                variableUserType: resolvedUserType,
               },
             });
             console.log("Updated existing Google user:", currentUser.email, "ID:", currentUser.id);
@@ -164,6 +197,7 @@ export const authOptions: NextAuthOptions = {
           token.email = currentUser.email;
           token.name = currentUser.name;
           token.userType = currentUser.userType;
+          token.variableUserType = currentUser.variableUserType;
           token.image = user.image || null;
         }
 
@@ -176,12 +210,28 @@ export const authOptions: NextAuthOptions = {
           token.name = user.name;
           token.userType = user.userType;
           token.image = user.image || null;
+          token.variableUserType = user.variableUserType; // For credentials, variableUserType matches userType
+        }
+
+        // On subsequent requests, refresh variableUserType to get latest role switches
+        if (token.id && !user) {
+          try {
+            const currentUser = await prisma.user.findUnique({
+              where: { id: token.id as string },
+              select: { variableUserType: true }
+            });
+            if (currentUser) {
+              token.variableUserType = currentUser.variableUserType;
+            }
+          } catch (error) {
+            console.error("Error refreshing variableUserType:", error);
+            // Continue with existing token if refresh fails
+          }
         }
 
         return token;
       } catch (error) {
         console.error("JWT callback error:", error);
-        // Return token as-is if there's an error to prevent auth failure
         return token;
       }
     },
@@ -192,11 +242,12 @@ export const authOptions: NextAuthOptions = {
         return {
           ...session,
           user: {
-            id: String(token.id), // Ensure ID is always a string
+            id: String(token.id),
             email: token.email,
             name: token.name,
             image: token.image || null,
             userType: token.userType,
+            variableUserType: token.variableUserType,
           },
         };
       } catch (error) {
@@ -208,7 +259,7 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: "/signin",
-    error: "/signin", // Redirect to signin page on OAuth errors
+    error: "/signin",
     signOut: "/signup",
   },
 

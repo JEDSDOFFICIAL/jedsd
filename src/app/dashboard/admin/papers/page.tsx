@@ -364,7 +364,7 @@ export default function AdminWorkflowManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {papers.filter(p => p.status === "ON_EDIT").length}
+              {papers.filter(p => p.status === "EDITOR_DECISION").length}
             </div>
           </CardContent>
         </Card>

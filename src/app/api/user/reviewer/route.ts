@@ -64,12 +64,52 @@ export async function DELETE(req: NextRequest) {
 // GET: Return all UserDetails
 export async function GET() {
   try {
-    const data = await prisma.user.findMany({
+    const users = await prisma.user.findMany({
       where:{
-        userType: { in: [UserType.REVIEWER,UserType.ADMIN,UserType.EDITOR] }
+        userType: { in: [UserType.REVIEWER, UserType.ADMIN, UserType.EDITOR] }
+      },
+      include: {
+        reviews: {
+          select: {
+            id: true,
+            reviewerStatus: true,
+            rating: true,
+            reviewText: true
+          }
+        }
       }
     });
-    return NextResponse.json(data, { status: 200 });
+
+    // Calculate basic stats for each user
+    const usersWithStats = users.map(user => {
+      const reviews = user.reviews || [];
+      const completedReviews = reviews.filter(r => r.reviewText && r.reviewText.trim() !== '');
+      const activeReviews = reviews.filter(r => 
+        r.reviewerStatus === 'PENDING' || 
+        r.reviewerStatus === 'ACCEPTED_FOR_REVIEW'
+      );
+      
+      const ratingsGiven = completedReviews
+        .map(r => r.rating)
+        .filter(rating => rating !== null) as number[];
+      
+      const averageRating = ratingsGiven.length > 0 
+        ? ratingsGiven.reduce((sum, rating) => sum + rating, 0) / ratingsGiven.length 
+        : 0;
+
+      return {
+        ...user,
+        reviews: undefined, // Remove the detailed reviews from the response
+        stats: {
+          activeReviews: activeReviews.length,
+          completedReviews: completedReviews.length,
+          averageRating: averageRating,
+          expertise: user.areaOfInterest || []
+        }
+      };
+    });
+
+    return NextResponse.json(usersWithStats, { status: 200 });
   } catch (error) {
     console.error("GET error:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });

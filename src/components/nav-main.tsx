@@ -28,22 +28,31 @@ export function NavMain(
   user: User
 ) {
   const items = DashboardItems
+  // Use variableUserType for role switching, fallback to userType
+  const currentUserType = user.variableUserType || user.userType
+  
   const filteredItems = items.filter((item) => {
-    if (user.userType === "ADMIN") {
+    // Admin can see everything
+    if (currentUserType === "ADMIN") {
       return true
     }
-    if (user.userType === "EDITOR") {
-      return !item.access || item.access.includes("EDITOR")
+    // If item has access restrictions, check if current role is included
+    if (item.access) {
+      return item.access.includes(currentUserType)
     }
-    if (user.userType === "REVIEWER") {
-      return !item.access || item.access.includes("REVIEWER")
-    }
-    if (user.userType === "USER") {
-      return !item.access
-    }
-    return false
-  
-  })
+    // If no access restrictions, show for all roles
+    return true
+  }).map((item) => ({
+    ...item,
+    items: item.items?.filter((subItem) => {
+      // If subitem has access restrictions, check if current role is included
+      if ('access' in subItem && subItem.access) {
+        return subItem.access.includes(currentUserType)
+      }
+      // If no access restrictions, show for all roles
+      return true
+    })
+  }))
 
   return (
     <SidebarGroup>
@@ -53,7 +62,7 @@ export function NavMain(
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
+            defaultOpen
             className="group/collapsible"
           >
             <SidebarMenuItem>

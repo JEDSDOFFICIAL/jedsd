@@ -25,6 +25,7 @@ import { FileUpload } from "@/components/ui/file-upload";
 
 import { useSession } from "next-auth/react";
 import { uploadFileToFirebase } from "@/lib/Firebase-Action";
+import { useRouter } from "next/navigation";
 
 // Zod Schema
 const contributorSchema = z.object({
@@ -76,7 +77,7 @@ export default function MultiPagePaperUpload() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const totalSteps = 6;
-
+  const router = useRouter();
   const { data: session } = useSession();
 
   const {
@@ -182,6 +183,7 @@ export default function MultiPagePaperUpload() {
         toast.success("Research paper uploaded successfully!");
         reset(); // Reset form fields after successful submission
         setStep(1); // Go back to the first step
+        router.push("/dashboard")
       } else {
         toast.error(`Failed to submit form. Status: ${uploadApi.status}`);
       }

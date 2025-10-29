@@ -112,9 +112,11 @@ export async function POST(req: Request) {
       where: { id: newReviewerId },
     });
 
-    if (!newReviewer || newReviewer.userType !== UserType.REVIEWER) {
+    // Check if the user exists and has REVIEWER role (either as base role or switched role)
+    const effectiveUserType = newReviewer?.variableUserType || newReviewer?.userType;
+    if (!newReviewer || effectiveUserType !== UserType.REVIEWER) {
       return NextResponse.json(
-        { success: false, message: "Invalid new reviewer or user is not a REVIEWER" },
+        { success: false, message: "Invalid new reviewer or user is not currently acting as a REVIEWER" },
         { status: 400 }
       );
     }

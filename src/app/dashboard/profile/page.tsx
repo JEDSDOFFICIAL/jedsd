@@ -1,226 +1,382 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import axios from "axios";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "react-hot-toast";
-import { User, Mail, Phone, Building, Save, Camera } from "lucide-react";
+import { User } from "@prisma/client";
+import { 
+  UserCog, 
+  Save, 
+  Upload,
+  Plus,
+  X,
+  Camera
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import toast from "react-hot-toast";
 
 export default function ProfilePage() {
-  const { data: session, update } = useSession();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const { data: session, update: updateSession } = useSession();
+  const [userDetails, setUserDetails] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [profileData, setProfileData] = useState({
     name: "",
-    email: "",
     bio: "",
     affiliation: "",
-    phone: "",
-    expertise: "",
+    areaOfInterest: [] as string[],
+    profileImage: "",
   });
+  
+  const [newInterest, setNewInterest] = useState("");
 
   useEffect(() => {
-    if (session?.user) {
-      setFormData({
-        name: session.user.name || "",
-        email: session.user.email || "",
-        bio: "",
-        affiliation: "",
-        phone: "",
-        expertise: "",
-      });
-    }
-  }, [session]);
+    const fetchUserDetails = async () => {
+      if (!session?.user?.email) return;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+      try {
+        setLoading(true);
+        const response = await axios.get(`/api/user?email=${session.user.email}`);
+        const user = response.data;
+        setUserDetails(user);
+        setProfileData({
+          name: user.name || "",
+          bio: user.bio || "",
+          affiliation: user.affiliation || "",
+          areaOfInterest: user.areaOfInterest || [],
+          profileImage: user.profileImage || "",
+        });
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+        setError("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, [session?.user?.email]);
+
+  const handleSaveProfile = async () => {
+    if (!session?.user?.email) return;
+
+    try {
+      setSaving(true);
+      const response = await axios.patch("/api/user/profile", {
+        email: session.user.email,
+        ...profileData,
+      });
+
+      if (response.data.success) {
+        toast.success("Profile updated successfully!");
+        setUserDetails(response.data.user);
+        // Update session if needed
+        await updateSession();
+      } else {
+        toast.error(response.data.message || "Failed to update profile");
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddInterest = () => {
+    if (newInterest.trim() && !profileData.areaOfInterest.includes(newInterest.trim())) {
+      setProfileData(prev => ({
+        ...prev,
+        areaOfInterest: [...prev.areaOfInterest, newInterest.trim()]
+      }));
+      setNewInterest("");
+    }
+  };
+
+  const handleRemoveInterest = (interest: string) => {
+    setProfileData(prev => ({
       ...prev,
-      [name]: value
+      areaOfInterest: prev.areaOfInterest.filter(i => i !== interest)
     }));
   };
 
-  const handleSave = async () => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("profileImage", file);
+    formData.append("email", session?.user?.email || "");
+
     try {
-      setLoading(true);
-      const response = await fetch("/api/user/profile", {
-        method: "PATCH",
+      const response = await axios.post("/api/user/upload-profile-image", formData, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
-        body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        toast.success("Profile updated successfully!");
-        // Update session with new data
-        await update();
+      if (response.data.success) {
+        setProfileData(prev => ({
+          ...prev,
+          profileImage: response.data.imageUrl
+        }));
+        toast.success("Profile image updated!");
       } else {
-        toast.error("Failed to update profile");
+        toast.error("Failed to upload image");
       }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("An error occurred while updating profile");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      toast.error("Failed to upload image");
     }
   };
 
-  if (!session) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">You must be logged in to view this page.</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Profile Setup</h1>
-        <p className="text-muted-foreground">
-          Manage your profile information and preferences
+    <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <UserCog className="h-8 w-8" />
+          Profile Setup
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Manage your profile information and research interests
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Overview */}
-        <Card className="lg:col-span-1">
+      <div className="grid gap-6">
+        {/* Profile Picture */}
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Overview
-            </CardTitle>
+            <CardTitle>Profile Picture</CardTitle>
+            <CardDescription>
+              Upload a profile picture to personalize your account
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {session.user.name?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="text-center">
-                <h3 className="font-semibold">{session.user.name}</h3>
-                <p className="text-sm text-muted-foreground">{session.user.email}</p>
-                <Badge variant="secondary" className="mt-2">
-                  {session.user.userType}
-                </Badge>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Email verified</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Member since {new Date().getFullYear()}</span>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={profileData.profileImage} alt={profileData.name} />
+                <AvatarFallback className="text-2xl">
+                  {profileData.name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <Label htmlFor="profileImage" className="cursor-pointer">
+                  <Button variant="outline" className="mb-2" asChild>
+                    <span>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Change Picture
+                    </span>
+                  </Button>
+                </Label>
+                <Input
+                  id="profileImage"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+                <p className="text-sm text-muted-foreground">
+                  JPG, PNG or GIF. Max size 5MB.
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Profile Form */}
-        <Card className="lg:col-span-2">
+        {/* Basic Information */}
+        <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>
+              Update your basic profile information
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Full Name *</Label>
                 <Input
                   id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
+                  value={profileData.name}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter your full name"
                 />
               </div>
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  value={session?.user?.email || ""}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Email cannot be changed
+                </p>
+              </div>
             </div>
-
+            
             <div>
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="affiliation">Affiliation</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter email address"
+                id="affiliation"
+                value={profileData.affiliation}
+                onChange={(e) => setProfileData(prev => ({ ...prev, affiliation: e.target.value }))}
+                placeholder="University, Company, or Organization"
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div>
-                <Label htmlFor="affiliation">Affiliation</Label>
-                <Input
-                  id="affiliation"
-                  name="affiliation"
-                  value={formData.affiliation}
-                  onChange={handleInputChange}
-                  placeholder="University/Organization"
-                />
-              </div>
-            </div>
-
+            
             <div>
               <Label htmlFor="bio">Bio</Label>
               <Textarea
                 id="bio"
-                name="bio"
-                value={formData.bio}
-                onChange={handleInputChange}
-                placeholder="Tell us about yourself..."
-                rows={3}
+                value={profileData.bio}
+                onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                placeholder="Tell us about yourself, your research interests, and background..."
+                className="min-h-[100px]"
               />
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <Label htmlFor="expertise">Areas of Expertise</Label>
-              <Textarea
-                id="expertise"
-                name="expertise"
-                value={formData.expertise}
-                onChange={handleInputChange}
-                placeholder="e.g., Machine Learning, Computer Vision, NLP..."
-                rows={2}
+        {/* Research Interests */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Research Interests</CardTitle>
+            <CardDescription>
+              Add your areas of research interest and expertise
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                value={newInterest}
+                onChange={(e) => setNewInterest(e.target.value)}
+                placeholder="Add research interest (e.g., Machine Learning, Biology)"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddInterest()}
               />
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline">Cancel</Button>
-              <Button onClick={handleSave} disabled={loading}>
-                <Save className="h-4 w-4 mr-2" />
-                {loading ? "Saving..." : "Save Changes"}
+              <Button onClick={handleAddInterest} variant="outline">
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
+            
+            <div className="flex flex-wrap gap-2">
+              {profileData.areaOfInterest.map((interest, index) => (
+                <Badge key={index} variant="secondary" className="text-sm">
+                  {interest}
+                  <button
+                    onClick={() => handleRemoveInterest(interest)}
+                    className="ml-2 hover:text-red-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            
+            {profileData.areaOfInterest.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No research interests added yet. Add some to help with paper matching and networking.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* User Type Info */}
+        {userDetails && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>
+                Your account type and role information
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Primary Role</Label>
+                  <div className="mt-1">
+                    <Badge className="capitalize">{userDetails.userType.toLowerCase()}</Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Current Role</Label>
+                  <div className="mt-1">
+                    <Badge variant="outline" className="capitalize">
+                      {userDetails.variableUserType.toLowerCase()}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Member Since</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {new Date(userDetails.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Account Status</Label>
+                  <div className="mt-1">
+                    <Badge className={userDetails.isVerified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
+                      {userDetails.isVerified ? "Verified" : "Pending Verification"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Save Button */}
+        <Card>
+          <CardContent className="pt-6">
+            <Button
+              onClick={handleSaveProfile}
+              disabled={saving}
+              className="w-full"
+              size="lg"
+            >
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving Profile...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Profile
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
       </div>

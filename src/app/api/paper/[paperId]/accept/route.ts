@@ -34,7 +34,7 @@ export async function PATCH(
     }
 
     // Only allow ADMIN and EDITOR to accept papers
-    const userType = session.user.userType;
+    const userType = session.user.variableUserType;
     if (!["ADMIN", "EDITOR"].includes(userType)) {
       return NextResponse.json(
         { success: false, message: "Only admins and editors can accept papers." },

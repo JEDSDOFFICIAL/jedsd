@@ -77,7 +77,7 @@ export async function GET() {
     // Calculate user-specific stats based on role
     let userStats = {};
     
-    if (userType === "USER") {
+    if (userType === "AUTHOR") {
       const userPapers = papers.filter(p => p.authorId === userId);
       userStats = {
         totalPapers: userPapers.length,

@@ -52,7 +52,7 @@ export default function PaperUploadEmail( paper:ResearchPaper ) {
 
           <Section style={detailsBoxStyle}>
             <Text style={detailItemStyle}>
-              <strong>Manuscript ID:</strong> {paper.id}
+              <strong>Manuscript ID:</strong> {paper.paperId}
             </Text>
             <Text style={detailItemStyle}>
               <strong>Title:</strong> {paper.title}

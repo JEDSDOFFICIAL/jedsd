@@ -59,7 +59,7 @@ export default function editorMail(paper: ResearchPaper) {
           </Text>
 
           <Text style={paragraphStyle}>
-            <strong>Manuscript ID:</strong> {paper.id}
+            <strong>Manuscript ID:</strong> {paper.paperId}
           </Text>
 
           <Text style={paragraphStyle}>

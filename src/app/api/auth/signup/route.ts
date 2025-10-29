@@ -4,7 +4,37 @@ import prisma from "@/lib/prisma";
 import { comparePassword, hashPassword } from "@/lib/hash";
 import { z } from "zod";
 import { sendVerificationMail } from "@/helper/send_Verification_Mail";
-import { getEffectiveUserType } from "@/lib/userDetailsUtils";
+import { UserType } from "@prisma/client";
+
+// Utility function to get effective user type
+async function getEffectiveUserType(email: string): Promise<UserType> {
+  try {
+    // First, check UserDetails table
+    const userDetails = await prisma.userDetails.findUnique({
+      where: { email },
+    });
+
+    if (userDetails) {
+      return userDetails.userType;
+    }
+
+    // If not found in UserDetails, check User table
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user) {
+      return user.userType;
+    }
+
+    // Default to AUTHOR if no record exists
+    return UserType.AUTHOR;
+  } catch (error) {
+    console.error("Error fetching effective user type:", error);
+    return UserType.AUTHOR;
+  }
+}
+
 
 const signupSchema = z.object({
   name: z.string().min(2),
@@ -58,6 +88,7 @@ export async function POST(req: Request) {
       userType: userType, // Set the correct userType based on UserDetails
       verificationCode: otp,
       verificationCodeExpiry: new Date(Date.now() + 1000 * 60 * 60), // 1 hour
+    variableUserType: userType, // Initialize variableUserType to the same value
     },
   });
 

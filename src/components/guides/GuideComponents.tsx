@@ -12,9 +12,7 @@ import {
   AlertCircle,
   InfoIcon
 } from "lucide-react";
-import { TextAnimate } from "@/components/magicui/text-animate";
-import { Fade } from "react-awesome-reveal";
-import Link from "next/link";
+
 
 interface StepCardProps {
   step: number;
