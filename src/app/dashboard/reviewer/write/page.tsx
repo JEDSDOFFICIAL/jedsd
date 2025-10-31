@@ -2,31 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import {
-  ColumnDef,
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  flexRender,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  Eye,
-  FileText,
   Loader2,
-  RefreshCw,
   AlertCircle,
   Send,
   Upload,
   Star,
   ArrowLeft,
   Download,
+  CheckCircle,
+  FileText,
+  Clock,
+  Calendar,
+  User,
+  Tag,
+  Save,
+  Eye,
+  BookOpen,
+  AlertTriangle,
+  XCircle,
+  Edit,
+  ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -43,22 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Card,
   CardContent,
   CardDescription,
@@ -66,46 +47,37 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { fetchReviewerPapers, submitReview } from "@/lib/Frontend-actions";
 import { uploadFileToFirebase } from "@/lib/Firebase-Action";
-import { PaperWithRelations, PaginationInfo, ReviewFormData } from "@/types/dataTypes";
-import { format } from "date-fns";
+import { PaperWithRelations, ReviewFormData } from "@/types/dataTypes";
+import { format, formatDistanceToNow } from "date-fns";
 
 export default function WriteReviewPage() {
   const { data: session, status: sessionStatus } = useSession();
+  const searchParams = useSearchParams();
+  const preSelectedPaperId = searchParams?.get("paperId");
   
   // State Management
   const [papers, setPapers] = useState<PaperWithRelations[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    page: 1,
-    totalPages: 1,
-    total: 0,
-    limit: 10,
-  });
-  
-  // Table States
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
-
-  // Review Form States
+  const [completedPapers, setCompletedPapers] = useState<PaperWithRelations[]>([]);
   const [selectedPaper, setSelectedPaper] = useState<PaperWithRelations | null>(null);
-  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"select" | "write" | "completed">("select");
+  
+  // Review Form State
   const [reviewForm, setReviewForm] = useState<ReviewFormData>({
     reviewText: "",
-    rating: 1,
+    rating: 3,
     correspondingFile: null,
     reviewerStatus: "ACCEPTED_FOR_PUBLICATION",
     confidentialComments: "",
@@ -126,191 +98,43 @@ export default function WriteReviewPage() {
     return status === "ACCEPTED_FOR_PUBLICATION" || status === "REJECTED_FOR_PUBLICATION";
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "secondary";
-      case "ACCEPTED_FOR_REVIEW":
-        return "default";
-      case "REJECTED_FOR_REVIEW":
-        return "destructive";
-      case "ACCEPTED_FOR_PUBLICATION":
-        return "outline";
-      case "REJECTED_FOR_PUBLICATION":
-        return "destructive";
-      default:
-        return "secondary";
-    }
-  };
-
-  // Column Definitions
-  const columns: ColumnDef<PaperWithRelations>[] = [
-    {
-      accessorKey: "title",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Title
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="max-w-[300px]">
-          <div className="font-medium truncate">
-            {row.original.title.length > 50
-              ? `${row.original.title.slice(0, 50)}...`
-              : row.original.title}
-          </div>
-          {row.original.keywords && (
-            <div className="text-xs text-blue-600 mt-1">
-              Keywords: {row.original.keywords.join(", ").length > 30 
-                ? row.original.keywords.join(", ").slice(0, 30) + "..." 
-                : row.original.keywords.join(", ")}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "author",
-      header: "Author",
-      cell: ({ row }) => (
-        <div className="text-sm">
-          <div className="font-medium">{row.original.author?.name || "Unknown"}</div>
-          <div className="text-muted-foreground">{row.original.author?.email || ""}</div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "submissionDate",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Submitted
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("submissionDate"));
-        return (
-          <div className="text-sm">
-            <div>{date.toLocaleDateString()}</div>
-            <div className="text-muted-foreground">{date.toLocaleTimeString()}</div>
-          </div>
-        );
-      },
-    },
-    {
-      id: "reviewerStatus",
-      header: "Review Status",
-      cell: ({ row }) => {
-        const status = getUserReviewStatus(row.original);
-        const hasReview = hasSubmittedReview(row.original);
-        return (
-          <div className="flex flex-col gap-1">
-            <Badge variant={getStatusBadgeVariant(status)}>
-              {hasReview ? "Review Submitted" : "Ready to Review"}
-            </Badge>
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const paper = row.original;
-        const status = getUserReviewStatus(paper);
-        const hasReview = hasSubmittedReview(paper);
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Paper Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem onClick={() => window.open(paper.filePath, "_blank")}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Paper
-              </DropdownMenuItem>
-              
-              {status === "ACCEPTED_FOR_REVIEW" && !hasReview && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedPaper(paper);
-                    setReviewForm({
-                      reviewText: "",
-                      rating: 1,
-                      correspondingFile: null,
-                      reviewerStatus: "ACCEPTED_FOR_PUBLICATION",
-                      confidentialComments: "",
-                      recommendation: "ACCEPTED_FOR_PUBLICATION"
-                    });
-                    setIsReviewDialogOpen(true);
-                  }}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Write Review
-                </DropdownMenuItem>
-              )}
-
-              {hasReview && (
-                <DropdownMenuItem disabled>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Review Already Submitted
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
-
-  // Data Fetching - Only fetch accepted papers
-  const loadAcceptedPapers = async (page: number = 1, limit: number = 10) => {
+  // Load accepted papers
+  const loadAcceptedPapers = async () => {
     if (!session?.user?.id) return;
     
     setLoading(true);
     try {
-      console.log("Fetching accepted papers for reviewer ID:", session.user.id);
-      const response = await fetchReviewerPapers(session.user.id, page, limit);
+      const response = await fetchReviewerPapers(session.user.id, 1, 100);
       if (response && response.data) {
-        // Filter only papers that are accepted for review
         const acceptedPapers = response.data.filter((paper: PaperWithRelations) => {
           const status = getUserReviewStatus(paper);
-          return status === "ACCEPTED_FOR_REVIEW" || hasSubmittedReview(paper);
+          return status === "ACCEPTED_FOR_REVIEW" && !hasSubmittedReview(paper);
+        });
+        
+        const reviewedPapers = response.data.filter((paper: PaperWithRelations) => {
+          return hasSubmittedReview(paper);
         });
         
         setPapers(acceptedPapers);
-        setPagination({
-          page: response.page || 1,
-          totalPages: response.totalPages || 1,
-          total: acceptedPapers.length,
-          limit: response.limit || 10,
-        });
+        setCompletedPapers(reviewedPapers);
+
+        // Auto-select paper if paperId is in URL
+        if (preSelectedPaperId) {
+          const paper = acceptedPapers.find((p: PaperWithRelations) => p.id === preSelectedPaperId);
+          if (paper) {
+            setSelectedPaper(paper);
+            setActiveTab("write");
+          }
+        }
       } else {
         setPapers([]);
-        setPagination({
-          page: 1,
-          totalPages: 1,
-          total: 0,
-          limit: 10,
-        });
+        setCompletedPapers([]);
       }
     } catch (error) {
       console.error("Error fetching accepted papers:", error);
       toast.error("Failed to load your accepted papers.");
       setPapers([]);
+      setCompletedPapers([]);
     } finally {
       setLoading(false);
     }
@@ -320,8 +144,26 @@ export default function WriteReviewPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
       setReviewForm(prev => ({ ...prev, correspondingFile: file }));
+      toast.success(`File "${file.name}" selected`);
     }
+  };
+
+  // Calculate form completion
+  const calculateFormCompletion = () => {
+    let completed = 0;
+    const total = 3; // reviewText, rating, decision
+    
+    if (reviewForm.reviewText.trim().length > 50) completed++;
+    if (reviewForm.rating > 0) completed++;
+    if (reviewForm.reviewerStatus) completed++;
+    
+    return (completed / total) * 100;
   };
 
   // Handle review submission
@@ -331,8 +173,14 @@ export default function WriteReviewPage() {
       return;
     }
 
+    // Validation
     if (!reviewForm.reviewText.trim()) {
       toast.error("Please provide review comments");
+      return;
+    }
+
+    if (reviewForm.reviewText.trim().length < 50) {
+      toast.error("Review comments must be at least 50 characters");
       return;
     }
 
@@ -347,12 +195,13 @@ export default function WriteReviewPage() {
     }
 
     setSubmitting(true);
-    const toastId = toast.loading("Submitting review...");
+    const toastId = toast.loading("Submitting your review...");
 
     try {
       let uploadedFileUrl = null;
 
       if (reviewForm.correspondingFile) {
+        toast.loading("Uploading file...", { id: toastId });
         uploadedFileUrl = await uploadFileToFirebase(
           reviewForm.correspondingFile, 
           `reviews/${selectedPaper.id}`
@@ -360,6 +209,7 @@ export default function WriteReviewPage() {
         
         if (!uploadedFileUrl) {
           toast.error("Failed to upload file", { id: toastId });
+          setSubmitting(false);
           return;
         }
       }
@@ -373,17 +223,21 @@ export default function WriteReviewPage() {
         uploadedFileUrl,
         () => {
           toast.success("Review submitted successfully!", { id: toastId });
-          setIsReviewDialogOpen(false);
-          setSelectedPaper(null);
+          
+          // Reset form
           setReviewForm({
             reviewText: "",
-            rating: 1,
+            rating: 3,
             correspondingFile: null,
             reviewerStatus: "ACCEPTED_FOR_PUBLICATION",
             confidentialComments: "",
             recommendation: "ACCEPTED_FOR_PUBLICATION"
           });
-          loadAcceptedPapers(pagination.page, pagination.limit);
+          setSelectedPaper(null);
+          setActiveTab("select");
+          
+          // Reload papers
+          loadAcceptedPapers();
         }
       );
     } catch (error) {
@@ -393,26 +247,6 @@ export default function WriteReviewPage() {
       setSubmitting(false);
     }
   };
-
-  // Table Instance
-  const table = useReactTable({
-    data: papers,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
 
   // Effects
   useEffect(() => {
@@ -426,7 +260,7 @@ export default function WriteReviewPage() {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        <span className="ml-2 text-lg text-gray-700">Loading accepted papers...</span>
+        <span className="ml-2 text-lg text-gray-700">Loading...</span>
       </div>
     );
   }
@@ -443,357 +277,654 @@ export default function WriteReviewPage() {
     );
   }
 
+  // Stats
+  const stats = {
+    pending: papers.length,
+    completed: completedPapers.length,
+  };
+
   // Main Render
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Write Reviews</h1>
-          <p className="text-muted-foreground">
-            Select an accepted paper to write your review
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50">
+      <div className="container mx-auto py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              Write Reviews
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Submit your reviews for accepted papers
+            </p>
+          </div>
+          <Button
+            onClick={() => window.history.back()}
+            variant="outline"
+            className="shadow-sm"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
         </div>
-        <Button
-          onClick={() => loadAcceptedPapers(pagination.page, pagination.limit)}
-          variant="outline"
-          disabled={loading}
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <RefreshCw className="w-4 h-4 mr-2" />
-          )}
-          Refresh
-        </Button>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Accepted Papers</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{papers.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Papers you've accepted for review
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {papers.filter(p => !hasSubmittedReview(p)).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Reviews waiting to be written
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Reviews</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {papers.filter(p => hasSubmittedReview(p)).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Reviews already submitted
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Papers Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Accepted Papers for Review</CardTitle>
-          <CardDescription>
-            Papers you've accepted for review. Click "Write Review" to submit your feedback.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {papers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No accepted papers</h3>
-              <p className="text-muted-foreground text-center">
-                You haven't accepted any papers for review yet. Go to the Allocated Papers page to accept assignments.
-              </p>
-              <Button asChild className="mt-4">
-                <a href="/dashboard/reviewer/allocated">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go to Allocated Papers
-                </a>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map(headerGroup => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map(header => (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.map(row => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map(cell => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-muted-foreground">
-                  Showing {table.getFilteredRowModel().rows.length} of {pagination.total} papers
+        {/* Stats Banner */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <Card className="border-none shadow-lg bg-gradient-to-br from-amber-500 to-orange-600">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-amber-50 mb-1">Pending Reviews</p>
+                  <p className="text-3xl font-bold text-white">{stats.pending}</p>
                 </div>
-                <div className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => loadAcceptedPapers(pagination.page - 1, pagination.limit)}
-                    disabled={pagination.page <= 1}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => loadAcceptedPapers(pagination.page + 1, pagination.limit)}
-                    disabled={pagination.page >= pagination.totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
+                <Clock className="h-12 w-12 text-amber-100 opacity-80" />
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {/* Review Submission Dialog */}
-      <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Submit Review</DialogTitle>
-            <DialogDescription>
-              Submit your review for &apos;{selectedPaper?.title}&apos;
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedPaper && (
-            <div className="space-y-6 py-4">
-              {/* Paper Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">{selectedPaper.title}</CardTitle>
-                  <CardDescription>
-                    Paper ID: {selectedPaper.paperId} • Submitted: {format(new Date(selectedPaper.submissionDate), "MMM dd, yyyy")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <h4 className="font-semibold mb-2">Abstract</h4>
-                    <p className="text-sm text-muted-foreground">{selectedPaper.abstract}</p>
-                  </div>
-                  
-                  {selectedPaper.keywords && selectedPaper.keywords.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="font-semibold mb-2">Keywords</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedPaper.keywords.map((keyword, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {keyword}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.open(selectedPaper.filePath, "_blank")}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      View Paper
-                    </Button>
-                    {selectedPaper.coverLetterPath && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(selectedPaper.coverLetterPath!, "_blank")}
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        Cover Letter
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Review Form */}
-              <div className="space-y-4">
-                {/* Review Text */}
+          <Card className="border-none shadow-lg bg-gradient-to-br from-green-500 to-emerald-600">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="reviewText">Review Comments *</Label>
-                  <Textarea
-                    id="reviewText"
-                    placeholder="Enter your detailed review comments..."
-                    value={reviewForm.reviewText}
-                    onChange={(e) => setReviewForm(prev => ({
-                      ...prev,
-                      reviewText: e.target.value
-                    }))}
-                    className="min-h-[120px]"
-                  />
+                  <p className="text-sm text-green-50 mb-1">Completed</p>
+                  <p className="text-3xl font-bold text-white">{stats.completed}</p>
                 </div>
+                <CheckCircle className="h-12 w-12 text-green-100 opacity-80" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-                {/* Rating */}
-                <div>
-                  <Label htmlFor="rating">Rating (1-5) *</Label>
-                  <Select
-                    value={reviewForm.rating.toString()}
-                    onValueChange={(value) => setReviewForm(prev => ({
-                      ...prev,
-                      rating: parseInt(value)
-                    }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <SelectItem key={rating} value={rating.toString()}>
-                          <div className="flex items-center gap-2">
-                            <div className="flex">
-                              {Array.from({ length: rating }).map((_, i) => (
-                                <Star key={i} className="w-4 h-4 fill-current text-yellow-400" />
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "select" | "write" | "completed")}>
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="select" className="text-base">
+              <FileText className="h-4 w-4 mr-2" />
+              Pending ({stats.pending})
+            </TabsTrigger>
+            <TabsTrigger value="write" disabled={!selectedPaper} className="text-base">
+              <Edit className="h-4 w-4 mr-2" />
+              Write Review
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="text-base">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Completed ({stats.completed})
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Select Paper Tab */}
+          <TabsContent value="select" className="space-y-4">
+            <Card className="shadow-lg border-none">
+              <CardHeader>
+                <CardTitle>Select a Paper to Review</CardTitle>
+                <CardDescription>
+                  Choose from papers you've accepted for review
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {papers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <AlertTriangle className="h-16 w-16 text-amber-500 mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No papers to review</h3>
+                    <p className="text-muted-foreground text-center max-w-md mb-4">
+                      You haven't accepted any papers for review yet. Go to the Allocated Papers page to accept assignments.
+                    </p>
+                    <Button asChild>
+                      <a href="/dashboard/reviewer/allocated">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Go to Allocated Papers
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {papers.map((paper) => (
+                      <Card
+                        key={paper.id}
+                        className={`cursor-pointer transition-all hover:shadow-lg ${
+                          selectedPaper?.id === paper.id 
+                            ? "ring-2 ring-emerald-500 shadow-lg" 
+                            : "hover:ring-1 hover:ring-emerald-200"
+                        }`}
+                        onClick={() => {
+                          setSelectedPaper(paper);
+                          setActiveTab("write");
+                        }}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="secondary">{paper.paperId}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(paper.submissionDate), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <CardTitle className="text-base line-clamp-2">{paper.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <User className="h-4 w-4" />
+                            <span className="truncate">{paper.author?.name || "Unknown"}</span>
+                          </div>
+
+                          {paper.keywords && paper.keywords.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {paper.keywords.slice(0, 3).map((keyword, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {keyword}
+                                </Badge>
+                              ))}
+                              {paper.keywords.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{paper.keywords.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+
+                          <Button 
+                            className="w-full mt-3"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPaper(paper);
+                              setActiveTab("write");
+                            }}
+                          >
+                            Review This Paper
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Write Review Tab */}
+          <TabsContent value="write" className="space-y-6">
+            {selectedPaper && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left: Paper Info */}
+                <div className="lg:col-span-1 space-y-4">
+                  <Card className="shadow-lg border-none sticky top-6">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Paper Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Title</Label>
+                        <p className="font-medium text-sm mt-1">{selectedPaper.title}</p>
+                      </div>
+
+                      <Separator />
+
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Paper ID</Label>
+                        <p className="font-mono text-sm mt-1">{selectedPaper.paperId}</p>
+                      </div>
+
+                      <Separator />
+
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Author</Label>
+                        <p className="text-sm mt-1">{selectedPaper.author?.name || "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground">{selectedPaper.author?.email}</p>
+                      </div>
+
+                      <Separator />
+
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Submitted</Label>
+                        <p className="text-sm mt-1">
+                          {format(new Date(selectedPaper.submissionDate), "MMM dd, yyyy")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(selectedPaper.submissionDate), { addSuffix: true })}
+                        </p>
+                      </div>
+
+                      {selectedPaper.keywords && selectedPaper.keywords.length > 0 && (
+                        <>
+                          <Separator />
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-2 block">Keywords</Label>
+                            <div className="flex flex-wrap gap-1">
+                              {selectedPaper.keywords.map((keyword, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">
+                                  {keyword}
+                                </Badge>
                               ))}
                             </div>
-                            {rating} Star{rating !== 1 ? 's' : ''}
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </>
+                      )}
+
+                      <Separator />
+
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => window.open(selectedPaper.filePath, "_blank")}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          View Manuscript
+                        </Button>
+                        {selectedPaper.coverLetterPath && (
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start"
+                            onClick={() => window.open(selectedPaper.coverLetterPath!, "_blank")}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            View Cover Letter
+                          </Button>
+                        )}
+                      </div>
+
+                      {selectedPaper.abstract && (
+                        <>
+                          <Separator />
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-2 block">Abstract</Label>
+                            <ScrollArea className="h-[200px]">
+                              <p className="text-sm text-muted-foreground pr-4">
+                                {selectedPaper.abstract}
+                              </p>
+                            </ScrollArea>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
 
-                {/* Publication Decision */}
-                <div>
-                  <Label htmlFor="decision">Publication Decision *</Label>
-                  <Select
-                    value={reviewForm.reviewerStatus}
-                    onValueChange={(value) => setReviewForm(prev => ({
-                      ...prev,
-                      reviewerStatus: value as "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION"
-                    }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ACCEPTED_FOR_PUBLICATION">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          Accept for Publication
+                {/* Right: Review Form */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Progress Card */}
+                  <Card className="shadow-lg border-none bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <CardContent className="pt-6">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium">Form Completion</span>
+                          <span className="text-muted-foreground">
+                            {Math.round(calculateFormCompletion())}%
+                          </span>
                         </div>
-                      </SelectItem>
-                      <SelectItem value="REJECTED_FOR_PUBLICATION">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          Reject for Publication
+                        <Progress value={calculateFormCompletion()} className="h-2" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Review Form */}
+                  <Card className="shadow-lg border-none">
+                    <CardHeader>
+                      <CardTitle>Your Review</CardTitle>
+                      <CardDescription>
+                        Provide detailed feedback and your recommendation
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Review Comments */}
+                      <div className="space-y-2">
+                        <Label htmlFor="reviewText" className="flex items-center gap-2">
+                          Review Comments *
+                          <Badge variant="secondary" className="text-xs">
+                            {reviewForm.reviewText.trim().length} chars
+                          </Badge>
+                        </Label>
+                        <Textarea
+                          id="reviewText"
+                          placeholder="Provide detailed, constructive feedback on the paper's strengths, weaknesses, methodology, results, and contribution to the field..."
+                          value={reviewForm.reviewText}
+                          onChange={(e) => setReviewForm(prev => ({
+                            ...prev,
+                            reviewText: e.target.value
+                          }))}
+                          className="min-h-[200px] resize-y"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Minimum 50 characters required
+                        </p>
+                      </div>
+
+                      <Separator />
+
+                      {/* Rating and Decision Row */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Rating */}
+                        <div className="space-y-2">
+                          <Label htmlFor="rating">Paper Quality Rating *</Label>
+                          <Select
+                            value={reviewForm.rating.toString()}
+                            onValueChange={(value) => setReviewForm(prev => ({
+                              ...prev,
+                              rating: parseInt(value)
+                            }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5].map((rating) => (
+                                <SelectItem key={rating} value={rating.toString()}>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex">
+                                      {Array.from({ length: rating }).map((_, i) => (
+                                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                      ))}
+                                      {Array.from({ length: 5 - rating }).map((_, i) => (
+                                        <Star key={i + rating} className="w-4 h-4 text-gray-300" />
+                                      ))}
+                                    </div>
+                                    <span>
+                                      {rating === 1 ? "Poor" :
+                                       rating === 2 ? "Fair" :
+                                       rating === 3 ? "Good" :
+                                       rating === 4 ? "Very Good" :
+                                       "Excellent"}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                {/* File Upload */}
-                <div>
-                  <Label htmlFor="file">Corresponding File (Optional)</Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                  />
-                  {reviewForm.correspondingFile && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Selected file: {reviewForm.correspondingFile.name}
-                    </p>
-                  )}
-                </div>
+                        {/* Publication Decision */}
+                        <div className="space-y-2">
+                          <Label htmlFor="decision">Publication Recommendation *</Label>
+                          <Select
+                            value={reviewForm.reviewerStatus}
+                            onValueChange={(value) => setReviewForm(prev => ({
+                              ...prev,
+                              reviewerStatus: value as "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION"
+                            }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ACCEPTED_FOR_PUBLICATION">
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  Accept for Publication
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="REJECTED_FOR_PUBLICATION">
+                                <div className="flex items-center gap-2">
+                                  <XCircle className="h-4 w-4 text-red-600" />
+                                  Reject for Publication
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
 
-                {/* Confidential Comments */}
-                <div>
-                  <Label htmlFor="confidentialComments">Confidential Comments to Editor (Optional)</Label>
-                  <Textarea
-                    id="confidentialComments"
-                    placeholder="Enter confidential comments for the editor..."
-                    value={reviewForm.confidentialComments || ""}
-                    onChange={(e) => setReviewForm(prev => ({ ...prev, confidentialComments: e.target.value }))}
-                    className="min-h-[80px]"
-                  />
+                      <Separator />
+
+                      {/* Confidential Comments */}
+                      <div className="space-y-2">
+                        <Label htmlFor="confidentialComments" className="flex items-center gap-2">
+                          Confidential Comments to Editor
+                          <Badge variant="outline" className="text-xs">Optional</Badge>
+                        </Label>
+                        <Textarea
+                          id="confidentialComments"
+                          placeholder="Private comments for the editor only (not shared with authors)..."
+                          value={reviewForm.confidentialComments || ""}
+                          onChange={(e) => setReviewForm(prev => ({ 
+                            ...prev, 
+                            confidentialComments: e.target.value 
+                          }))}
+                          className="min-h-[100px]"
+                        />
+                      </div>
+
+                      <Separator />
+
+                      {/* File Upload */}
+                      <div className="space-y-2">
+                        <Label htmlFor="file" className="flex items-center gap-2">
+                          Annotated Manuscript or Supporting File
+                          <Badge variant="outline" className="text-xs">Optional</Badge>
+                        </Label>
+                        <div className="flex items-center gap-4">
+                          <Input
+                            id="file"
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleFileUpload}
+                            className="flex-1"
+                          />
+                          {reviewForm.correspondingFile && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setReviewForm(prev => ({ ...prev, correspondingFile: null }))}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                        {reviewForm.correspondingFile && (
+                          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-md">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>{reviewForm.correspondingFile.name}</span>
+                            <span className="text-muted-foreground">
+                              ({(reviewForm.correspondingFile.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Upload an annotated version of the paper or additional materials. Max file size: 10MB
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <Card className="shadow-lg border-none">
+                    <CardContent className="pt-6">
+                      <div className="flex gap-4">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => {
+                            setSelectedPaper(null);
+                            setActiveTab("select");
+                            setReviewForm({
+                              reviewText: "",
+                              rating: 3,
+                              correspondingFile: null,
+                              reviewerStatus: "ACCEPTED_FOR_PUBLICATION",
+                              confidentialComments: "",
+                              recommendation: "ACCEPTED_FOR_PUBLICATION"
+                            });
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleSubmitReview}
+                          disabled={
+                            submitting || 
+                            !reviewForm.reviewText.trim() || 
+                            reviewForm.reviewText.trim().length < 50
+                          }
+                          className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                        >
+                          {submitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4 mr-2" />
+                              Submit Review
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </TabsContent>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsReviewDialogOpen(false);
-                setSelectedPaper(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmitReview}
-              disabled={submitting || !reviewForm.reviewText.trim()}
-            >
-              {submitting ? (
-                <>
-                  <Upload className="w-4 h-4 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Submit Review
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {/* Completed Reviews Tab */}
+          <TabsContent value="completed" className="space-y-4">
+            <Card className="shadow-lg border-none">
+              <CardHeader>
+                <CardTitle>Completed Reviews</CardTitle>
+                <CardDescription>
+                  Papers you've already reviewed and submitted feedback for
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {completedPapers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <FileText className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
+                    <h3 className="text-lg font-semibold mb-2">No completed reviews</h3>
+                    <p className="text-muted-foreground text-center max-w-md">
+                      You haven't submitted any reviews yet. Select a paper from the Pending tab to get started.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {completedPapers.map((paper) => {
+                      const userReview = paper.reviews?.find(r => r.reviewerId === session.user.id);
+                      const status = getUserReviewStatus(paper);
+                      
+                      return (
+                        <Card
+                          key={paper.id}
+                          className="border-l-4 hover:shadow-md transition-shadow"
+                          style={{
+                            borderLeftColor: status === "ACCEPTED_FOR_PUBLICATION" ? "#22c55e" : "#ef4444"
+                          }}
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant={status === "ACCEPTED_FOR_PUBLICATION" ? "default" : "destructive"}>
+                                    {status === "ACCEPTED_FOR_PUBLICATION" ? "Recommended: Accept" : "Recommended: Reject"}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {paper.paperId}
+                                  </Badge>
+                                </div>
+                                <CardTitle className="text-lg mb-2">{paper.title}</CardTitle>
+                                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <User className="h-4 w-4" />
+                                    {paper.author?.name || "Unknown"}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    Submitted: {format(new Date(paper.submissionDate), "MMM dd, yyyy")}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {userReview?.rating && (
+                                <div className="flex flex-col items-end gap-1">
+                                  <Label className="text-xs text-muted-foreground">Your Rating</Label>
+                                  <div className="flex gap-0.5">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-4 w-4 ${
+                                          i < (userReview.rating || 0)
+                                            ? "fill-yellow-400 text-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm font-medium">{userReview.rating}/5</span>
+                                </div>
+                              )}
+                            </div>
+                          </CardHeader>
+
+                          <CardContent className="space-y-4">
+                            {paper.keywords && paper.keywords.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {paper.keywords.map((keyword, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    {keyword}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+
+                            {userReview?.reviewText && (
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">Your Review Comments</Label>
+                                <div className="bg-muted/50 p-4 rounded-lg">
+                                  <p className="text-sm whitespace-pre-wrap">
+                                    {userReview.reviewText.length > 300 
+                                      ? `${userReview.reviewText.substring(0, 300)}...` 
+                                      : userReview.reviewText}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex gap-2 pt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(paper.filePath, "_blank")}
+                                className="flex-1"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                View Paper
+                              </Button>
+                              {userReview?.correspondingFile && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(userReview.correspondingFile!, "_blank")}
+                                  className="flex-1"
+                                >
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Your Review File
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="text-xs text-muted-foreground pt-2 border-t">
+                              <div className="flex items-center justify-between">
+                                <span>
+                                  Review submitted {userReview?.createdAt 
+                                    ? formatDistanceToNow(new Date(userReview.createdAt), { addSuffix: true })
+                                    : "recently"}
+                                </span>
+                                {userReview?.correspondingFile && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <FileText className="h-3 w-3 mr-1" />
+                                    Includes file
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

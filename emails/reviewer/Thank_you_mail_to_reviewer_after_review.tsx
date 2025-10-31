@@ -134,11 +134,13 @@ export default function ReviewerThankYouEmail({
             <br />
             Best regards,<br />
             {editorName}<br />
-            Editor, JEDSD
+            Editor, JEDSD<br />
+            editorial@jedsd.com
           </Text>
           
           <Text style={disclaimerStyle}>
-            This is an automated notification from JEDSD.
+            This is an automated notification from JEDSD.<br />
+            For assistance, contact us at editorial@jedsd.com.
           </Text>
         </Section>
       </Container>

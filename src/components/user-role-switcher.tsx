@@ -21,6 +21,7 @@ import {
 import { User, UserType } from "@prisma/client";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const iconMap: Record<UserType, React.ElementType> = {
   ADMIN: ShieldUser,
@@ -63,7 +64,7 @@ export function UserTypeSwitcher({ user }: UserTypeSwitcherProps) {
     // remove the currently active role
     return roles.filter((r) => r !== currentRole);
   }, [user.userType, currentRole]);
-
+  const router = useRouter();
   const handleRoleSwitch = async (newRole: UserType) => {
     try {
       setIsSwitching(true);
@@ -85,6 +86,8 @@ export function UserTypeSwitcher({ user }: UserTypeSwitcherProps) {
       toast.error("Something went wrong.");
     } finally {
       setIsSwitching(false);
+      const targetRole = newRole.toLowerCase();
+      router.push(`/dashboard/${targetRole}`);
     }
   };
 

@@ -8,19 +8,17 @@ const prisma = new PrismaClient();
 
 // Schema for validating the paperId from the URL parameters
 const paperIdSchema = z.object({
-  paperId: z.string().uuid("Invalid paperId format."),
+  paperId: z.string(),
 });
 
 // GET /api/research-papers/[paperId] - Fetch details of a single research paper
-export async function GET(req: Request) {
+export async function GET( req: NextRequest,
+  context: { params: Promise<{ paperId: string }> }) {
   try {
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split("/");
-    // The paperId is expected to be the last segment in a dynamic route like /api/research-papers/[paperId]
-    const paperIdparams = pathSegments[pathSegments.length - 1];
-    const validationResult = paperIdSchema.safeParse({
-      paperId: paperIdparams,
-    });
+     const { paperId } = await context.params;
+     console.log("Fetching details for paperId:", paperId);
+
+    const validationResult = paperIdSchema.safeParse({ paperId });
 
     if (!validationResult.success) {
       return NextResponse.json(
@@ -33,10 +31,8 @@ export async function GET(req: Request) {
       );
     }
 
-    const { paperId } = validationResult.data;
-
     const paper = await prisma.researchPaper.findUnique({
-      where: { id: paperId },
+      where: { paperId: paperId },
       include: {
         author: {
           select: { id:  true, name: true, email: true, userType: true },
@@ -133,39 +129,42 @@ export async function DELETE(req: NextRequest) {
 const updatePaperSchema = z.object({
   title: z.string().min(1, "Title cannot be empty.").optional(),
   abstract: z.string().min(1, "Abstract cannot be empty.").optional(),
-  filePath: z.string().url("Invalid file path URL.").min(1, "File path cannot be empty.").optional(),
+  filePath: z.string().min(1, "File path cannot be empty.").optional(),
   keywords: z.array(z.string().min(1, "Keyword cannot be empty.")).min(1, "At least one keyword is required.").optional(),
   rating: z.number().int().min(1).max(5).optional(), // Assuming rating is between 1 and 5
   submissionDate: z.coerce.date().optional(), // Expecting an ISO date string
   acceptedDate: z.coerce.date().optional(), // Expecting an ISO date string
+  correspondingFile: z.string().min(1, "File path cannot be empty.").optional(),
+  contributors: z.array(z.object({
+    fullName: z.string().min(1, "Full Name is required"),
+    email: z.string().email("Invalid email address").min(1, "Email is required"),
+    contactNumber: z.string().min(1, "Contact Number is required"),
+    affiliation: z.string().min(1, "Affiliation is required"),
+  })).min(1, "At least one contributor is required.").optional(),
+  pointOfContact: z.object({
+    fullName: z.string().min(1, "Full Name is required"),
+    email: z.string().email("Invalid email address").min(1, "Email is required"),
+    contactNumber: z.string().min(1, "Contact Number is required"),
+    affiliation: z.string().min(1, "Affiliation is required"),
+  }).optional(),
 });
 
 
 // PATCH /api/research-papers/[paperId] - Update a research paper
-export async function PATCH(
-  req: Request
+export async function PUT(
+  req: NextRequest,
+  context: { params: Promise<{ paperId: string }> }
 ) {
   try {
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split("/");
-    // The paperId is expected to be the last segment in a dynamic route like /api/research-papers/[paperId]
-    const paperIdparams = pathSegments[pathSegments.length - 1];
-    const validationResult = paperIdSchema.safeParse({
-      paperId: paperIdparams,
-    });
+    const { paperId } = await context.params;
 
+    const validationResult = paperIdSchema.safeParse({ paperId });
     if (!validationResult.success) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid paper ID provided.",
-          errors: validationResult.error.errors,
-        },
+        { success: false, message: "Invalid paper ID provided.", errors: validationResult.error.errors },
         { status: 400 }
       );
     }
-
-    const { paperId } = validationResult.data;
 
     const body = await req.json();
     const bodyValidationResult = updatePaperSchema.safeParse(body);
@@ -178,6 +177,9 @@ export async function PATCH(
     }
 
     const updateData = bodyValidationResult.data;
+    console.log("Update data received:", updateData);
+    console.log("File path in update data:", updateData.filePath);
+    console.log("Corresponding file in update data:", updateData.correspondingFile);
 
     // Check if there's any data to update
     if (Object.keys(updateData).length === 0) {
@@ -188,7 +190,7 @@ export async function PATCH(
     }
 
     const existingPaper = await prisma.researchPaper.findUnique({
-      where: { id: paperId },
+      where: { paperId: paperId },
     });
 
     if (!existingPaper) {
@@ -201,7 +203,7 @@ export async function PATCH(
     
 
     const updatedPaper = await prisma.researchPaper.update({
-      where: { id: paperId },
+      where: { paperId: paperId },
       data: updateData, // Prisma will only update the fields present in updateData
     });
 

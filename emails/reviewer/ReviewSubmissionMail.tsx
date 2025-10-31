@@ -144,7 +144,8 @@ export default function ReviewSubmissionEmail({
           
           <Text style={footerStyle}>
             This is an automated notification from JEDSD.<br />
-            Please do not reply to this email.
+            Please do not reply to this email.<br />
+            For assistance, contact us at editorial@jedsd.com.
           </Text>
         </Section>
       </Container>

@@ -93,11 +93,13 @@ export default function ReviewerAcceptanceEmail({paperTitle, reviewerName, accep
           
           <Text style={footerStyle}>
             Best regards,<br />
-            JEDSD Editorial Team
+            JEDSD Editorial Team<br />
+            editorial@jedsd.com
           </Text>
           
           <Text style={disclaimerStyle}>
-            This is an automated message from the JEDSD system. Please do not reply to this email.
+            This is an automated message from the JEDSD system. Please do not reply to this email.<br />
+            For assistance, contact us at editorial@jedsd.com.
           </Text>
         </Section>
       </Container>

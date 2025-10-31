@@ -40,7 +40,7 @@ import {
             </Text>
             
             <Text style={{ color: "#777", fontSize: "14px", marginTop: "20px" }}>
-                If you have any questions, feel free to contact us at support@jedsd.com.
+                If you have any questions, feel free to contact us at editorial@jedsd.com.
             </Text>
           </Section>
         </Container>

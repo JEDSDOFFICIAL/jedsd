@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -121,6 +122,7 @@ interface DashboardData {
 
 export default function Page() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,6 +137,14 @@ export default function Page() {
 
   const userType = session?.user?.variableUserType || session?.user?.userType;
   const userId = session?.user?.id;
+
+  // Redirect to role-specific dashboard
+  useEffect(() => {
+    if (status === "authenticated" && userType) {
+      const roleRoute = userType.toLowerCase();
+      router.replace(`/dashboard/${roleRoute}`);
+    }
+  }, [status, userType, router]);
 
   // Listen for role changes and refresh data
   useEffect(() => {
@@ -605,7 +615,7 @@ function PapersTable({ papers, userType }: { papers: Paper[]; userType: string }
             </DropdownMenuItem>
             {userType === "REVIEWER" && (
               <DropdownMenuItem
-                onClick={() => window.open(`/review/${row.original.id}`, "_blank")}
+                onClick={() => window.open(`/dashboard/reviewer/write`, "_blank")}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Write Review

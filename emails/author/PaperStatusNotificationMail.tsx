@@ -215,7 +215,7 @@ export default function PaperStatusNotificationEmail({
                 • Provide a detailed response letter<br />
                 • Highlight changes in your revised manuscript<br />
                 • Submit within the deadline specified above<br />
-                • Contact us if you need an extension
+                • Contact us at editorial@jedsd.com if you need an extension
               </Text>
             </Section>
           )}
@@ -245,7 +245,7 @@ export default function PaperStatusNotificationEmail({
           
           <Text style={footerStyle}>
             Thank you for choosing JEDSD for your research publication.<br />
-            If you have any questions, please contact our editorial office.<br />
+            If you have any questions, please contact us at editorial@jedsd.com.<br />
             This is an automated message - please do not reply to this email.
           </Text>
         </Section>

@@ -389,7 +389,7 @@ export default function AllocatedPapersPage() {
                 {hasReviews && (
                   <DropdownMenuItem>
                     <Link
-                      href={`/review/${paper.id}`}
+                      href={`/dashboard/editor/reviews`}
                       className="flex flex-row gap-2 text-sm w-full"
                     >
                       <BookCheck className="mr-2 h-4 w-4" />

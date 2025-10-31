@@ -71,7 +71,8 @@ export default function PasswordResetEmail({
           <Hr style={hrStyle} />
           
           <Text style={footerStyle}>
-            This is an automated message from JEDSD. Please do not reply to this email.
+            This is an automated message from JEDSD. Please do not reply to this email.<br />
+            For assistance, contact us at editorial@jedsd.com.
           </Text>
         </Section>
       </Container>

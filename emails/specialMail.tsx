@@ -135,7 +135,7 @@ export default function editorMail(paper: ResearchPaper) {
             This is an automated notification from JEDSD Manuscript Submission System.
           </Text>
           <Text style={footerTextStyle}>
-            Please do not reply to this email. For support, visit the editor dashboard.
+            Please do not reply to this email. For support, contact us at editorial@jedsd.com.
           </Text>
         </Section>
       </Container>

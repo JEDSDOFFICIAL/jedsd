@@ -79,18 +79,20 @@ export default function PaperUploadEmail( paper:ResearchPaper ) {
 
           <Text style={paragraphStyle}>
             Should you have any questions or require assistance, please do not hesitate to 
-            contact our editorial office.
+            contact us at editorial@jedsd.com.
           </Text>
 
           <Hr style={hrStyle} />
 
           <Text style={closingStyle}>
-            Sincerely,
+            Best regards,
           </Text>
           <Text style={signatureStyle}>
             <strong>The JEDSD Editorial Team</strong>
             <br />
             Journal of Embedded and Digital System Design
+            <br />
+            editorial@jedsd.com
           </Text>
         </Section>
 

@@ -4,7 +4,35 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   ColumnDef,
   flexRender,
@@ -25,22 +53,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  RefreshCw,
   Search,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   Award,
+  Eye,
+  Edit,
+  CheckCircle,
+  XCircle,
+  Send,
+  MoreVertical,
+  FileText,
+  User as UserIcon,
+  Calendar,
+  Tag,
+  Star,
+  Trash2,
+  MoreHorizontal,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import toast from "react-hot-toast";
 import { ResearchPaper, PaperReview, User } from "@prisma/client";
 import {
   fetchPapers,
   publishPaper,
+  acceptPaper,
+  rejectPaper,
+  updatePaper,
+  deletePapers,
 } from "@/lib/Frontend-actions";
-import Link from "next/link";
-import { IconCheck } from "@tabler/icons-react";
 import { AuthorOrContact } from "@/types/dataTypes";
 
 // Extended interface to include relations
@@ -76,6 +119,25 @@ export default function FinalDecisionPage() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
+  // Dialog states
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedPaper, setSelectedPaper] = useState<PaperWithRelations | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Edit form states
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    abstract: "",
+    keywords: [] as string[],
+    rating: 0,
+  });
+  const [newKeyword, setNewKeyword] = useState("");
+
   useEffect(() => {
     fetchFinalPapers();
   }, []);
@@ -90,7 +152,7 @@ export default function FinalDecisionPage() {
       }));
       
       // Filter papers that are ready for final decision (EDITOR_DECISION, ACCEPTED, REJECTED, PUBLISH)
-      const finalStatuses = ['EDITOR_DECISION', 'ACCEPTED', 'REJECTED', 'PUBLISH'];
+      const finalStatuses = ['EDITOR_DECISION', 'ACCEPTED', 'REJECTED', 'PUBLISH','ON_REVIEW'];
       const final = papers.filter(paper => 
         finalStatuses.includes(paper.status)
       );
@@ -103,13 +165,193 @@ export default function FinalDecisionPage() {
     }
   };
 
-  const handlePublishPaper = async (paperId: string) => {
+  const handleViewPaper = (paper: PaperWithRelations) => {
+    setSelectedPaper(paper);
+    setViewDialogOpen(true);
+  };
+
+  const handleViewDialogOpenChange = (open: boolean) => {
+    setViewDialogOpen(open);
+    if (!open) {
+      // Reset after animation completes
+      setTimeout(() => setSelectedPaper(null), 300);
+    }
+  };
+
+  const handleCloseViewDialog = () => {
+    setViewDialogOpen(false);
+    setTimeout(() => setSelectedPaper(null), 300);
+  };
+
+  const handleEditPaper = (paper: PaperWithRelations) => {
+    setSelectedPaper(paper);
+    setEditFormData({
+      title: paper.title,
+      abstract: paper.abstract,
+      keywords: paper.keywords,
+      rating: paper.rating || 0,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditDialogOpenChange = (open: boolean) => {
+    setEditDialogOpen(open);
+    if (!open) {
+      // Reset after animation completes
+      setTimeout(() => {
+        setSelectedPaper(null);
+        setEditFormData({
+          title: "",
+          abstract: "",
+          keywords: [],
+          rating: 0,
+        });
+        setNewKeyword("");
+      }, 300);
+    }
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialogOpen(false);
+    setTimeout(() => {
+      setSelectedPaper(null);
+      setEditFormData({
+        title: "",
+        abstract: "",
+        keywords: [],
+        rating: 0,
+      });
+      setNewKeyword("");
+    }, 300);
+  };
+
+  const handleUpdatePaper = async () => {
+    if (!selectedPaper) return;
+
     try {
-      await publishPaper(paperId);
-      toast.success("Paper published successfully");
-      fetchFinalPapers(); // Refresh data
+      setActionLoading(true);
+      await updatePaper(selectedPaper.id, {
+        title: editFormData.title,
+        abstract: editFormData.abstract,
+        keywords: editFormData.keywords,
+        rating: editFormData.rating,
+      });
+      handleCloseEditDialog();
+      fetchFinalPapers();
     } catch (error) {
-      toast.error("Failed to publish paper");
+      console.error("Failed to update paper:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAcceptPaper = async () => {
+    if (!selectedPaper) return;
+
+    try {
+      setActionLoading(true);
+      await acceptPaper(selectedPaper.id);
+      setAcceptDialogOpen(false);
+      setTimeout(() => setSelectedPaper(null), 300);
+      fetchFinalPapers();
+    } catch (error) {
+      console.error("Failed to accept paper:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectPaper = async () => {
+    if (!selectedPaper) return;
+
+    try {
+      setActionLoading(true);
+      await rejectPaper(selectedPaper.id);
+      setRejectDialogOpen(false);
+      setTimeout(() => setSelectedPaper(null), 300);
+      fetchFinalPapers();
+    } catch (error) {
+      console.error("Failed to reject paper:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePublishPaper = async () => {
+    if (!selectedPaper) return;
+
+    try {
+      setActionLoading(true);
+      await publishPaper(selectedPaper.id);
+      setPublishDialogOpen(false);
+      setTimeout(() => setSelectedPaper(null), 300);
+      fetchFinalPapers();
+    } catch (error) {
+      console.error("Failed to publish paper:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAddKeyword = () => {
+    if (newKeyword.trim() && !editFormData.keywords.includes(newKeyword.trim())) {
+      setEditFormData(prev => ({
+        ...prev,
+        keywords: [...prev.keywords, newKeyword.trim()]
+      }));
+      setNewKeyword("");
+    }
+  };
+
+  const handleRemoveKeyword = (keyword: string) => {
+    setEditFormData(prev => ({
+      ...prev,
+      keywords: prev.keywords.filter(k => k !== keyword)
+    }));
+  };
+
+  const handleDeletePaper = async () => {
+    if (!selectedPaper) return;
+
+    try {
+      setActionLoading(true);
+      await deletePapers(selectedPaper.id);
+      setDeleteDialogOpen(false);
+      setTimeout(() => setSelectedPaper(null), 300);
+      fetchFinalPapers();
+    } catch (error) {
+      console.error("Failed to delete paper:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle alert dialog close with proper cleanup
+  const handleCloseAcceptDialog = (open: boolean) => {
+    setAcceptDialogOpen(open);
+    if (!open) {
+      setTimeout(() => setSelectedPaper(null), 300);
+    }
+  };
+
+  const handleCloseRejectDialog = (open: boolean) => {
+    setRejectDialogOpen(open);
+    if (!open) {
+      setTimeout(() => setSelectedPaper(null), 300);
+    }
+  };
+
+  const handleClosePublishDialog = (open: boolean) => {
+    setPublishDialogOpen(open);
+    if (!open) {
+      setTimeout(() => setSelectedPaper(null), 300);
+    }
+  };
+
+  const handleCloseDeleteDialog = (open: boolean) => {
+    setDeleteDialogOpen(open);
+    if (!open) {
+      setTimeout(() => setSelectedPaper(null), 300);
     }
   };
 
@@ -200,26 +442,85 @@ export default function FinalDecisionPage() {
         accessorKey: "id",
         header: () => <div className="text-left">Actions</div>,
         cell: ({ row }) => {
-          const status = row.original.status;
+          const paper = row.original;
+          const status = paper.status;
           return (
-            <div className="flex gap-2">
-              <Link
-                href={`/paper/${row.getValue("id")}`}
-                className="text-blue-500 hover:underline text-sm"
-              >
-                View
-              </Link>
-              {status === "ACCEPTED" && (
-                <Button
-                  size="sm"
-                  className="text-xs h-6"
-                  onClick={() => handlePublishPaper(row.getValue("id") as string)}
-                >
-                  <IconCheck className="h-3 w-3 mr-1" />
-                  Publish
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
-              )}
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>Paper Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={() => handleViewPaper(paper)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Details
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={() => handleEditPaper(paper)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Paper
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
+                {(status === "EDITOR_DECISION" || status === "ON_REVIEW") && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedPaper(paper);
+                        setAcceptDialogOpen(true);
+                      }}
+                      className="text-green-600 focus:text-green-700 focus:bg-green-50"
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Accept Paper
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedPaper(paper);
+                        setRejectDialogOpen(true);
+                      }}
+                      className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Reject Paper
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                {status === "ACCEPTED" && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedPaper(paper);
+                      setPublishDialogOpen(true);
+                    }}
+                    className="text-blue-600 focus:text-blue-700 focus:bg-blue-50"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Publish Paper
+                  </DropdownMenuItem>
+                )}
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedPaper(paper);
+                    setDeleteDialogOpen(true);
+                  }}
+                  className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Paper
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           );
         },
       },
@@ -390,6 +691,344 @@ export default function FinalDecisionPage() {
           </div>
         </>
       )}
+
+      {/* View Paper Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={handleViewDialogOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Paper Details</DialogTitle>
+            <DialogDescription>
+              Complete information about the research paper
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPaper && (
+            <div className="space-y-6">
+              <div>
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Title
+                </Label>
+                <p className="mt-2 text-sm">{selectedPaper.title}</p>
+              </div>
+
+              <Separator />
+
+              <div>
+                <Label className="text-sm font-semibold">Abstract</Label>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  {selectedPaper.abstract}
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <UserIcon className="h-4 w-4" />
+                    Author
+                  </Label>
+                  <p className="mt-2 text-sm">{selectedPaper.author?.name || "Unknown"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    Rating
+                  </Label>
+                  <p className="mt-2 text-sm">
+                    {selectedPaper.rating ? `${selectedPaper.rating}/5` : "Not rated"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Submitted
+                  </Label>
+                  <p className="mt-2 text-sm">
+                    {new Date(selectedPaper.submissionDate).toLocaleDateString()}
+                  </p>
+                </div>
+                {selectedPaper.acceptedDate && (
+                  <div>
+                    <Label className="text-sm font-semibold flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Accepted
+                    </Label>
+                    <p className="mt-2 text-sm">
+                      {new Date(selectedPaper.acceptedDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              <div>
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Keywords
+                </Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedPaper.keywords.map((keyword, index) => (
+                    <Badge key={index} variant="secondary">
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-semibold">Status</Label>
+                <div className="mt-2">
+                  <Badge
+                    variant={
+                      selectedPaper.status === "PUBLISH" ? "default" :
+                      selectedPaper.status === "ACCEPTED" ? "secondary" :
+                      selectedPaper.status === "REJECTED" ? "destructive" :
+                      "outline"
+                    }
+                  >
+                    {selectedPaper.status.replace(/_/g, " ")}
+                  </Badge>
+                </div>
+              </div>
+
+              {selectedPaper.reviews && selectedPaper.reviews.length > 0 && (
+                <>
+                  <Separator />
+                  <div>
+                    <Label className="text-sm font-semibold">Reviews ({selectedPaper.reviews.length})</Label>
+                    <div className="mt-2 space-y-3">
+                      {selectedPaper.reviews.map((review) => (
+                        <Card key={review.id}>
+                          <CardContent className="pt-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <p className="text-sm font-medium">
+                                Reviewer: {review.reviewer?.name || "Anonymous"}
+                              </p>
+                              {review.rating && (
+                                <Badge variant="outline">{review.rating}/5</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">{review.reviewText}</p>
+                            {review.reviewerStatus && (
+                              <Badge className="mt-2" variant="secondary">
+                                {review.reviewerStatus.replace(/_/g, " ")}
+                              </Badge>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseViewDialog}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Paper Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={handleEditDialogOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Paper Details</DialogTitle>
+            <DialogDescription>
+              Update paper information and metadata
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-title">Title *</Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Paper title"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-abstract">Abstract *</Label>
+              <Textarea
+                id="edit-abstract"
+                value={editFormData.abstract}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, abstract: e.target.value }))}
+                placeholder="Paper abstract"
+                className="min-h-[150px]"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-rating">Rating (0-5)</Label>
+              <Input
+                id="edit-rating"
+                type="number"
+                min="0"
+                max="5"
+                step="0.1"
+                value={editFormData.rating}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 0 }))}
+              />
+            </div>
+
+            <div>
+              <Label>Keywords</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={newKeyword}
+                  onChange={(e) => setNewKeyword(e.target.value)}
+                  placeholder="Add keyword"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddKeyword();
+                    }
+                  }}
+                />
+                <Button type="button" variant="outline" onClick={handleAddKeyword}>
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {editFormData.keywords.map((keyword, index) => (
+                  <Badge key={index} variant="secondary">
+                    {keyword}
+                    <button
+                      onClick={() => handleRemoveKeyword(keyword)}
+                      className="ml-2 hover:text-destructive"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseEditDialog} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdatePaper} disabled={actionLoading}>
+              {actionLoading ? "Updating..." : "Update Paper"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Accept Paper Confirmation */}
+      <AlertDialog open={acceptDialogOpen} onOpenChange={handleCloseAcceptDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Accept Paper for Publication
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to accept <strong>{selectedPaper?.title}</strong> for publication?
+              This will change the paper status to "ACCEPTED" and notify the author.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleAcceptPaper}
+              disabled={actionLoading}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {actionLoading ? "Accepting..." : "Accept Paper"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reject Paper Confirmation */}
+      <AlertDialog open={rejectDialogOpen} onOpenChange={handleCloseRejectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" />
+              Reject Paper
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reject <strong>{selectedPaper?.title}</strong>?
+              This will change the paper status to "REJECTED" and notify the author.
+              This action can be reversed later if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRejectPaper}
+              disabled={actionLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {actionLoading ? "Rejecting..." : "Reject Paper"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Publish Paper Confirmation */}
+      <AlertDialog open={publishDialogOpen} onOpenChange={handleClosePublishDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-blue-600" />
+              Publish Paper
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to publish <strong>{selectedPaper?.title}</strong>?
+              This will make the paper publicly available and notify the author.
+              This is the final step in the publication process.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePublishPaper}
+              disabled={actionLoading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {actionLoading ? "Publishing..." : "Publish Paper"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Paper Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={handleCloseDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" />
+              Delete Paper
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{selectedPaper?.title}</strong>?
+              This action cannot be undone. All associated reviews and data will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePaper}
+              disabled={actionLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {actionLoading ? "Deleting..." : "Delete Paper"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -8,12 +8,19 @@ export async function middleware(req: NextRequest) {
 
   // Redirect authenticated users away from public-only pages
   if (token && ["/signin", "/signup", "/verify"].includes(pathname)) {
-    return NextResponse.redirect(new URL("/dashboard", req.url)); // or wherever you want to send them
+    const userType = (token.variableUserType as string)?.toLowerCase() || "author";
+    return NextResponse.redirect(new URL(`/dashboard/${userType}`, req.url));
   }
 
   // Redirect unauthenticated users trying to access protected routes
   if (!token && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/signin", req.url));
+  }
+
+  // Redirect /dashboard to role-specific dashboard
+  if (token && pathname === "/dashboard") {
+    const userType = (token.variableUserType as string)?.toLowerCase() || "author";
+    return NextResponse.redirect(new URL(`/dashboard/${userType}`, req.url));
   }
 
   return NextResponse.next();

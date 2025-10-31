@@ -57,6 +57,7 @@ model ResearchPaper {
   keywords        String[]
   rating          Int?
   coverLetterPath String?
+  correspondingFile String?
   submissionDate  DateTime      @default(now())
   lastUpdated     DateTime      @updatedAt
   acceptedDate    DateTime?

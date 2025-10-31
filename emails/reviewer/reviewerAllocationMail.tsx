@@ -140,8 +140,8 @@ export default function ReviewerAllocationEmail({
           <Text style={paragraphStyle}>
             If you accept this assignment, we kindly request that you complete
             your review within <strong>3 weeks</strong> from the date of
-            acceptance. If you require additional time, please contact our
-            editorial office.
+            acceptance. If you require additional time, please contact us at 
+            editorial@jedsd.com.
           </Text>
 
           <Hr style={hrStyle} />
@@ -149,7 +149,7 @@ export default function ReviewerAllocationEmail({
           {/* Contact Information */}
           <Text style={paragraphStyle}>
             Should you have any questions or require additional information,
-            please do not hesitate to contact our editorial office.
+            please do not hesitate to contact us at editorial@jedsd.com.
           </Text>
 
           <Text style={closingStyle}>
@@ -157,18 +157,20 @@ export default function ReviewerAllocationEmail({
           </Text>
 
           <Text style={signatureStyle}>
-            Sincerely,
+            Best regards,
             <br />
             <strong>The JEDSD Editorial Team</strong>
             <br />
-            Journal of Embedded and DIgital System Design
+            Journal of Embedded and Digital System Design
+            <br />
+            editorial@jedsd.com
           </Text>
         </Section>
 
         <Section style={footerStyle}>
           <Text style={footerTextStyle}>
             This email was sent to {revieweremail}. If you believe you received
-            this email in error, please contact our editorial office.
+            this email in error, please contact us at editorial@jedsd.com.
           </Text>
         </Section>
       </Container>

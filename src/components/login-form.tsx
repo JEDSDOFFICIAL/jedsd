@@ -60,7 +60,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     }
   };
 const handleGoogleSignIn = async () => {
-  await signIn("google", { callbackUrl: "/dashboard" });
+  await signIn("google", { callbackUrl: "/dashboard" }); // middleware will redirect to role-specific dashboard
 };
 
   return (

@@ -31,7 +31,7 @@ type SignInFormData = z.infer<typeof signInSchema>;
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"; // middleware will redirect to role-specific dashboard
 
   const {
     register,
@@ -47,7 +47,8 @@ type SignInFormData = z.infer<typeof signInSchema>;
     // Check if user is already signed in
     getSession().then((session) => {
       if (session) {
-        router.push("/dashboard");
+        const userType = session.user?.variableUserType?.toLowerCase() || "author";
+        router.push(`/dashboard/${userType}`);
       }
     });
 

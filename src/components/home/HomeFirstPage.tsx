@@ -5,8 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 
-import { RetroGrid } from "../magicui/retro-grid";
-import { TextAnimate } from "../magicui/text-animate";
+import { TextAnimate } from "../ui/text-animate";
 
 // Simple button component as replacement
 const InteractiveHoverButton = ({ children, className }: { children: React.ReactNode; className?: string }) => {
@@ -21,10 +20,7 @@ function HomePage() {
       className="relative w-full max-w-full min-h-screen flex flex-col items-center justify-center overflow-hidden"
       style={{background: "linear-gradient(210deg,rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 64, 0.84) 56%, rgba(0, 151, 181, 1) 100%)"}}
     >
-      {/* Decorative Background Grid - Only render on larger screens for performance */}
-      <div className="absolute inset-0 z-0 overflow-hidden hidden md:block">
-        <RetroGrid opacity={0.2} />
-      </div>
+     
 
       {/* Main Content Layer */}
       <div className="relative z-10 flex flex-col items-center justify-start w-full max-w-screen-xl px-4 sm:px-6 lg:px-8 text-center gap-6 pt-0 transform-gpu will-change-transform"

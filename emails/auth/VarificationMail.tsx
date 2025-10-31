@@ -130,7 +130,8 @@ export default function VerificationEmail({ name, otp }: VerificationEmailProps)
             marginTop: '20px',
           }}
         >
-          © {new Date().getFullYear()} Your Company. All rights reserved.
+          © {new Date().getFullYear()} JEDSD. All rights reserved.<br />
+          For assistance, contact us at editorial@jedsd.com.
         </Text>
       </Container>
     </Html>

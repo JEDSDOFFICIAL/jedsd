@@ -15,6 +15,9 @@ import {
   Award,
 } from "lucide-react";
 
+
+
+
 // Full menu structure (with role-based access where needed)
 export const DashboardItems = [
   // MAIN (shared by all)
@@ -26,8 +29,7 @@ export const DashboardItems = [
     items: [
       { title: "Home", url: "/", icon: Home },
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Upload Manuscript", url: "/dashboard/paper/upload", icon: Upload, access: ["AUTHOR"] },
-      { title: "My Papers", url: "/dashboard/paper", icon: FileText, access: ["AUTHOR"] },
+      { title: "Upload Manuscript", url: "/dashboard/author/upload", icon: Upload, access: ["AUTHOR"] },
       { title: "Allocated Papers", url: "/dashboard/reviewer/allocated", icon: FileText, access: ["REVIEWER"] },
       { title: "Write Reviews", url: "/dashboard/reviewer/write", icon: FileSignature ,access: ["REVIEWER"]},
       { title: "New Papers", url: "/dashboard/editor/new-papers", icon: FileText, access: ["EDITOR"] },
@@ -59,21 +61,10 @@ export const DashboardItems = [
     access: ["AUTHOR", "REVIEWER", "EDITOR", "ADMIN"],
     items: [
       { title: "Profile Setup", url: "/dashboard/profile", icon: UserCog },
-      { title: "Account Settings", url: "/dashboard/settings", icon: Settings },
     ],
   },
 
-  // SUPPORT (shared)
-  {
-    title: "Support",
-    url: "#",
-    icon: HelpCircle,
-    access: ["AUTHOR", "REVIEWER", "EDITOR", "ADMIN"],
-    items: [
-      { title: "Help Center", url: "/help", icon: HelpCircle },
-      { title: "Contact Support", url: "/contact-support", icon: PartyPopper },
-    ],
-  },
+ 
 ];
 
 
@@ -113,6 +104,13 @@ export interface User {
   verificationCodeExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface UserWithStats extends User {
+  _count?: {
+    authoredPapers: number;
+    reviews: number;
+  };
 }
 
 export interface PaperReview {

@@ -298,6 +298,7 @@ export default function EditorDecisionEmail({
           <Text style={footerTextStyle}>
             We appreciate your contribution to advancing scientific knowledge through research publication.
             Our editorial team is committed to maintaining the highest standards of academic excellence.
+            For any questions, contact us at editorial@jedsd.com.
           </Text>
           <Text style={footerLegalStyle}>
             This is an automated message from the JEDSD Editorial System.<br />

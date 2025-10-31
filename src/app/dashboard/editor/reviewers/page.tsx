@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { User } from "@prisma/client";
 import { 
   UserCheck, 
@@ -16,7 +17,9 @@ import {
   Plus, 
   Filter,
   MoreHorizontal,
-  Users
+  Users,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import {
   Table,
@@ -32,7 +35,26 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -54,6 +76,15 @@ export default function ReviewerManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Add Reviewer Dialog State
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddingReviewer, setIsAddingReviewer] = useState(false);
+  const [newReviewerEmail, setNewReviewerEmail] = useState("");
+  
+  // Delete Confirmation Dialog State
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reviewerToDelete, setReviewerToDelete] = useState<ReviewerWithStats | null>(null);
 
   useEffect(() => {
     const fetchReviewers = async () => {
@@ -89,25 +120,90 @@ export default function ReviewerManagementPage() {
     setFilteredReviewers(filtered);
   }, [searchTerm, reviewers]);
 
-  const inviteReviewer = async (email: string) => {
+  const fetchReviewersData = async () => {
+    if (!session?.user?.email) return;
+
     try {
-      await axios.post("/api/editor/invite-reviewer", { email });
-      toast.success("Reviewer invitation sent successfully");
+      setLoading(true);
+      const response = await axios.get("/api/user/reviewer");
+      
+      // API now returns reviewers with stats
+      setReviewers(response.data || []);
+      setFilteredReviewers(response.data || []);
     } catch (err) {
-      console.error("Error inviting reviewer:", err);
-      toast.error("Failed to send reviewer invitation");
+      console.error("Error fetching reviewers:", err);
+      setError("Failed to load reviewers");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const deactivateReviewer = async (reviewerId: string) => {
+  const handleAddReviewer = async () => {
+    // Validation
+    if (!newReviewerEmail.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newReviewerEmail)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsAddingReviewer(true);
     try {
-      await axios.patch(`/api/editor/reviewers/${reviewerId}/deactivate`);
-      toast.success("Reviewer deactivated successfully");
+      // Create UserDetails entry with REVIEWER type
+      const response = await axios.post("/api/user/reviewer", {
+        email: newReviewerEmail.trim(),
+        userType: "REVIEWER"
+      });
+
+      toast.success(response.data.message || "Reviewer added successfully! They can now sign up as a reviewer.");
+      
+      // Reset form and close dialog
+      setNewReviewerEmail("");
+      setIsAddDialogOpen(false);
+      
+      // Refresh the reviewers list
+      await fetchReviewersData();
+    } catch (err: any) {
+      console.error("Error adding reviewer:", err);
+      const errorMessage = err.response?.data?.message || "Failed to add reviewer";
+      toast.error(errorMessage);
+    } finally {
+      setIsAddingReviewer(false);
+    }
+  };
+
+  const confirmDeleteReviewer = (reviewer: ReviewerWithStats) => {
+    setReviewerToDelete(reviewer);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteReviewer = async () => {
+    if (!reviewerToDelete) return;
+
+    try {
+      // Delete from UserDetails (authentication base)
+      await axios.delete("/api/user/reviewer", {
+        data: { emails: [reviewerToDelete.email] }
+      });
+      
+      // Also delete from User table if exists
+      await axios.delete("/api/user", {
+        data: { userIds: [reviewerToDelete.id] }
+      });
+      
+      toast.success(`Reviewer ${reviewerToDelete.name} has been deleted successfully`);
+      setDeleteDialogOpen(false);
+      setReviewerToDelete(null);
+      
       // Refresh the list
-      window.location.reload();
+      await fetchReviewersData();
     } catch (err) {
-      console.error("Error deactivating reviewer:", err);
-      toast.error("Failed to deactivate reviewer");
+      console.error("Error deleting reviewer:", err);
+      toast.error("Failed to delete reviewer");
     }
   };
 
@@ -153,9 +249,9 @@ export default function ReviewerManagementPage() {
               Manage and monitor your pool of reviewers
             </p>
           </div>
-          <Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-1" />
-            Invite Reviewer
+            Add Reviewer
           </Button>
         </div>
       </div>
@@ -281,11 +377,13 @@ export default function ReviewerManagementPage() {
                             <GraduationCap className="h-4 w-4 mr-2" />
                             View Profile
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => deactivateReviewer(reviewer.id)}
-                            className="text-red-600"
+                            onClick={() => confirmDeleteReviewer(reviewer)}
+                            className="text-red-600 focus:text-red-600"
                           >
-                            Deactivate
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Account
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -297,6 +395,98 @@ export default function ReviewerManagementPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Add Reviewer Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Reviewer</DialogTitle>
+            <DialogDescription>
+              Register a reviewer email. They can then sign up with this email as a reviewer.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Reviewer Email Address *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="reviewer@university.edu"
+                value={newReviewerEmail}
+                onChange={(e) => setNewReviewerEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isAddingReviewer) {
+                    e.preventDefault();
+                    handleAddReviewer();
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                This email will be registered as a reviewer. The person can then sign up using this email.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>User Type</Label>
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  REVIEWER
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  (Fixed - cannot be changed)
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddDialogOpen(false);
+                setNewReviewerEmail("");
+              }}
+              disabled={isAddingReviewer}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddReviewer} disabled={isAddingReviewer}>
+              {isAddingReviewer ? "Adding..." : "Add Reviewer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              Delete Reviewer Account
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{reviewerToDelete?.name}</strong>'s account?
+              <br /><br />
+              <span className="text-red-600 font-medium">
+                This action cannot be undone. All their reviews and associated data will be permanently deleted.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setReviewerToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteReviewer}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

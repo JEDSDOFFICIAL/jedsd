@@ -265,9 +265,7 @@ export async function acceptPaper(paperId: string, onSuccess?: () => void) {
 
 export async function rejectPaper(paperId: string, onSuccess?: () => void) {
   try {
-    const res = await axios.patch(`/api/paper/${paperId}/publish`, {
-      status: "REJECTED",
-    });
+    const res = await axios.patch(`/api/paper/${paperId}/reject`);
     console.log("Rejected paper:", res.data);
     toast.success("Paper rejected successfully!");
     onSuccess?.();

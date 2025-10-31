@@ -232,10 +232,11 @@ export default function PaperPublicationEmail({
           </Text>
           <Text style={footerTextStyle}>
             We appreciate your valuable contribution to advancing engineering design 
-            and sustainable development research.
+            and sustainable development research. For any questions, contact us at editorial@jedsd.com.
           </Text>
           <Text style={footerLegalStyle}>
             Journal of Engineering Design & Sustainable Development<br />
+            editorial@jedsd.com<br />
             This is an automated message. Please do not reply to this email.
           </Text>
         </Section>

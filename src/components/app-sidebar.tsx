@@ -3,9 +3,9 @@
 import * as React from "react"
 
 
-import { NavMain } from "@/components/nav-main"
+import { NavMain } from "@/components/sidebarRoute"
 
-import { NavUser } from "@/components/nav-user"
+import { NavUser } from "@/components/sidebarFooter"
 
 import {
   Sidebar,
@@ -17,7 +17,7 @@ import {
 
 
 
-import { UserTypeSwitcher } from "./user-type-switcher"
+import { UserTypeSwitcher } from "./user-role-switcher"
 import { User } from "@prisma/client"
 
 
