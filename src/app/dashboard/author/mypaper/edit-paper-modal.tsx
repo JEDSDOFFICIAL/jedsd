@@ -267,7 +267,7 @@ export function EditPaperModal({ paperId, isOpen, onClose, onSuccess }: EditPape
       setValue("correspondingFile", pendingCorrespondingFile, { shouldValidate: true, shouldDirty: true });
       setShowCorrespondingFileConfirm(false);
       setPendingCorrespondingFile(null);
-      toast.success("Corresponding file selected for upload");
+      toast.success("Source file selected for upload");
     }
   };
 
@@ -429,7 +429,7 @@ export function EditPaperModal({ paperId, isOpen, onClose, onSuccess }: EditPape
 
         const uploadedCorrespondingPath = await uploadFileToFirebase(files.correspondingFile, "corresponding-files");
         if (!uploadedCorrespondingPath) {
-          toast.error("Failed to upload corresponding file.");
+          toast.error("Failed to upload Source file.");
           setLoading(false);
           return;
         }
@@ -796,7 +796,7 @@ export function EditPaperModal({ paperId, isOpen, onClose, onSuccess }: EditPape
 
                   {/* Corresponding File Upload */}
                   <div className="space-y-2">
-                    <Label htmlFor="edit-corresponding-file">Update Corresponding File (ZIP, max 50MB)</Label>
+                    <Label htmlFor="edit-corresponding-file">Update Source File (ZIP, max 50MB)</Label>
                     {watchCorrespondingFile ? (
                       <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border">
                         <Upload className="h-5 w-5 text-green-600" />

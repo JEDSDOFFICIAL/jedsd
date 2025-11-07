@@ -58,6 +58,9 @@ model ResearchPaper {
   rating          Int?
   coverLetterPath String?
   correspondingFile String?
+  editorDecisionFile String?
+  editorDecision  EditorDecision?
+  editorComments  String?
   submissionDate  DateTime      @default(now())
   lastUpdated     DateTime      @updatedAt
   acceptedDate    DateTime?
@@ -101,4 +104,11 @@ enum UserType {
   REVIEWER
   EDITOR
   ADMIN
+}
+
+enum EditorDecision {
+  ACCEPT
+  MINOR_REVISION
+  MAJOR_REVISION
+  REJECT
 }

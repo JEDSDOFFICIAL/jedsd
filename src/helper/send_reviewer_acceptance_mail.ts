@@ -8,7 +8,7 @@ import ReviewerAcceptanceEmail from "../../emails/reviewer/ReviewerAcceptanceMai
 export const sendReviewerAcceptanceMail = async ({ paperTitle, reviewerName, acceptanceStatus }: sendReviewerAcceptanceMailProps) => {
 try{
     const mailRes = await resend.emails.send({
-        from: process.env.NEXT_ENV_FROM_MAIL as string,
+        from: `JEDSD ADMIN <${process.env.NEXT_ENV_FROM_MAIL}>`,
         to: ['jedsdofficial@gmail.com','editorial@jedsd.com'], // Send to editorial team
         subject: "Reviewer Assignment Update",
         react: ReviewerAcceptanceEmail({ paperTitle, reviewerName, acceptanceStatus })

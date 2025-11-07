@@ -8,7 +8,7 @@ export const sendThankYouEmail = async ({
 }:sendReviewedMailToEditorProps ) => {
   try {
     const mailRes = await resend.emails.send({
-        from: process.env.NEXT_ENV_FROM_MAIL as string,
+        from: `JEDSD ADMIN <${process.env.NEXT_ENV_FROM_MAIL}>`,
         to: reviewerEmail,
         subject: `Thank You for Reviewing: ${paperTitle}`,
         react: ReviewerThankYouEmail({ paperId, paperTitle, review, reviewerName, editorName: "Editor" })

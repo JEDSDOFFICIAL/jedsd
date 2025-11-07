@@ -11,7 +11,7 @@ export const sendReviewerAllocationMail = async ({
 }: sendReviewerAllocationMailProps) => {
   try {
     const mailRes = await resend.emails.send({
-        from: process.env.NEXT_ENV_FROM_MAIL as string,
+        from: `JEDSD ADMIN <${process.env.NEXT_ENV_FROM_MAIL}>`,
         to: revieweremail as string,
         subject: "New Manuscript Submission",
         react: ReviewerAllocationEmail({ paper, reviewerName, revieweremail })

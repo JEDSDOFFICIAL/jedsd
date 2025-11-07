@@ -79,9 +79,9 @@ export default function WriteReviewPage() {
     reviewText: "",
     rating: 3,
     correspondingFile: null,
-    reviewerStatus: "ACCEPTED_FOR_PUBLICATION",
+    reviewerStatus: "MINOR_REVISION",
     confidentialComments: "",
-    recommendation: "ACCEPTED_FOR_PUBLICATION"
+    recommendation: "MINOR_REVISION"
   });
 
   // Utility Functions
@@ -95,7 +95,10 @@ export default function WriteReviewPage() {
 
   const hasSubmittedReview = (paper: PaperWithRelations) => {
     const status = getUserReviewStatus(paper);
-    return status === "ACCEPTED_FOR_PUBLICATION" || status === "REJECTED_FOR_PUBLICATION";
+    return status === "ACCEPTED_FOR_PUBLICATION" || 
+           status === "REJECTED_FOR_PUBLICATION" || 
+           status === "MINOR_REVISION" || 
+           status === "MAJOR_REVISION";
   };
 
   // Load accepted papers
@@ -229,9 +232,9 @@ export default function WriteReviewPage() {
             reviewText: "",
             rating: 3,
             correspondingFile: null,
-            reviewerStatus: "ACCEPTED_FOR_PUBLICATION",
+            reviewerStatus: "MINOR_REVISION",
             confidentialComments: "",
-            recommendation: "ACCEPTED_FOR_PUBLICATION"
+            recommendation: "MINOR_REVISION"
           });
           setSelectedPaper(null);
           setActiveTab("select");
@@ -510,16 +513,7 @@ export default function WriteReviewPage() {
                           <Download className="h-4 w-4 mr-2" />
                           View Manuscript
                         </Button>
-                        {selectedPaper.coverLetterPath && (
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start"
-                            onClick={() => window.open(selectedPaper.coverLetterPath!, "_blank")}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            View Cover Letter
-                          </Button>
-                        )}
+                       
                       </div>
 
                       {selectedPaper.abstract && (
@@ -638,7 +632,7 @@ export default function WriteReviewPage() {
                             value={reviewForm.reviewerStatus}
                             onValueChange={(value) => setReviewForm(prev => ({
                               ...prev,
-                              reviewerStatus: value as "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION"
+                              reviewerStatus: value as "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "MINOR_REVISION" | "MAJOR_REVISION"
                             }))}
                           >
                             <SelectTrigger>
@@ -649,6 +643,18 @@ export default function WriteReviewPage() {
                                 <div className="flex items-center gap-2">
                                   <CheckCircle className="h-4 w-4 text-green-600" />
                                   Accept for Publication
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="MINOR_REVISION">
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                                  Minor Revisions Required
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="MAJOR_REVISION">
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                                  Major Revisions Required
                                 </div>
                               </SelectItem>
                               <SelectItem value="REJECTED_FOR_PUBLICATION">
@@ -738,9 +744,9 @@ export default function WriteReviewPage() {
                               reviewText: "",
                               rating: 3,
                               correspondingFile: null,
-                              reviewerStatus: "ACCEPTED_FOR_PUBLICATION",
+                              reviewerStatus: "MINOR_REVISION",
                               confidentialComments: "",
-                              recommendation: "ACCEPTED_FOR_PUBLICATION"
+                              recommendation: "MINOR_REVISION"
                             });
                           }}
                         >
@@ -811,8 +817,16 @@ export default function WriteReviewPage() {
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Badge variant={status === "ACCEPTED_FOR_PUBLICATION" ? "default" : "destructive"}>
-                                    {status === "ACCEPTED_FOR_PUBLICATION" ? "Recommended: Accept" : "Recommended: Reject"}
+                                  <Badge variant={
+                                    status === "ACCEPTED_FOR_PUBLICATION" ? "default" : 
+                                    status === "MINOR_REVISION" ? "secondary" :
+                                    status === "MAJOR_REVISION" ? "outline" :
+                                    "destructive"
+                                  }>
+                                    {status === "ACCEPTED_FOR_PUBLICATION" ? "Recommended: Accept" : 
+                                     status === "MINOR_REVISION" ? "Recommended: Minor Revision" :
+                                     status === "MAJOR_REVISION" ? "Recommended: Major Revision" :
+                                     "Recommended: Reject"}
                                   </Badge>
                                   <Badge variant="outline" className="text-xs">
                                     {paper.paperId}

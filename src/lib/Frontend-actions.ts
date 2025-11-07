@@ -282,7 +282,7 @@ export async function submitReview(
   reviewerId: string,
   reviewText: string,
   rating: number,
-  reviewerStatus: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION",
+  reviewerStatus: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "MINOR_REVISION" | "MAJOR_REVISION",
   correspondingFile?: string | null,
   onSuccess?: () => void
 ): Promise<any> {

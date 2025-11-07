@@ -78,8 +78,7 @@ export default function PaperUploadEmail( paper:ResearchPaper ) {
           </Text>
 
           <Text style={paragraphStyle}>
-            Should you have any questions or require assistance, please do not hesitate to 
-            contact us at editorial@jedsd.com.
+            If you have any questions or need further assistance, you can contact us at editorial@jedsd.com.
           </Text>
 
           <Hr style={hrStyle} />

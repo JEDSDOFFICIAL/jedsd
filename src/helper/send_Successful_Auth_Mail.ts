@@ -7,7 +7,7 @@ export const sendSuccessAuthenticationMail = async ({name, email}: {name: string
 try{
     console.log("Sending successful authentication mail to:", email);
     const mailRes = await resend.emails.send({
-        from: process.env.NEXT_ENV_FROM_MAIL as string,
+        from: `JEDSD ADMIN <${process.env.NEXT_ENV_FROM_MAIL}>`,
         to: email,
         subject: "Successful Authentication",
         react: SuccessAuthentication(name)

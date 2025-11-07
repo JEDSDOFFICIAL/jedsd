@@ -72,6 +72,9 @@ import {
   Star,
   Trash2,
   MoreHorizontal,
+  Upload,
+  AlertTriangle,
+  Download,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import toast from "react-hot-toast";
@@ -84,6 +87,7 @@ import {
   updatePaper,
   deletePapers,
 } from "@/lib/Frontend-actions";
+import { uploadFileToFirebase } from "@/lib/Firebase-Action";
 import { AuthorOrContact } from "@/types/dataTypes";
 
 // Extended interface to include relations
@@ -99,6 +103,9 @@ interface PaperWithRelations {
   keywords: string[];
   rating: number | null;
   coverLetterPath: string | null;
+  editorDecisionFile?: string | null;
+  editorDecision?: "ACCEPT" | "MINOR_REVISION" | "MAJOR_REVISION" | "REJECT" | null;
+  editorComments?: string | null;
   submissionDate: Date;
   lastUpdated: Date;
   acceptedDate: Date | null;
@@ -126,6 +133,7 @@ export default function FinalDecisionPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [decisionDialogOpen, setDecisionDialogOpen] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<PaperWithRelations | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -137,6 +145,13 @@ export default function FinalDecisionPage() {
     rating: 0,
   });
   const [newKeyword, setNewKeyword] = useState("");
+
+  // Decision form states
+  const [decisionForm, setDecisionForm] = useState({
+    decision: "MINOR_REVISION" as "ACCEPT" | "MINOR_REVISION" | "MAJOR_REVISION" | "REJECT",
+    comments: "",
+    decisionFile: null as File | null,
+  });
 
   useEffect(() => {
     fetchFinalPapers();
@@ -355,6 +370,91 @@ export default function FinalDecisionPage() {
     }
   };
 
+  const handleOpenDecisionDialog = (paper: PaperWithRelations) => {
+    setSelectedPaper(paper);
+    setDecisionDialogOpen(true);
+  };
+
+  const handleCloseDecisionDialog = (open: boolean) => {
+    setDecisionDialogOpen(open);
+    if (!open) {
+      setTimeout(() => {
+        setSelectedPaper(null);
+        setDecisionForm({
+          decision: "MINOR_REVISION",
+          comments: "",
+          decisionFile: null,
+        });
+      }, 300);
+    }
+  };
+
+  const handleDecisionFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type (PDF only)
+      if (file.type !== "application/pdf") {
+        toast.error("Please upload a PDF file");
+        return;
+      }
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
+      setDecisionForm(prev => ({ ...prev, decisionFile: file }));
+      toast.success(`File "${file.name}" selected`);
+    }
+  };
+
+  const handleSubmitDecision = async () => {
+    if (!selectedPaper) return;
+
+    if (!decisionForm.comments.trim()) {
+      toast.error("Please provide comments for your decision");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const toastId = toast.loading("Submitting decision...");
+
+      let uploadedFileUrl = null;
+
+      // Upload decision file if provided
+      if (decisionForm.decisionFile) {
+        toast.loading("Uploading decision document...", { id: toastId });
+        uploadedFileUrl = await uploadFileToFirebase(
+          decisionForm.decisionFile,
+          `editor-decisions/${selectedPaper.id}`
+        );
+
+        if (!uploadedFileUrl) {
+          toast.error("Failed to upload decision document", { id: toastId });
+          setActionLoading(false);
+          return;
+        }
+      }
+
+      // Submit the decision
+      toast.loading("Saving decision...", { id: toastId });
+      await updatePaper(selectedPaper.id, {
+        editorDecision: decisionForm.decision,
+        editorComments: decisionForm.comments,
+        editorDecisionFile: uploadedFileUrl,
+      });
+
+      toast.success("Decision submitted successfully!", { id: toastId });
+      handleCloseDecisionDialog(false);
+      fetchFinalPapers();
+    } catch (error) {
+      console.error("Failed to submit decision:", error);
+      toast.error("Failed to submit decision");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const columns: ColumnDef<PaperWithRelations>[] = useMemo(
     () => [
       {
@@ -470,6 +570,16 @@ export default function FinalDecisionPage() {
                 
                 {(status === "EDITOR_DECISION" || status === "ON_REVIEW") && (
                   <>
+                    <DropdownMenuItem
+                      onClick={() => handleOpenDecisionDialog(paper)}
+                      className="text-blue-600 focus:text-blue-700 focus:bg-blue-50"
+                    >
+                      <Award className="mr-2 h-4 w-4" />
+                      Make Decision
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+                    
                     <DropdownMenuItem
                       onClick={() => {
                         setSelectedPaper(paper);
@@ -1029,6 +1139,192 @@ export default function FinalDecisionPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Make Decision Dialog */}
+      <Dialog open={decisionDialogOpen} onOpenChange={handleCloseDecisionDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-blue-600" />
+              Make Editorial Decision
+            </DialogTitle>
+            <DialogDescription>
+              Provide your decision and feedback for <strong>{selectedPaper?.title}</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Decision Type */}
+            <div className="space-y-2">
+              <Label htmlFor="decision" className="text-sm font-semibold">
+                Editorial Decision *
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant={decisionForm.decision === "ACCEPT" ? "default" : "outline"}
+                  className={`h-auto py-4 flex flex-col items-center gap-2 ${
+                    decisionForm.decision === "ACCEPT" ? "bg-green-600 hover:bg-green-700" : ""
+                  }`}
+                  onClick={() => setDecisionForm(prev => ({ ...prev, decision: "ACCEPT" }))}
+                >
+                  <CheckCircle className="h-6 w-6" />
+                  <span className="font-semibold">Accept</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={decisionForm.decision === "MINOR_REVISION" ? "default" : "outline"}
+                  className={`h-auto py-4 flex flex-col items-center gap-2 ${
+                    decisionForm.decision === "MINOR_REVISION" ? "bg-yellow-600 hover:bg-yellow-700" : ""
+                  }`}
+                  onClick={() => setDecisionForm(prev => ({ ...prev, decision: "MINOR_REVISION" }))}
+                >
+                  <AlertTriangle className="h-6 w-6" />
+                  <span className="font-semibold">Minor Revision</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={decisionForm.decision === "MAJOR_REVISION" ? "default" : "outline"}
+                  className={`h-auto py-4 flex flex-col items-center gap-2 ${
+                    decisionForm.decision === "MAJOR_REVISION" ? "bg-orange-600 hover:bg-orange-700" : ""
+                  }`}
+                  onClick={() => setDecisionForm(prev => ({ ...prev, decision: "MAJOR_REVISION" }))}
+                >
+                  <AlertTriangle className="h-6 w-6" />
+                  <span className="font-semibold">Major Revision</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={decisionForm.decision === "REJECT" ? "default" : "outline"}
+                  className={`h-auto py-4 flex flex-col items-center gap-2 ${
+                    decisionForm.decision === "REJECT" ? "bg-red-600 hover:bg-red-700" : ""
+                  }`}
+                  onClick={() => setDecisionForm(prev => ({ ...prev, decision: "REJECT" }))}
+                >
+                  <XCircle className="h-6 w-6" />
+                  <span className="font-semibold">Reject</span>
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Comments */}
+            <div className="space-y-2">
+              <Label htmlFor="decision-comments" className="text-sm font-semibold">
+                Comments to Author *
+              </Label>
+              <Textarea
+                id="decision-comments"
+                placeholder="Provide detailed feedback and justification for your decision. This will be shared with the author."
+                value={decisionForm.comments}
+                onChange={(e) => setDecisionForm(prev => ({ ...prev, comments: e.target.value }))}
+                className="min-h-[150px] resize-y"
+              />
+              <p className="text-xs text-muted-foreground">
+                {decisionForm.comments.length} characters
+              </p>
+            </div>
+
+            <Separator />
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="decision-file" className="text-sm font-semibold flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Decision Document (Optional)
+              </Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Upload a PDF document with detailed feedback, annotated manuscript, or decision letter
+              </p>
+              <div className="flex items-center gap-4">
+                <Input
+                  id="decision-file"
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleDecisionFileUpload}
+                  className="flex-1"
+                />
+                {decisionForm.decisionFile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDecisionForm(prev => ({ ...prev, decisionFile: null }))}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              {decisionForm.decisionFile && (
+                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-md">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>{decisionForm.decisionFile.name}</span>
+                  <span className="text-muted-foreground">
+                    ({(decisionForm.decisionFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                PDF files only. Max file size: 10MB
+              </p>
+            </div>
+
+            {/* Decision Summary */}
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+              <h4 className="font-semibold text-sm">Decision Summary</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Decision:</span>
+                  <Badge className="ml-2" variant={
+                    decisionForm.decision === "ACCEPT" ? "default" :
+                    decisionForm.decision === "MINOR_REVISION" ? "secondary" :
+                    decisionForm.decision === "MAJOR_REVISION" ? "outline" :
+                    "destructive"
+                  }>
+                    {decisionForm.decision.replace(/_/g, " ")}
+                  </Badge>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Document:</span>
+                  <span className="ml-2">
+                    {decisionForm.decisionFile ? "Attached" : "None"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => handleCloseDecisionDialog(false)}
+              disabled={actionLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitDecision}
+              disabled={actionLoading || !decisionForm.comments.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {actionLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Submit Decision
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

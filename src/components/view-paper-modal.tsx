@@ -24,7 +24,11 @@ import {
   Phone, 
   Building, 
   User,
-  Archive
+  Archive,
+  Award,
+  AlertTriangle,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -314,6 +318,80 @@ export function ViewPaperModal({ paperId, isOpen, onClose }: ViewPaperModalProps
                   )}
                 </div>
               </div>
+
+              {/* Editor Decision Section */}
+              {(paper as any).editorDecision && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Award className="h-5 w-5 text-blue-600" />
+                      Editor Decision
+                    </h3>
+                    <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+                      <div className="space-y-4">
+                        {/* Decision Badge */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Decision:</span>
+                          <Badge
+                            variant={(paper as any).editorDecision === "ACCEPT" ? "default" :
+                              (paper as any).editorDecision === "MINOR_REVISION" ? "secondary" :
+                              (paper as any).editorDecision === "MAJOR_REVISION" ? "outline" :
+                              "destructive"}
+                            className="text-sm"
+                          >
+                            {(paper as any).editorDecision === "ACCEPT" && (
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                            )}
+                            {((paper as any).editorDecision === "MINOR_REVISION" || (paper as any).editorDecision === "MAJOR_REVISION") && (
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                            )}
+                            {(paper as any).editorDecision === "REJECT" && (
+                              <XCircle className="h-3 w-3 mr-1" />
+                            )}
+                            {(paper as any).editorDecision.replace(/_/g, " ")}
+                          </Badge>
+                        </div>
+
+                        {/* Editor Comments */}
+                        {(paper as any).editorComments && (
+                          <div>
+                            <h4 className="font-medium text-sm mb-2">Editor's Comments:</h4>
+                            <div className="bg-white/70 p-3 rounded-md border">
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                {(paper as any).editorComments}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Decision Document */}
+                        {(paper as any).editorDecisionFile && (
+                          <div className="border rounded-lg p-3 bg-white">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-blue-600" />
+                                <div>
+                                  <h4 className="font-medium text-sm">Decision Document</h4>
+                                  <p className="text-xs text-muted-foreground">Detailed feedback from editor</p>
+                                </div>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownload((paper as any).editorDecisionFile!, `${paper.paperId}_editor_decision.pdf`)}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Additional Info */}
               {(paper.doi || paper.acceptedDate) && (

@@ -135,6 +135,10 @@ export interface ResearchPaper {
   keywords: string[];
   rating?: number | null;
   coverLetterPath?: string | null;
+  correspondingFile?: string | null;
+  editorDecisionFile?: string | null;
+  editorDecision?: "ACCEPT" | "MINOR_REVISION" | "MAJOR_REVISION" | "REJECT" | null;
+  editorComments?: string | null;
   submissionDate: Date;
   lastUpdated: Date;
   acceptedDate?: Date | null;
@@ -174,7 +178,7 @@ export interface ReviewFormData {
   reviewText: string;
   rating: number;
   correspondingFile: File | null;
-  reviewerStatus: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION";
+  reviewerStatus: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "MINOR_REVISION" | "MAJOR_REVISION";
   confidentialComments?: string;
   recommendation?: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "MINOR_REVISION" | "MAJOR_REVISION";
 }

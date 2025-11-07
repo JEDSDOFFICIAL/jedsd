@@ -135,6 +135,9 @@ const updatePaperSchema = z.object({
   submissionDate: z.coerce.date().optional(), // Expecting an ISO date string
   acceptedDate: z.coerce.date().optional(), // Expecting an ISO date string
   correspondingFile: z.string().min(1, "File path cannot be empty.").optional(),
+  editorDecisionFile: z.string().optional().nullable(),
+  editorDecision: z.enum(["ACCEPT", "MINOR_REVISION", "MAJOR_REVISION", "REJECT"]).optional().nullable(),
+  editorComments: z.string().optional().nullable(),
   contributors: z.array(z.object({
     fullName: z.string().min(1, "Full Name is required"),
     email: z.string().email("Invalid email address").min(1, "Email is required"),

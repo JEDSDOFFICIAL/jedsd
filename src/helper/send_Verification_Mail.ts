@@ -6,7 +6,7 @@ import { sendVerificationMailProps } from "./emailInterface";
 export const sendVerificationMail = async ({otp,name,email}:sendVerificationMailProps) => {
 try{
     const mailRes = await resend.emails.send({
-        from: process.env.NEXT_ENV_FROM_MAIL as string,
+        from: `JEDSD ADMIN <${process.env.NEXT_ENV_FROM_MAIL}>`,
         to: email,
         subject: "Verify your email",
         react: VerificationEmail({ otp, name: name })

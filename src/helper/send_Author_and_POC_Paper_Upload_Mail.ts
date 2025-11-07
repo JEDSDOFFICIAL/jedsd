@@ -7,7 +7,7 @@ import { sendPaperUploadMailProps } from "./emailInterface";
 export const sendPaperUploadMail = async ({ paper, emails }: sendPaperUploadMailProps) => {
 try{
     const mailRes = await resend.emails.send({
-        from: process.env.NEXT_ENV_FROM_MAIL as string,
+        from: `JEDSD ADMIN <${process.env.NEXT_ENV_FROM_MAIL}>`,
         to: emails,
         subject: "Successful Manuscript Submission",
         react: PaperUploadEmail( paper)
