@@ -30,30 +30,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { AuthorOrContact } from "@/types/dataTypes";
+import { IconAffiliate } from "@tabler/icons-react";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
+import { UserType } from "@prisma/client";
 
-interface ResearchPaper {
+// Align with API response structure
+interface ResearchPaperWithRelations {
   id: string;
+  paperId: string;
+  doi: string | null;
   title: string;
   abstract: string;
-  keywords: string[];
-  submissionDate: string;
-  acceptedDate?: string;
-  status: string;
   filePath: string;
-  author?: {
+  keywords: string[];
+  rating: number | null;
+  submissionDate: Date;
+  acceptedDate: Date | null;
+  status: string;
+  contributors: AuthorOrContact[];
+  pointOfContact: AuthorOrContact;
+  author: {
+    id: string;
     name: string;
     email: string;
-  };
-  contributors?: any;
-  pointOfContact?: any;
+    userType: UserType;
+  } | null;
+ 
 }
 
 interface SearchFilters {
@@ -67,10 +74,9 @@ interface SearchFilters {
 }
 
 function PaperSearchContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [papers, setPapers] = useState<ResearchPaper[]>([]);
+  const [papers, setPapers] = useState<ResearchPaperWithRelations[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const [page, setPage] = useState(1);
@@ -150,14 +156,14 @@ function PaperSearchContent() {
 
       console.log("API URL:", `/api/paper?${urlParams.toString()}`);
       const response = await axios.get(`/api/paper?${urlParams.toString()}`);
-      
+            console.log("Fetched papers:", response.data.papers);
       let filteredPapers = response.data.papers || [];
       
       // Client-side comprehensive search
       if (filters.titleQuery.trim() || filters.keywordQuery.trim() || 
           filters.authorQuery.trim() || filters.abstractQuery.trim()) {
         
-        filteredPapers = filteredPapers.filter((paper: ResearchPaper) => {
+        filteredPapers = filteredPapers.filter((paper: ResearchPaperWithRelations) => {
           let matches = true;
           
           // Title search
@@ -195,7 +201,7 @@ function PaperSearchContent() {
       
       // Client-side filtering for year
       if (filters.yearFilter && filters.yearFilter !== "all") {
-        filteredPapers = filteredPapers.filter((paper: ResearchPaper) => {
+        filteredPapers = filteredPapers.filter((paper: ResearchPaperWithRelations) => {
           const submissionYear = new Date(paper.submissionDate).getFullYear().toString();
           const acceptedYear = paper.acceptedDate ? new Date(paper.acceptedDate).getFullYear().toString() : null;
           return submissionYear === filters.yearFilter || acceptedYear === filters.yearFilter;
@@ -225,6 +231,7 @@ function PaperSearchContent() {
       setTotalResults(0);
     } finally {
       setLoading(false);
+
     }
   };
 
@@ -291,7 +298,7 @@ function PaperSearchContent() {
   };
 
   // Format date
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: Date) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -299,10 +306,7 @@ function PaperSearchContent() {
     });
   };
 
-  // Navigate to paper details
-  const viewPaperDetails = (paperId: string) => {
-    router.push(`/paper/${paperId}`);
-  };
+ 
 
   // Initial load - only after mounting
   useEffect(() => {
@@ -373,7 +377,7 @@ function PaperSearchContent() {
     
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full lg:pt-8 md:pt-8 pt-8">
       {/* Header */}
-      <div className="mt-8 mb-2 w-full text-center border-b-2 border-black pb-3">
+      <div className=" mb-2 w-full text-center border-b-2 border-black pb-3">
         <h1 className="text-3xl font-bold mb-2">
           {filters.titleQuery || filters.keywordQuery || filters.authorQuery || filters.abstractQuery 
             ? "Search Results" 
@@ -618,102 +622,130 @@ function PaperSearchContent() {
           </Card>
         ) : (
           papers.map((paper) => (
-            <Card key={paper.id} className="hover:shadow-lg hover:border-primary/50 transition-all duration-300 bg-card border-border">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle 
-                      className="text-xl mb-2 cursor-pointer hover:text-primary transition-colors duration-300 hover:underline line-clamp-2"
-                      onClick={() => viewPaperDetails(paper.id)}
-                    >
-                      {paper.title}
-                    </CardTitle>
+            <Card
+              key={paper.paperId}
+              className="hover:shadow-lg transition-shadow border-l-4 border-l-primary"
+            >
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-3">
+                <Link href={`/paper/${paper.paperId}`} >
+                  <h3 
+                    className="text-xl font-semibold leading-tight pr-4 cursor-pointer hover:text-primary hover:underline transition-colors"
                     
-                    {/* Author and Date Badges */}
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      {paper.author && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-secondary/80">
-                          <User className="h-3 w-3" />
-                          {paper.author.name}
-                        </Badge>
-                      )}
-                      
-                      <Badge variant="outline" className="flex items-center gap-1 border-muted-foreground/20">
-                        <Calendar className="h-3 w-3" />
-                        Submitted: {formatDate(paper.submissionDate)}
-                      </Badge>
-                      
-                      {paper.acceptedDate && (
-                        <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100 dark:border-green-800">
-                          <Calendar className="h-3 w-3" />
-                          Published: {formatDate(paper.acceptedDate)}
-                        </Badge>
-                      )}
-                    </div>
+                  >
+                    {paper.title}
+                  </h3>
+                  </Link>
+                  <div className="flex items-center shrink-0 flex-col">
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-800"
+                    >
+                      Published
+                    </Badge>
+                    {
+                      paper.doi &&(
+                        <Link href={`${paper.doi}`} target="_blank" rel="noopener noreferrer" className="font-normal text-black hover:text-blue-600 hover:underline duration-200 text-lg">
 
-                    {/* Keywords */}
-                    {paper.keywords && paper.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {paper.keywords.slice(0, 5).map((keyword, index) => (
-                          <Badge key={index} variant="outline" className="text-xs bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
-                            <Tag className="h-3 w-3 mr-1" />
-                            {keyword}
-                          </Badge>
-                        ))}
-                        {paper.keywords.length > 5 && (
-                          <Badge variant="outline" className="text-xs bg-muted">
-                            +{paper.keywords.length - 5} more
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => viewPaperDetails(paper.id)}
-                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Details
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => window.open(paper.filePath, "_blank")}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View PDF
-                    </Button>
+                      {paper.doi} </Link>
+                    
+                      )
+                    }
+                    
                   </div>
                 </div>
-              </CardHeader>
-              
-              <CardContent>
-                {/* Abstract with Collapsible */}
-                <Collapsible>
-                  <div className="mb-2">
-                    <CollapsibleTrigger 
-                      className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-                      onClick={() => toggleAbstract(paper.id)}
-                    >
-                      Abstract
-                      {expandedAbstracts.has(paper.id) ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </CollapsibleTrigger>
+
+                <div className="flex flex-row w-max justify-between items-start gap-4 text-sm text-muted-foreground mb-3">
+                  {paper.contributors &&
+                    (paper.contributors.length > 0 ? (
+                      paper.contributors.map((contributor, index) => (
+                        <NavigationMenu key={index}>
+                          <NavigationMenuItem>
+                            <NavigationMenuTrigger className="text-xs flex items-center gap-1 p-2">
+                              <User className="h-4 w-4" />
+                              <span>{contributor.fullName}</span>
+                            </NavigationMenuTrigger>
+                            <NavigationMenuContent className="flex flex-col">
+                              <div className="flex flex-col w-auto h-auto gap-1">
+                                {contributor.affiliation?.split(",").map((affil, i) => (
+                                  <Badge key={i} variant="default" className="flex items-center gap-2">
+                                    <IconAffiliate />
+                                    <span>{affil}</span>
+                                  </Badge>
+                                ))}
+                              </div>
+                            </NavigationMenuContent>
+                          </NavigationMenuItem>
+                        </NavigationMenu>
+                      ))
+                    ) : (
+                      <span>No contributors found</span>
+                    ))}
+                </div>
+
+                <div className="flex gap-3 mb-3 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    <span>Submitted: {formatDate(paper.submissionDate)}</span>
                   </div>
-                  
-                  <CollapsibleContent>
-                    <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md">
-                      {truncateAbstract(paper.abstract)}
+                  {paper.acceptedDate && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">
+                        Published: {formatDate(paper.acceptedDate)}
+                      </span>
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  )}
+                </div>
+
+                {/* Keywords */}
+                {paper.keywords && paper.keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {paper.keywords.slice(0, 5).map((keyword, index) => (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className="text-xs"
+                      >
+                        {keyword}
+                      </Badge>
+                    ))}
+                    {paper.keywords.length > 5 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{paper.keywords.length - 5} more
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Abstract */}
+                <div className="mb-4">
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    {expandedAbstracts.has(paper.paperId)
+                      ? paper.abstract
+                      : truncateAbstract(paper.abstract, 450)}
+                  </div>
+                  {paper.abstract && paper.abstract.length > 450 && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => toggleAbstract(paper.paperId)}
+                      className="p-0 h-auto text-xs mt-2"
+                    >
+                      {expandedAbstracts.has(paper.paperId) ? (
+                        <>
+                          <ChevronUp className="h-3 w-3 mr-1" />
+                          Show Less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-3 w-3 mr-1" />
+                          Show More
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))

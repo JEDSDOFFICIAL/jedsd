@@ -130,11 +130,13 @@ const updatePaperSchema = z.object({
   title: z.string().min(1, "Title cannot be empty.").optional(),
   abstract: z.string().min(1, "Abstract cannot be empty.").optional(),
   filePath: z.string().min(1, "File path cannot be empty.").optional(),
-  keywords: z.array(z.string().min(1, "Keyword cannot be empty.")).min(1, "At least one keyword is required.").optional(),
-  rating: z.number().int().min(1).max(5).optional(), // Assuming rating is between 1 and 5
+  keywords: z.array(z.string().min(1, "Keyword cannot be empty.")).optional(),
+  rating: z.number().min(0).max(5).optional().nullable(), // Allow 0-5 with decimals and nullable
   submissionDate: z.coerce.date().optional(), // Expecting an ISO date string
-  acceptedDate: z.coerce.date().optional(), // Expecting an ISO date string
-  correspondingFile: z.string().min(1, "File path cannot be empty.").optional(),
+  acceptedDate: z.coerce.date().optional().nullable(), // Expecting an ISO date string or null
+  doi: z.string().optional().nullable(), // Digital Object Identifier
+  coverLetterPath: z.string().optional().nullable(),
+  correspondingFile: z.string().min(1, "File path cannot be empty.").optional().nullable(),
   editorDecisionFile: z.string().optional().nullable(),
   editorDecision: z.enum(["ACCEPT", "MINOR_REVISION", "MAJOR_REVISION", "REJECT"]).optional().nullable(),
   editorComments: z.string().optional().nullable(),
@@ -143,7 +145,7 @@ const updatePaperSchema = z.object({
     email: z.string().email("Invalid email address").min(1, "Email is required"),
     contactNumber: z.string().min(1, "Contact Number is required"),
     affiliation: z.string().min(1, "Affiliation is required"),
-  })).min(1, "At least one contributor is required.").optional(),
+  })).optional(),
   pointOfContact: z.object({
     fullName: z.string().min(1, "Full Name is required"),
     email: z.string().email("Invalid email address").min(1, "Email is required"),

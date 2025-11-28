@@ -190,9 +190,16 @@ export async function GET(request: Request) {
       };
     }
 
-    const status = searchParams.get("status");
-    if (status) {
-      where.status = status;
+    const statuses = searchParams.getAll("status");
+    if (statuses.length > 0) {
+      if (statuses.length === 1) {
+        where.status = statuses[0];
+      } else {
+        // Multiple statuses - use OR condition
+        where.status = {
+          in: statuses
+        };
+      }
     }
 
     const reviewerStatus = searchParams.get("reviewerStatus");
@@ -217,7 +224,7 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
-
+    console.log("Where clause for fetching papers:", where);
     const [papers, totalPapers] = await prisma.$transaction([
       prisma.researchPaper.findMany({
         where,
@@ -332,8 +339,15 @@ const updatePaperSchema = z.object({
   filePath: z.string().url("Invalid file path URL.").optional(),
   keywords: z.array(z.string().min(1, "Keyword cannot be empty.")).optional(),
   coverLetterPath: z.string().url("Invalid cover letter path URL.").optional().nullable(),
+  doi: z.string().optional().nullable(),
   contributors: z.array(contactInfoSchema).optional(),
   pointOfContact: contactInfoSchema.optional(),
+  rating: z.number().min(0).max(5).optional().nullable(),
+  submissionDate: z.coerce.date().optional(),
+  acceptedDate: z.coerce.date().optional().nullable(),
+  editorDecision: z.enum(["ACCEPT", "MINOR_REVISION", "MAJOR_REVISION", "REJECT"]).optional().nullable(),
+  editorComments: z.string().optional().nullable(),
+  editorDecisionFile: z.string().url("Invalid decision file URL.").optional().nullable(),
 });
 
 // PUT /api/paper - Update an existing research paper

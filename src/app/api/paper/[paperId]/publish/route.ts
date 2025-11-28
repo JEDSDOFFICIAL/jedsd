@@ -13,10 +13,10 @@ const paperIdParamSchema = z.object({
 // Zod Schema for the request body to update paper status
 const updatePaperStatusSchema = z.object({
   status: z.nativeEnum(PaperStatus, {
-    errorMap: () => ({ message: "Invalid paper status. Must be ACCEPTED or REJECTED." }),
+    errorMap: () => ({ message: "Invalid paper status. Must be ACCEPTED, REJECTED, or PUBLISH." }),
   }).refine(
-    (val) => val === PaperStatus.ACCEPTED || val === PaperStatus.REJECTED,
-    { message: "Status must be ACCEPTED or REJECTED for publishing/rejecting." }
+    (val) => val === PaperStatus.ACCEPTED || val === PaperStatus.REJECTED || val === PaperStatus.PUBLISH,
+    { message: "Status must be ACCEPTED, REJECTED, or PUBLISH for publishing/rejecting." }
   ),
 });
 
@@ -30,6 +30,7 @@ export async function PATCH(req: NextRequest,context: { params: Promise<{ paperI
     // Validate the extracted paperId
     const paperIdValidationResult = paperIdParamSchema.safeParse({ paperId });
     if (!paperIdValidationResult.success) {
+      console.log("Paper ID validation failed:", paperIdValidationResult.error);
       return NextResponse.json(
         { success: false, message: "Invalid paper ID provided.", errors: paperIdValidationResult.error.errors },
         { status: 400 }
@@ -44,6 +45,7 @@ export async function PATCH(req: NextRequest,context: { params: Promise<{ paperI
     const statusValidationResult = updatePaperStatusSchema.safeParse(body);
 
     if (!statusValidationResult.success) {
+      console.log("Status validation failed:",body.status, statusValidationResult.error);
       return NextResponse.json(
         { success: false, message: "Invalid status provided.", errors: statusValidationResult.error.errors },
         { status: 400 }
@@ -58,7 +60,7 @@ export async function PATCH(req: NextRequest,context: { params: Promise<{ paperI
       data: {
         status: status,
         // Optionally, set acceptedDate if status is ACCEPTED
-        acceptedDate: status === PaperStatus.ACCEPTED ? new Date() : null,
+        acceptedDate: new Date(),
       },
       include: {
         author: {

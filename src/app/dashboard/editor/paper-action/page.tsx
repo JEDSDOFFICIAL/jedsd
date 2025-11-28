@@ -50,6 +50,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { publishPaper } from "@/lib/Frontend-actions";
 
 interface Paper {
   id: string;
@@ -158,16 +159,10 @@ export default function PaperActionPage() {
     if (!paper) return;
 
     try {
-      setActionLoading(true);
-      
-      const response = await fetch(`/api/paper/${paper.id}/publish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (response.ok) {
+      const response = await publishPaper(paper.id);
+      if (response.success) {
         toast.success("Paper published successfully");
-        fetchPaperDetails();
+        fetchPaperDetails(); // Refresh paper data
       } else {
         toast.error("Failed to publish paper");
       }

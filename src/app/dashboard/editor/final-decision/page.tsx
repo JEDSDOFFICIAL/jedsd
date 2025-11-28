@@ -97,6 +97,8 @@ interface PaperReviewWithReviewer extends PaperReview {
 
 interface PaperWithRelations {
   id: string;
+  paperId: string;
+  doi: string | null;
   title: string;
   abstract: string;
   filePath: string;
@@ -143,8 +145,22 @@ export default function FinalDecisionPage() {
     abstract: "",
     keywords: [] as string[],
     rating: 0,
+    filePath: "",
+    coverLetterPath: "",
+    doi: "",
+    contributors: [] as AuthorOrContact[],
+    pointOfContact: {
+      fullName: "",
+      email: "",
+      affiliation: "",
+      contactNumber: "",
+    } as AuthorOrContact,
+    submissionDate: "",
+    acceptedDate: "",
   });
   const [newKeyword, setNewKeyword] = useState("");
+  const [paperFile, setPaperFile] = useState<File | null>(null);
+  const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
 
   // Decision form states
   const [decisionForm, setDecisionForm] = useState({
@@ -205,6 +221,18 @@ export default function FinalDecisionPage() {
       abstract: paper.abstract,
       keywords: paper.keywords,
       rating: paper.rating || 0,
+      filePath: paper.filePath,
+      coverLetterPath: paper.coverLetterPath || "",
+      doi: paper.doi || "",
+      contributors: paper.contributors || [],
+      pointOfContact: paper.pointOfContact || {
+        fullName: "",
+        email: "",
+        affiliation: "",
+        contactNumber: "",
+      },
+      submissionDate: new Date(paper.submissionDate).toISOString().split('T')[0],
+      acceptedDate: paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : "",
     });
     setEditDialogOpen(true);
   };
@@ -220,8 +248,22 @@ export default function FinalDecisionPage() {
           abstract: "",
           keywords: [],
           rating: 0,
+          filePath: "",
+          coverLetterPath: "",
+          doi: "",
+          contributors: [],
+          pointOfContact: {
+            fullName: "",
+            email: "",
+            affiliation: "",
+            contactNumber: "",
+          },
+          submissionDate: "",
+          acceptedDate: "",
         });
         setNewKeyword("");
+        setPaperFile(null);
+        setCoverLetterFile(null);
       }, 300);
     }
   };
@@ -235,8 +277,22 @@ export default function FinalDecisionPage() {
         abstract: "",
         keywords: [],
         rating: 0,
+        filePath: "",
+        coverLetterPath: "",
+        doi: "",
+        contributors: [],
+        pointOfContact: {
+          fullName: "",
+          email: "",
+          affiliation: "",
+          contactNumber: "",
+        },
+        submissionDate: "",
+        acceptedDate: "",
       });
       setNewKeyword("");
+      setPaperFile(null);
+      setCoverLetterFile(null);
     }, 300);
   };
 
@@ -245,16 +301,62 @@ export default function FinalDecisionPage() {
 
     try {
       setActionLoading(true);
-      await updatePaper(selectedPaper.id, {
+      const toastId = toast.loading("Updating paper...");
+
+      let uploadedPaperUrl = editFormData.filePath;
+      let uploadedCoverLetterUrl = editFormData.coverLetterPath;
+
+      // Upload new paper file if provided
+      if (paperFile) {
+        toast.loading("Uploading paper file...", { id: toastId });
+        const paperUrl = await uploadFileToFirebase(
+          paperFile,
+          `research-papers/${selectedPaper.id}`
+        );
+        if (!paperUrl) {
+          toast.error("Failed to upload paper file", { id: toastId });
+          setActionLoading(false);
+          return;
+        }
+        uploadedPaperUrl = paperUrl;
+      }
+
+      // Upload new cover letter if provided
+      if (coverLetterFile) {
+        toast.loading("Uploading cover letter...", { id: toastId });
+        const coverUrl = await uploadFileToFirebase(
+          coverLetterFile,
+          `cover-letters/${selectedPaper.id}`
+        );
+        if (!coverUrl) {
+          toast.error("Failed to upload cover letter", { id: toastId });
+          setActionLoading(false);
+          return;
+        }
+        uploadedCoverLetterUrl = coverUrl;
+      }
+
+      toast.loading("Saving changes...", { id: toastId });
+      await updatePaper(selectedPaper.paperId, {
         title: editFormData.title,
         abstract: editFormData.abstract,
         keywords: editFormData.keywords,
         rating: editFormData.rating,
+        filePath: uploadedPaperUrl,
+        coverLetterPath: uploadedCoverLetterUrl || null,
+        doi: editFormData.doi || null,
+        contributors: editFormData.contributors,
+        pointOfContact: editFormData.pointOfContact,
+        submissionDate: editFormData.submissionDate ? new Date(editFormData.submissionDate) : undefined,
+        acceptedDate: editFormData.acceptedDate ? new Date(editFormData.acceptedDate) : null,
       });
+      
+      toast.success("Paper updated successfully!", { id: toastId });
       handleCloseEditDialog();
       fetchFinalPapers();
     } catch (error) {
       console.error("Failed to update paper:", error);
+      toast.error("Failed to update paper");
     } finally {
       setActionLoading(false);
     }
@@ -438,7 +540,7 @@ export default function FinalDecisionPage() {
 
       // Submit the decision
       toast.loading("Saving decision...", { id: toastId });
-      await updatePaper(selectedPaper.id, {
+      await updatePaper(selectedPaper.paperId, {
         editorDecision: decisionForm.decision,
         editorComments: decisionForm.comments,
         editorDecisionFile: uploadedFileUrl,
@@ -948,79 +1050,408 @@ export default function FinalDecisionPage() {
 
       {/* Edit Paper Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={handleEditDialogOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Paper Details</DialogTitle>
             <DialogDescription>
-              Update paper information and metadata
+              Update all paper information, metadata, and associated files
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-title">Title *</Label>
-              <Input
-                id="edit-title"
-                value={editFormData.title}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Paper title"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-abstract">Abstract *</Label>
-              <Textarea
-                id="edit-abstract"
-                value={editFormData.abstract}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, abstract: e.target.value }))}
-                placeholder="Paper abstract"
-                className="min-h-[150px]"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-rating">Rating (0-5)</Label>
-              <Input
-                id="edit-rating"
-                type="number"
-                min="0"
-                max="5"
-                step="0.1"
-                value={editFormData.rating}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
-
-            <div>
-              <Label>Keywords</Label>
-              <div className="flex gap-2 mt-2">
+          <div className="space-y-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Basic Information
+              </h3>
+              
+              <div>
+                <Label htmlFor="edit-title">Title *</Label>
                 <Input
-                  value={newKeyword}
-                  onChange={(e) => setNewKeyword(e.target.value)}
-                  placeholder="Add keyword"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddKeyword();
+                  id="edit-title"
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Paper title"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-doi">DOI (Digital Object Identifier)</Label>
+                <Input
+                  id="edit-doi"
+                  value={editFormData.doi}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, doi: e.target.value }))}
+                  placeholder="10.xxxx/xxxxx (optional)"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Example: 10.1234/example.2024.001
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-abstract">Abstract *</Label>
+                <Textarea
+                  id="edit-abstract"
+                  value={editFormData.abstract}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, abstract: e.target.value }))}
+                  placeholder="Paper abstract"
+                  className="min-h-[150px]"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-rating">Rating (0-5)</Label>
+                <Input
+                  id="edit-rating"
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.1"
+                  value={editFormData.rating}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 0 }))}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-submission-date" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Submission Date
+                  </Label>
+                  <Input
+                    id="edit-submission-date"
+                    type="date"
+                    value={editFormData.submissionDate}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, submissionDate: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-accepted-date" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Accepted Date (Optional)
+                  </Label>
+                  <Input
+                    id="edit-accepted-date"
+                    type="date"
+                    value={editFormData.acceptedDate}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, acceptedDate: e.target.value }))}
+                  />
+                  {editFormData.acceptedDate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditFormData(prev => ({ ...prev, acceptedDate: "" }))}
+                      className="mt-1 h-6 text-xs"
+                    >
+                      Clear Date
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label>Keywords</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={newKeyword}
+                    onChange={(e) => setNewKeyword(e.target.value)}
+                    placeholder="Add keyword"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddKeyword();
+                      }
+                    }}
+                  />
+                  <Button type="button" variant="outline" onClick={handleAddKeyword}>
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {editFormData.keywords.map((keyword, index) => (
+                    <Badge key={index} variant="secondary">
+                      {keyword}
+                      <button
+                        onClick={() => handleRemoveKeyword(keyword)}
+                        className="ml-2 hover:text-destructive"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Files */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Files
+              </h3>
+
+              <div>
+                <Label htmlFor="edit-paper-file">Research Paper (PDF)</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Current file: {editFormData.filePath ? "Uploaded" : "No file"}
+                </p>
+                <Input
+                  id="edit-paper-file"
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.type !== "application/pdf") {
+                        toast.error("Please upload a PDF file");
+                        return;
+                      }
+                      if (file.size > 20 * 1024 * 1024) {
+                        toast.error("File size must be less than 20MB");
+                        return;
+                      }
+                      setPaperFile(file);
+                      toast.success(`File "${file.name}" selected`);
                     }
                   }}
                 />
-                <Button type="button" variant="outline" onClick={handleAddKeyword}>
-                  Add
+                {paperFile && (
+                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 rounded-md mt-2">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>{paperFile.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPaperFile(null)}
+                      className="ml-auto"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="edit-cover-letter">Cover Letter (Optional, PDF)</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Current file: {editFormData.coverLetterPath ? "Uploaded" : "No file"}
+                </p>
+                <Input
+                  id="edit-cover-letter"
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.type !== "application/pdf") {
+                        toast.error("Please upload a PDF file");
+                        return;
+                      }
+                      if (file.size > 10 * 1024 * 1024) {
+                        toast.error("File size must be less than 10MB");
+                        return;
+                      }
+                      setCoverLetterFile(file);
+                      toast.success(`File "${file.name}" selected`);
+                    }
+                  }}
+                />
+                {coverLetterFile && (
+                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 rounded-md mt-2">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>{coverLetterFile.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCoverLetterFile(null)}
+                      className="ml-auto"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Point of Contact */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <UserIcon className="h-5 w-5" />
+                Point of Contact
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="poc-name">Full Name *</Label>
+                  <Input
+                    id="poc-name"
+                    value={editFormData.pointOfContact.fullName}
+                    onChange={(e) => setEditFormData(prev => ({
+                      ...prev,
+                      pointOfContact: { ...prev.pointOfContact, fullName: e.target.value }
+                    }))}
+                    placeholder="Full name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="poc-email">Email *</Label>
+                  <Input
+                    id="poc-email"
+                    type="email"
+                    value={editFormData.pointOfContact.email}
+                    onChange={(e) => setEditFormData(prev => ({
+                      ...prev,
+                      pointOfContact: { ...prev.pointOfContact, email: e.target.value }
+                    }))}
+                    placeholder="email@example.com"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="poc-affiliation">Affiliation *</Label>
+                  <Input
+                    id="poc-affiliation"
+                    value={editFormData.pointOfContact.affiliation}
+                    onChange={(e) => setEditFormData(prev => ({
+                      ...prev,
+                      pointOfContact: { ...prev.pointOfContact, affiliation: e.target.value }
+                    }))}
+                    placeholder="Institution"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="poc-contact">Contact Number *</Label>
+                  <Input
+                    id="poc-contact"
+                    value={editFormData.pointOfContact.contactNumber}
+                    onChange={(e) => setEditFormData(prev => ({
+                      ...prev,
+                      pointOfContact: { ...prev.pointOfContact, contactNumber: e.target.value }
+                    }))}
+                    placeholder="+1234567890"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Contributors */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <UserIcon className="h-5 w-5" />
+                  Contributors ({editFormData.contributors.length})
+                </h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEditFormData(prev => ({
+                      ...prev,
+                      contributors: [
+                        ...prev.contributors,
+                        { fullName: "", email: "", affiliation: "", contactNumber: "" }
+                      ]
+                    }));
+                  }}
+                >
+                  Add Contributor
                 </Button>
               </div>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {editFormData.keywords.map((keyword, index) => (
-                  <Badge key={index} variant="secondary">
-                    {keyword}
-                    <button
-                      onClick={() => handleRemoveKeyword(keyword)}
-                      className="ml-2 hover:text-destructive"
-                    >
-                      ×
-                    </button>
-                  </Badge>
+
+              <div className="space-y-4">
+                {editFormData.contributors.map((contributor, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="font-semibold">Contributor {index + 1}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditFormData(prev => ({
+                            ...prev,
+                            contributors: prev.contributors.filter((_, i) => i !== index)
+                          }));
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor={`contrib-name-${index}`}>Full Name *</Label>
+                        <Input
+                          id={`contrib-name-${index}`}
+                          value={contributor.fullName}
+                          onChange={(e) => {
+                            const newContributors = [...editFormData.contributors];
+                            newContributors[index].fullName = e.target.value;
+                            setEditFormData(prev => ({ ...prev, contributors: newContributors }));
+                          }}
+                          placeholder="Full name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`contrib-email-${index}`}>Email *</Label>
+                        <Input
+                          id={`contrib-email-${index}`}
+                          type="email"
+                          value={contributor.email}
+                          onChange={(e) => {
+                            const newContributors = [...editFormData.contributors];
+                            newContributors[index].email = e.target.value;
+                            setEditFormData(prev => ({ ...prev, contributors: newContributors }));
+                          }}
+                          placeholder="email@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`contrib-affiliation-${index}`}>Affiliation *</Label>
+                        <Input
+                          id={`contrib-affiliation-${index}`}
+                          value={contributor.affiliation}
+                          onChange={(e) => {
+                            const newContributors = [...editFormData.contributors];
+                            newContributors[index].affiliation = e.target.value;
+                            setEditFormData(prev => ({ ...prev, contributors: newContributors }));
+                          }}
+                          placeholder="Institution"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`contrib-contact-${index}`}>Contact Number *</Label>
+                        <Input
+                          id={`contrib-contact-${index}`}
+                          value={contributor.contactNumber}
+                          onChange={(e) => {
+                            const newContributors = [...editFormData.contributors];
+                            newContributors[index].contactNumber = e.target.value;
+                            setEditFormData(prev => ({ ...prev, contributors: newContributors }));
+                          }}
+                          placeholder="+1234567890"
+                        />
+                      </div>
+                    </div>
+                  </Card>
                 ))}
               </div>
+
+              {editFormData.contributors.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No contributors added. Click "Add Contributor" to add one.
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -1028,7 +1459,14 @@ export default function FinalDecisionPage() {
               Cancel
             </Button>
             <Button onClick={handleUpdatePaper} disabled={actionLoading}>
-              {actionLoading ? "Updating..." : "Update Paper"}
+              {actionLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Updating...
+                </>
+              ) : (
+                "Update Paper"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -36,9 +36,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 interface ResearchPaper {
   id: string;
+  paperId: string;
+  doi?: string;
   title: string;
   abstract: string;
   keywords: string[];
@@ -201,17 +204,17 @@ export default function PaperDetailsPage() {
   return (
     <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
 
-      <div className="container mx-auto px-4 py-8 w-full lg:pt-36 md:pt-40 pt-36">
+      <div className="container mx-auto px-4 w-full">
         {/* Header */}
         <div className="my-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+          {
+            paper.doi &&(
+              <Link href={`${paper.doi}`} target="_blank" rel="noopener noreferrer" className="font-normal text-black hover:text-blue-600 hover:underline duration-200 text-lg mb-2 inline-block">
+
+              {paper.doi} </Link>
+            )
+          }
+      
 
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -250,7 +253,7 @@ export default function PaperDetailsPage() {
                 <Share className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button onClick={() => window.open(paper.filePath, "_blank")}>
+              <Button onClick={() => window.open(paper.filePath, "_blank")} className="cursor-pointer">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View PDF
               </Button>
@@ -297,41 +300,8 @@ export default function PaperDetailsPage() {
               </Card>
             )}
 
-            {/* Contributors */}
-            {contributors.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                    <User className="h-5 w-5" />
-                    Contributors
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {contributors.map((contributor, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-2">
-                          {contributor.fullName}
-                        </h4>
-                        <div className="flex flex-row justify-around gap-2 text-base text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            {contributor.email}
-                          </div>
-                         
-                          {contributor.affiliation && (
-                            <div className="flex items-center gap-2 ">
-                              <Building className="h-4 w-4" />
-                              {contributor.affiliation}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* PDF Preview */}
+           
           </div>
 
           {/* Sidebar */}
@@ -374,6 +344,18 @@ export default function PaperDetailsPage() {
                 <CardTitle className="text-xl font-semibold">Paper Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {paper.doi && (
+                  <>
+                    <div className="flex flex-col">
+                      <Label className="text-base font-medium">DOI</Label>
+                      <Link href={paper.doi} target="_blank" rel="noopener noreferrer" className="text-base text-muted-foreground font-mono">
+                        {paper.doi}
+                      </Link>
+                    </div>
+                    <Separator />
+                  </>
+                )}
+
                 <div>
                   <Label className="text-base font-medium">Status</Label>
                   <p className="text-base text-muted-foreground">
@@ -410,17 +392,7 @@ export default function PaperDetailsPage() {
                   </>
                 )}
 
-                {paper.rating && (
-                  <>
-                    <Separator />
-                    <div>
-                      <Label className="text-base font-medium">Rating</Label>
-                      <p className="text-base text-muted-foreground">
-                        {paper.rating}/5
-                      </p>
-                    </div>
-                  </>
-                )}
+                
               </CardContent>
             </Card>
 
@@ -466,7 +438,94 @@ export default function PaperDetailsPage() {
               </Card>
             )} */}
           </div>
+          
         </div>
+
+         {paper.filePath && (
+              <Card className="w-full my-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                    <FileText className="h-5 w-5" />
+                    Paper Preview
+                  </CardTitle>
+                  <CardDescription>
+                    Viewing first 3 pages - Open full paper to see all pages
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="w-full">
+                    <iframe
+                      src={`${paper.filePath}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                      className="w-full md:h-[600px] lg:h-[800px] h-[400px] border rounded-lg"
+                      title="PDF Preview"
+                    />
+                    <div className="mt-4 flex justify-center">
+                      <Button
+                        onClick={() => window.open(paper.filePath, "_blank")}
+                        size="lg"
+                        className="w-full sm:w-auto"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Full Paper
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+        {/* Authors Section - Full Width */}
+        {contributors.length > 0 && (
+          <Card className="w-full my-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                <User className="h-5 w-5" />
+                Authors ({contributors.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {contributors.map((contributor, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-card"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-base mb-2 truncate" title={contributor.fullName}>
+                          {contributor.fullName}
+                        </h4>
+                        
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-start gap-2 text-muted-foreground">
+                            <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <a
+                              href={`mailto:${contributor.email}`}
+                              className="hover:text-primary hover:underline break-all"
+                            >
+                              {contributor.email}
+                            </a>
+                          </div>
+                          
+                          {contributor.affiliation && (
+                            <div className="flex items-start gap-2 text-muted-foreground">
+                              <Building className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              <span className="break-words">{contributor.affiliation}</span>
+                            </div>
+                          )}
+
+                          
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
     </div>

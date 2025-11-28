@@ -94,7 +94,7 @@ export async function updatePaper(
   onSuccess?: () => void
 ): Promise<void> {
   try {
-    await axios.patch(
+    await axios.put(
       `/api/paper/${paperId}`,
       updates,
       { headers: { "Content-Type": "application/json" } }
@@ -238,7 +238,9 @@ export async function fetchPaperReviews(
 
 export async function publishPaper(paperId:string,onSuccess?:()=>void){
   try {
-    const res = await axios.patch(`/api/paper/${paperId}/publish`);
+    const res = await axios.patch(`/api/paper/${paperId}/publish`, {
+      status: "PUBLISH"
+    });
     console.log("Published paper:", res.data);
     onSuccess?.();
     return res.data;
