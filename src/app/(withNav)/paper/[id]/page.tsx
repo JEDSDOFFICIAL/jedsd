@@ -165,6 +165,139 @@ export default async function PaperDetailsPage({ params }: { params: { id: strin
     });
   };
 
+  // Share paper
+  const sharePaper = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: paper?.title,
+        text: paper?.abstract,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchPaperDetails();
+    }
+  }, [id]);
+
+  // Update metadata dynamically
+  useEffect(() => {
+    if (paper) {
+      // Update document title
+      document.title = `${paper.title} - JEDSD`;
+
+      // Update meta tags
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', paper.abstract.substring(0, 160) + '...');
+      } else {
+        const meta = document.createElement('meta');
+        meta.name = 'description';
+        meta.content = paper.abstract.substring(0, 160) + '...';
+        document.head.appendChild(meta);
+      }
+
+      // Open Graph meta tags for social sharing
+      const updateOrCreateMetaTag = (property: string, content: string) => {
+        const metaTag = document.querySelector(`meta[property="${property}"]`);
+        if (metaTag) {
+          metaTag.setAttribute('content', content);
+        } else {
+          const meta = document.createElement('meta');
+          meta.setAttribute('property', property);
+          meta.setAttribute('content', content);
+          document.head.appendChild(meta);
+        }
+      };
+
+      updateOrCreateMetaTag('og:title', paper.title);
+      updateOrCreateMetaTag('og:description', paper.abstract.substring(0, 200) + '...');
+      updateOrCreateMetaTag('og:type', 'article');
+      updateOrCreateMetaTag('og:url', window.location.href);
+      if (paper.doi) {
+        updateOrCreateMetaTag('og:article:published_time', paper.acceptedDate || paper.submissionDate);
+      }
+
+      // Twitter Card meta tags
+      const updateOrCreateTwitterTag = (name: string, content: string) => {
+        const metaTag = document.querySelector(`meta[name="${name}"]`);
+        if (metaTag) {
+          metaTag.setAttribute('content', content);
+        } else {
+          const meta = document.createElement('meta');
+          meta.setAttribute('name', name);
+          meta.setAttribute('content', content);
+          document.head.appendChild(meta);
+        }
+      };
+
+      updateOrCreateTwitterTag('twitter:card', 'summary_large_image');
+      updateOrCreateTwitterTag('twitter:title', paper.title);
+      updateOrCreateTwitterTag('twitter:description', paper.abstract.substring(0, 200) + '...');
+    }
+  }, [paper]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <Skeleton className="h-8 w-32 mb-6" />
+        <Skeleton className="h-10 w-3/4 mb-4" />
+        <Skeleton className="h-6 w-1/2 mb-8" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4" />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!paper) {
+    return (
+      <div className="container mx-auto px-4 py-8 ">
+        <div className="text-center py-12">
+          <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Paper Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            The research paper you&apos;re looking for doesn&apos;t exist or has been
+            removed.
+          </p>
+          <Button onClick={() => router.push("/paper")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Search
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
       <div className="container mx-auto px-4 w-full">
