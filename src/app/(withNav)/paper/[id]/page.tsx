@@ -207,15 +207,7 @@ export default function PaperDetailsPage() {
       <div className="container mx-auto px-4 w-full">
         {/* Header */}
         <div className="my-6">
-          {
-            paper.doi &&(
-              <Link href={`${paper.doi}`} target="_blank" rel="noopener noreferrer" className="font-normal text-black hover:text-blue-600 hover:underline duration-200 text-lg mb-2 inline-block">
-
-              {paper.doi} </Link>
-            )
-          }
-      
-
+         
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-4 leading-tight">
@@ -252,10 +244,6 @@ export default function PaperDetailsPage() {
               <Button variant="outline" onClick={sharePaper}>
                 <Share className="h-4 w-4 mr-2" />
                 Share
-              </Button>
-              <Button onClick={() => window.open(paper.filePath, "_blank")} className="cursor-pointer">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View PDF
               </Button>
             </div>
           </div>

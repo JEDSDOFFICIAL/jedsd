@@ -636,23 +636,7 @@ function PaperSearchContent() {
                     {paper.title}
                   </h3>
                   </Link>
-                  <div className="flex items-center shrink-0 flex-col">
-                    <Badge
-                      variant="secondary"
-                      className="bg-green-100 text-green-800"
-                    >
-                      Published
-                    </Badge>
-                    {
-                      paper.doi &&(
-                        <Link href={`${paper.doi}`} target="_blank" rel="noopener noreferrer" className="font-normal text-black hover:text-blue-600 hover:underline duration-200 text-lg">
-
-                      {paper.doi} </Link>
-                    
-                      )
-                    }
-                    
-                  </div>
+                  
                 </div>
 
                 <div className="flex flex-row w-max justify-between items-start gap-4 text-sm text-muted-foreground mb-3">
