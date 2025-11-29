@@ -57,7 +57,7 @@ interface ResearchPaper {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   try {
     const { id } = await params;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const response = await fetch(`${baseUrl}/api/paper/${id}`, {
       cache: 'no-store',
     });
