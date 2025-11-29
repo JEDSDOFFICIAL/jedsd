@@ -27,6 +27,8 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import PaperDetailsClient from "./PaperDetailsClient";
+import AuthorBadges from "./AuthorBadges";
+
 
 interface ResearchPaper {
   id: string;
@@ -52,10 +54,11 @@ interface ResearchPaper {
 }
 
 // Server-side metadata generation for social sharing
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   try {
+    const { id } = await params;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/paper/${params.id}`, {
+    const response = await fetch(`${baseUrl}/api/paper/${id}`, {
       cache: 'no-store',
     });
 
@@ -84,8 +87,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         title: paper.title,
         description: paper.abstract.substring(0, 200) + '...',
         type: 'article',
-        url: `${baseUrl}/paper/${params.id}`,
-        siteName: 'JEDSD - Journal of Engineering and Digital Systems Development',
+        url: `${baseUrl}/paper/${id}`,
+        siteName: 'JEDSD - Journal of Embedded and Digital System Design',
         publishedTime: paper.acceptedDate || paper.submissionDate,
         authors: authorsNames ? [authorsNames] : undefined,
       },
@@ -105,14 +108,15 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 // Server Component - Fetch data on the server
-export default async function PaperDetailsPage({ params }: { params: { id: string } }) {
+export default async function PaperDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   let paper: ResearchPaper | null = null;
   let contributors: any[] = [];
   let pointOfContact: any = null;
 
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/paper/${params.id}`, {
+    const response = await fetch(`${baseUrl}/api/paper/${id}`, {
       cache: 'no-store',
     });
 
@@ -165,139 +169,6 @@ export default async function PaperDetailsPage({ params }: { params: { id: strin
     });
   };
 
-  // Share paper
-  const sharePaper = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: paper?.title,
-        text: paper?.abstract,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copied to clipboard!");
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      fetchPaperDetails();
-    }
-  }, [id]);
-
-  // Update metadata dynamically
-  useEffect(() => {
-    if (paper) {
-      // Update document title
-      document.title = `${paper.title} - JEDSD`;
-
-      // Update meta tags
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', paper.abstract.substring(0, 160) + '...');
-      } else {
-        const meta = document.createElement('meta');
-        meta.name = 'description';
-        meta.content = paper.abstract.substring(0, 160) + '...';
-        document.head.appendChild(meta);
-      }
-
-      // Open Graph meta tags for social sharing
-      const updateOrCreateMetaTag = (property: string, content: string) => {
-        const metaTag = document.querySelector(`meta[property="${property}"]`);
-        if (metaTag) {
-          metaTag.setAttribute('content', content);
-        } else {
-          const meta = document.createElement('meta');
-          meta.setAttribute('property', property);
-          meta.setAttribute('content', content);
-          document.head.appendChild(meta);
-        }
-      };
-
-      updateOrCreateMetaTag('og:title', paper.title);
-      updateOrCreateMetaTag('og:description', paper.abstract.substring(0, 200) + '...');
-      updateOrCreateMetaTag('og:type', 'article');
-      updateOrCreateMetaTag('og:url', window.location.href);
-      if (paper.doi) {
-        updateOrCreateMetaTag('og:article:published_time', paper.acceptedDate || paper.submissionDate);
-      }
-
-      // Twitter Card meta tags
-      const updateOrCreateTwitterTag = (name: string, content: string) => {
-        const metaTag = document.querySelector(`meta[name="${name}"]`);
-        if (metaTag) {
-          metaTag.setAttribute('content', content);
-        } else {
-          const meta = document.createElement('meta');
-          meta.setAttribute('name', name);
-          meta.setAttribute('content', content);
-          document.head.appendChild(meta);
-        }
-      };
-
-      updateOrCreateTwitterTag('twitter:card', 'summary_large_image');
-      updateOrCreateTwitterTag('twitter:title', paper.title);
-      updateOrCreateTwitterTag('twitter:description', paper.abstract.substring(0, 200) + '...');
-    }
-  }, [paper]);
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Skeleton className="h-8 w-32 mb-6" />
-        <Skeleton className="h-10 w-3/4 mb-4" />
-        <Skeleton className="h-6 w-1/2 mb-8" />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-3/4" />
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-2/3" />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!paper) {
-    return (
-      <div className="container mx-auto px-4 py-8 ">
-        <div className="text-center py-12">
-          <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Paper Not Found</h2>
-          <p className="text-muted-foreground mb-6">
-            The research paper you&apos;re looking for doesn&apos;t exist or has been
-            removed.
-          </p>
-          <Button onClick={() => router.push("/paper")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Search
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
       <div className="container mx-auto px-4 w-full">
@@ -332,24 +203,21 @@ export default async function PaperDetailsPage({ params }: { params: { id: strin
                     Published: {formatDate(paper.acceptedDate)}
                   </Badge>
                 )}
-                {paper.doi && (
-                  <Link href={paper.doi} target="_blank" rel="noopener noreferrer">
-                    <Badge variant="outline" className="flex items-center gap-1 text-base hover:bg-green-300 cursor-pointer hover:text-white hover:underline duration-150 hover:border border-green-700">
-                      <ExternalLink className="h-3 w-3" />
-                      {paper.doi}
-                    </Badge>
-                  </Link>
-                )}
               </div>
             </div>
 
-            <PaperDetailsClient paper={paper} />
+            
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Authors Badges - Before Abstract */}
+            {contributors.length > 0 && (
+              <AuthorBadges contributors={contributors} />
+            )}
+
             {/* Abstract */}
             <Card>
               <CardHeader>
@@ -364,71 +232,110 @@ export default async function PaperDetailsPage({ params }: { params: { id: strin
                 </p>
               </CardContent>
             </Card>
-
-            {/* Keywords */}
-            {paper.keywords && paper.keywords.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                    <Tag className="h-5 w-5" />
-                    Keywords
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {paper.keywords.map((keyword, index) => (
-                      <Badge key={index} variant="outline" className="text-lg">
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Authors */}
-            {contributors.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Authors
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {contributors.map((contributor, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="font-semibold text-sm">
-                        {contributor.fullName}
-                      </div>
-                      {contributor.email && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Mail className="h-3 w-3 flex-shrink-0" />
-                          <a
-                            href={`mailto:${contributor.email}`}
-                            className="hover:text-primary hover:underline break-all"
-                          >
-                            {contributor.email}
-                          </a>
-                        </div>
-                      )}
-                      {contributor.affiliation && (
-                        <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                          <Building className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                          <span className="line-clamp-2">{contributor.affiliation}</span>
-                        </div>
-                      )}
-                      {index < contributors.length - 1 && <Separator className="mt-3" />}
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button className="w-full" asChild>
+                  <Link href={paper.filePath} target="_blank">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Full Paper
+                  </Link>
+                </Button>
+
+                <PaperDetailsClient paper={paper} />
+              </CardContent>
+            </Card>
+
+            {/* Paper Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">Paper Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {paper.doi && (
+                  <>
+                    <div className="flex flex-col">
+                      <Label className="text-base font-medium">DOI</Label>
+                      <Link
+                        href={paper.doi}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base text-muted-foreground font-mono hover:text-primary hover:underline break-all"
+                      >
+                        {paper.doi}
+                      </Link>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+                    <Separator />
+                  </>
+                )}
+
+                <div>
+                  <Label className="text-base font-medium">Status</Label>
+                  <p className="text-base text-muted-foreground">
+                    <Badge
+                      variant={
+                        paper.status === "PUBLISH" ? "default" : "secondary"
+                      }
+                    >
+                      {paper.status}
+                    </Badge>
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <Label className="text-base font-medium">Submission Date</Label>
+                  <p className="text-base text-muted-foreground">
+                    {formatDate(paper.submissionDate)}
+                  </p>
+                </div>
+
+                {paper.acceptedDate && (
+                  <>
+                    <Separator />
+                    <div>
+                      <Label className="text-base font-medium">
+                        Publication Date
+                      </Label>
+                      <p className="text-base text-muted-foreground">
+                        {formatDate(paper.acceptedDate)}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
+
+        {/* Keywords - Full Width */}
+        {paper.keywords && paper.keywords.length > 0 && (
+          <Card className="w-full my-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                <Tag className="h-5 w-5" />
+                Keywords
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2 justify-between w-full">
+                {paper.keywords.map((keyword, index) => (
+                  <Badge key={index} variant="outline" className="text-lg">
+                    {keyword}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {paper.filePath && (
           <Card className="w-full my-6">
