@@ -200,8 +200,42 @@ export default function PaperDetailsPage() {
       updateOrCreateTwitterTag('twitter:card', 'summary_large_image');
       updateOrCreateTwitterTag('twitter:title', paper.title);
       updateOrCreateTwitterTag('twitter:description', paper.abstract.substring(0, 200) + '...');
+    } else if (!loading) {
+      // Clear metadata when paper is not found
+      document.title = 'Paper Not Found - JEDSD';
+      
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', '');
+      }
+
+      // Clear Open Graph tags
+      const clearMetaTag = (property: string) => {
+        const metaTag = document.querySelector(`meta[property="${property}"]`);
+        if (metaTag) {
+          metaTag.setAttribute('content', '');
+        }
+      };
+
+      clearMetaTag('og:title');
+      clearMetaTag('og:description');
+      clearMetaTag('og:type');
+      clearMetaTag('og:url');
+      clearMetaTag('og:article:published_time');
+
+      // Clear Twitter Card tags
+      const clearTwitterTag = (name: string) => {
+        const metaTag = document.querySelector(`meta[name="${name}"]`);
+        if (metaTag) {
+          metaTag.setAttribute('content', '');
+        }
+      };
+
+      clearTwitterTag('twitter:card');
+      clearTwitterTag('twitter:title');
+      clearTwitterTag('twitter:description');
     }
-  }, [paper]);
+  }, [paper, loading]);
 
   if (loading) {
     return (
