@@ -165,7 +165,7 @@ export default function PaperDetailsPage() {
 
       // Open Graph meta tags for social sharing
       const updateOrCreateMetaTag = (property: string, content: string) => {
-        let metaTag = document.querySelector(`meta[property="${property}"]`);
+        const metaTag = document.querySelector(`meta[property="${property}"]`);
         if (metaTag) {
           metaTag.setAttribute('content', content);
         } else {
@@ -186,7 +186,7 @@ export default function PaperDetailsPage() {
 
       // Twitter Card meta tags
       const updateOrCreateTwitterTag = (name: string, content: string) => {
-        let metaTag = document.querySelector(`meta[name="${name}"]`);
+        const metaTag = document.querySelector(`meta[name="${name}"]`);
         if (metaTag) {
           metaTag.setAttribute('content', content);
         } else {
