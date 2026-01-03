@@ -53,7 +53,7 @@ interface ResearchPaper {
   reviews?: any[];
 }
 
-// Server-side metadata generation for social sharing
+// Server-side metadata generation for social sharing and SEO
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   try {
     const { id } = await params;
@@ -66,6 +66,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       return {
         title: 'Paper Not Found - JEDSD',
         description: 'The research paper you are looking for does not exist.',
+        robots: {
+          index: false,
+          follow: false,
+        },
       };
     }
 
@@ -77,25 +81,76 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       : [];
     
     const authorsNames = authors.map((c: any) => c.fullName).join(', ');
+    const firstAuthor = authors[0]?.fullName || paper.author?.name || 'Unknown Author';
+    
+    // Create a comprehensive description
+    const description = paper.abstract.length > 160 
+      ? paper.abstract.substring(0, 157) + '...'
+      : paper.abstract;
+
+    // Format keywords as array
+    const keywords = Array.isArray(paper.keywords) 
+      ? paper.keywords 
+      : typeof paper.keywords === 'string' 
+        ? paper.keywords.split(',').map((k: string) => k.trim())
+        : [];
+
+    const canonicalUrl = `${baseUrl}/paper/${id}`;
 
     return {
-      title: `${paper.title} - JEDSD`,
-      description: paper.abstract.substring(0, 160) + '...',
-      keywords: paper.keywords || [],
-      authors: authorsNames ? [{ name: authorsNames }] : undefined,
+      title: `${paper.title} | ${firstAuthor} | JEDSD`,
+      description: description,
+      keywords: [
+        ...keywords,
+        'research paper',
+        'academic journal',
+        'embedded systems',
+        'digital system design',
+        'JEDSD',
+        'peer-reviewed',
+      ],
+      authors: authors.map((author: any) => ({ name: author.fullName })),
+      creator: firstAuthor,
+      publisher: 'JEDSD - Journal of Embedded and Digital System Design',
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      robots: {
+        index: paper.status === 'PUBLISH',
+        follow: true,
+        googleBot: {
+          index: paper.status === 'PUBLISH',
+          follow: true,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
       openGraph: {
         title: paper.title,
-        description: paper.abstract.substring(0, 200) + '...',
+        description: description,
         type: 'article',
-        url: `${baseUrl}/paper/${id}`,
+        url: canonicalUrl,
         siteName: 'JEDSD - Journal of Embedded and Digital System Design',
         publishedTime: paper.acceptedDate || paper.submissionDate,
-        authors: authorsNames ? [authorsNames] : undefined,
+        modifiedTime: paper.acceptedDate || paper.submissionDate,
+        authors: authors.map((author: any) => author.fullName),
+        tags: keywords,
+        locale: 'en_US',
       },
       twitter: {
         card: 'summary_large_image',
         title: paper.title,
-        description: paper.abstract.substring(0, 200) + '...',
+        description: description,
+        creator: '@JEDSD',
+        site: '@JEDSD',
+      },
+      other: {
+        'citation_title': paper.title,
+        'citation_author': authorsNames,
+        'citation_publication_date': paper.acceptedDate || paper.submissionDate,
+        'citation_journal_title': 'JEDSD - Journal of Embedded and Digital System Design',
+        'citation_pdf_url': paper.filePath || '',
+        'citation_doi': paper.doi || '',
       },
     };
   } catch (error) {
@@ -103,6 +158,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     return {
       title: 'JEDSD - Research Paper',
       description: 'View research paper details',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 }
@@ -169,11 +228,52 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
     });
   };
 
+  // Generate JSON-LD structured data for Google Scholar and search engines
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ScholarlyArticle',
+    headline: paper.title,
+    abstract: paper.abstract,
+    author: contributors.map((author: any) => ({
+      '@type': 'Person',
+      name: author.fullName,
+      email: author.email,
+      affiliation: author.affiliation ? {
+        '@type': 'Organization',
+        name: author.affiliation,
+      } : undefined,
+    })),
+    datePublished: paper.acceptedDate || paper.submissionDate,
+    dateModified: paper.acceptedDate || paper.submissionDate,
+    publisher: {
+      '@type': 'Organization',
+      name: 'JEDSD - Journal of Embedded and Digital System Design',
+    },
+    inLanguage: 'en',
+    keywords: Array.isArray(paper.keywords) ? paper.keywords.join(', ') : paper.keywords,
+    isAccessibleForFree: true,
+    ...(paper.doi && { identifier: paper.doi }),
+    ...(paper.filePath && { 
+      encoding: {
+        '@type': 'MediaObject',
+        contentUrl: paper.filePath,
+        encodingFormat: 'application/pdf',
+      }
+    }),
+  };
+
   return (
-    <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
-      <div className="container mx-auto px-4 w-full">
-        {/* Header */}
-        <div className="my-6">
+    <>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      
+      <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
+        <div className="container mx-auto px-4 w-full">
+          {/* Header */}
+          <div className="my-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-4 leading-tight">
@@ -369,5 +469,6 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
         )}
       </div>
     </div>
+    </>
   );
 }

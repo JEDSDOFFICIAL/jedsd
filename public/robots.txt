@@ -1,0 +1,19 @@
+# Allow all search engines to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow admin and dashboard pages from being indexed
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /signin/
+Disallow: /signup/
+
+# Allow crawling of published papers
+Allow: /paper/
+
+# Sitemap location
+Sitemap: https://jedsd.com/sitemap.xml
+
+# Crawl-delay for good citizenship (optional)
+Crawl-delay: 1
