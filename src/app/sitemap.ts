@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         status: 'PUBLISH',
       },
       select: {
-        id: true,
+        paperId: true,
         acceptedDate: true,
         submissionDate: true,
       },
@@ -21,8 +21,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
 
     // Generate paper URLs
-    const paperUrls = publishedPapers.map((paper: { id: string; acceptedDate: Date | null; submissionDate: Date }) => ({
-      url: `${baseUrl}/paper/${paper.id}`,
+    const paperUrls = publishedPapers.map((paper: { paperId: string; acceptedDate: Date | null; submissionDate: Date }) => ({
+      url: `${baseUrl}/paper/${paper.paperId}`,
       lastModified: paper.acceptedDate || paper.submissionDate,
       changeFrequency: 'monthly' as const,
       priority: 0.8,
