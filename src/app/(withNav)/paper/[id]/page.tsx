@@ -145,12 +145,42 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         site: '@JEDSD',
       },
       other: {
+        // Google Scholar meta tags
         'citation_title': paper.title,
         'citation_author': authorsNames,
-        'citation_publication_date': paper.acceptedDate || paper.submissionDate,
+        'citation_publication_date': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
         'citation_journal_title': 'JEDSD - Journal of Embedded and Digital System Design',
-        'citation_pdf_url': paper.filePath || '',
+        'citation_issn': '2940-3383', // Add your actual ISSN if available
+        'citation_volume': new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
+        'citation_issue': (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
+        'citation_firstpage': '1',
+        'citation_pdf_url': paper.filePath ? `${baseUrl}${paper.filePath}` : '',
         'citation_doi': paper.doi || '',
+        'citation_abstract_html_url': canonicalUrl,
+        'citation_language': 'en',
+        'citation_keywords': keywords.join(', '),
+        
+        // Highwire Press tags (alternative format for Google Scholar)
+        'DC.title': paper.title,
+        'DC.creator': authorsNames,
+        'DC.subject': keywords.join('; '),
+        'DC.description': description,
+        'DC.publisher': 'JEDSD - Journal of Embedded and Digital System Design',
+        'DC.contributor': authorsNames,
+        'DC.date': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
+        'DC.type': 'Text',
+        'DC.format': 'application/pdf',
+        'DC.identifier': paper.doi || canonicalUrl,
+        'DC.language': 'en',
+        
+        // Additional academic meta tags
+        'prism.publicationName': 'Journal of Embedded and Digital System Design',
+        'prism.issn': '2940-3383',
+        'prism.publicationDate': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
+        'prism.volume': new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
+        'prism.number': (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
+        'prism.section': 'Research Article',
+        'prism.startingPage': '1',
       },
     };
   } catch (error) {
@@ -228,12 +258,16 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
     });
   };
 
-  // Generate JSON-LD structured data for Google Scholar and search engines
+  // Generate comprehensive JSON-LD structured data for Google Scholar and search engines
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ScholarlyArticle',
+    '@id': paper.doi || `${baseUrl}/paper/${paper.paperId}`,
     headline: paper.title,
+    name: paper.title,
     abstract: paper.abstract,
+    description: paper.abstract,
     author: contributors.map((author: any) => ({
       '@type': 'Person',
       name: author.fullName,
@@ -248,18 +282,58 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
     publisher: {
       '@type': 'Organization',
       name: 'JEDSD - Journal of Embedded and Digital System Design',
+      url: baseUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/logo.png`, // Add your logo URL
+      },
+    },
+    isPartOf: {
+      '@type': ['PublicationIssue', 'PublicationVolume'],
+      issueNumber: (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
+      volumeNumber: new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
+      isPartOf: {
+        '@type': 'Periodical',
+        name: 'JEDSD - Journal of Embedded and Digital System Design',
+        issn: '2940-3383',
+      },
     },
     inLanguage: 'en',
     keywords: Array.isArray(paper.keywords) ? paper.keywords.join(', ') : paper.keywords,
     isAccessibleForFree: true,
-    ...(paper.doi && { identifier: paper.doi }),
+    license: 'https://creativecommons.org/licenses/by/4.0/', // Update with your actual license
+    url: `${baseUrl}/paper/${paper.paperId}`,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${baseUrl}/paper/${paper.paperId}`,
+    },
+    ...(paper.doi && { 
+      identifier: [
+        {
+          '@type': 'PropertyValue',
+          propertyID: 'DOI',
+          value: paper.doi,
+        },
+      ],
+      sameAs: `https://doi.org/${paper.doi}`,
+    }),
     ...(paper.filePath && { 
       encoding: {
         '@type': 'MediaObject',
-        contentUrl: paper.filePath,
+        contentUrl: `${baseUrl}${paper.filePath}`,
         encodingFormat: 'application/pdf',
-      }
+        name: `${paper.title} - Full Text PDF`,
+      },
+      associatedMedia: {
+        '@type': 'MediaObject',
+        contentUrl: `${baseUrl}${paper.filePath}`,
+        encodingFormat: 'application/pdf',
+      },
     }),
+    citation: {
+      '@type': 'CreativeWork',
+      text: `${contributors.map((a: any) => a.fullName).join(', ')}. "${paper.title}." JEDSD - Journal of Embedded and Digital System Design, ${new Date(paper.acceptedDate || paper.submissionDate).getFullYear()}.`,
+    },
   };
 
   return (

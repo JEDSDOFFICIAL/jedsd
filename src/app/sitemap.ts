@@ -5,7 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXTAUTH_URL || 'https://jedsd.com';
 
   try {
-    // Fetch all published papers from database
+    // Fetch all published papers from database with more details for better indexing
     const publishedPapers = await prisma.researchPaper.findMany({
       where: {
         status: 'PUBLISH',
@@ -14,18 +14,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         paperId: true,
         acceptedDate: true,
         submissionDate: true,
+        title: true,
       },
       orderBy: {
         acceptedDate: 'desc',
       },
     });
 
-    // Generate paper URLs
-    const paperUrls = publishedPapers.map((paper: { paperId: string; acceptedDate: Date | null; submissionDate: Date }) => ({
+    // Generate paper URLs with enhanced metadata
+    const paperUrls = publishedPapers.map((paper: { paperId: string; acceptedDate: Date | null; submissionDate: Date; title: string }) => ({
       url: `${baseUrl}/paper/${paper.paperId}`,
       lastModified: paper.acceptedDate || paper.submissionDate,
       changeFrequency: 'monthly' as const,
-      priority: 0.8,
+      priority: 0.9, // Higher priority for published papers
     }));
 
     // Static pages
