@@ -68,6 +68,15 @@ function Navbar() {
   const router = useRouter();
   const [SearchValue, setSearchValue] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 20);
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   function onClickSearch(query: string) {
     if (!query.trim()) {
@@ -88,176 +97,240 @@ function Navbar() {
   }
 
   return (
-    <nav className="dark relative w-full h-[88px] overflow-visible">
-      <div className="h-full max-w-[80rem] w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-4 overflow-visible">
-        {/* Left: Brand Logo & Title */}
-        <Link href="/" className="flex items-center gap-3 flex-shrink-0 group overflow-visible">
-          <Image
-            src="/logored.jpg"
-            alt="JEDSD Logo"
-            width={50}
-            height={50}
-            className="rounded-lg object-contain border border-white/10 group-hover:border-blue-500/50 transition-colors"
-          />
-          <div className="flex flex-col">
-            <span className="text-base font-extrabold text-white tracking-wider uppercase leading-none">
-              JEDSD
-            </span>
-            <span className="text-[10px] text-gray-400 tracking-normal font-medium mt-1.5 leading-none">
-              Embedded Systems Journal
-            </span>
+    <nav className="dark relative w-full overflow-visible">
+      <div className="max-w-[80rem] w-full mx-auto px-4 sm:px-6 overflow-visible">
+
+        {/* ── Desktop layout ── */}
+        <div className="hidden md:flex items-center gap-6 overflow-visible py-1">
+
+          {/* Left: Logo — resizes to match visible row height */}
+          <Link href="/" className="flex items-center flex-shrink-0 group select-none">
+            <Image
+              src="/logored.jpg"
+              alt="JEDSD Logo"
+              width={65}
+              height={65}
+              className={`rounded-lg object-contain border border-white/10 group-hover:border-blue-500/50 transition-all duration-300 ${
+                isScrolled ? "h-9 w-9" : "h-[65px] w-[65px]"
+              }`}
+            />
+          </Link>
+
+          {/* Right: Two stacked rows taking remaining width */}
+          <div className={`flex flex-col justify-center flex-1 ${isScrolled ? "gap-0" : "gap-2.5"} overflow-visible min-w-0`}>
+
+            {/* Row 1: Navigation links + auth (always visible) */}
+            <div className="flex items-center w-full overflow-visible">
+              <NavigationMenu className={`static flex-1 overflow-visible ${isScrolled ? "justify-center" : "justify-start"}`}>
+                <NavigationMenuList className="flex items-center gap-1 overflow-visible">
+                  {/* Home */}
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      className="bg-transparent hover:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent text-gray-300 hover:text-white transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      render={<Link href="/">Home</Link>}
+                    />
+                  </NavigationMenuItem>
+
+                  {/* About Us */}
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent hover:text-white text-gray-300 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
+                      About Us
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="w-96 p-3 flex flex-col gap-1 bg-[#0f152d] border border-white/10 rounded-xl shadow-xl">
+                        {aboutus.map((item) => (
+                          <ListItem
+                            key={item.title}
+                            title={item.title}
+                            href={item.href}
+                          >
+                            {item.description}
+                          </ListItem>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+
+                  {/* Policies */}
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent hover:text-white text-gray-300 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
+                      Policies
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3 bg-[#0f152d] border border-white/10 rounded-xl shadow-xl">
+                        {policies.map((item) => (
+                          <ListItem
+                            key={item.title}
+                            title={item.title}
+                            href={item.href}
+                          >
+                            {item.description}
+                          </ListItem>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+
+                  {/* Publishing */}
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent hover:text-white text-gray-300 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
+                      Publishing
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3 bg-[#0f152d] border border-white/10 rounded-xl shadow-xl">
+                        {publishingModel.map((item) => (
+                          <ListItem
+                            key={item.title}
+                            title={item.title}
+                            href={item.href}
+                          >
+                            {item.description}
+                          </ListItem>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+
+                  {/* Papers */}
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      className="bg-transparent hover:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent text-gray-300 hover:text-white transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      render={<Link href="/paper">Papers</Link>}
+                    />
+                  </NavigationMenuItem>
+
+                  {/* Pre-Publish */}
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      className="bg-transparent hover:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent text-gray-300 hover:text-white transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      render={<Link href="/pre-publish">Pre-Publish</Link>}
+                    />
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+
+              {/* Auth */}
+              {session?.user ? (
+                <DropdownMenuProfile
+                  profileImage={session.user.image ?? undefined}
+                />
+              ) : (
+                <Link
+                  href="/signup"
+                  className="flex items-center px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20"
+                >
+                  Create Account
+                </Link>
+              )}
+            </div>
+
+            {/* Row 2: Search bar — full width, hides on scroll */}
+            <div
+              className={`w-full transition-all duration-300 ease-in-out overflow-hidden ${
+                isScrolled
+                  ? "max-h-0 opacity-0 mt-0"
+                  : "max-h-16 opacity-100"
+              }`}
+            >
+              <div className="flex items-center w-full bg-white/5 border border-white/10 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/50 transition-all">
+                <Input
+                  type="text"
+                  placeholder="Search papers by title, abstract, keywords, or authors..."
+                  className="h-9 flex-1 bg-transparent border-0 text-white placeholder:text-gray-400 focus-visible:ring-0 text-xs px-4"
+                  value={SearchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onKeyDown={handleSearchKeyPress}
+                />
+                <Button
+                  type="button"
+                  className="h-9 px-5 rounded-none bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 border-l border-white/10 flex-shrink-0"
+                  onClick={() => onClickSearch(SearchValue)}
+                >
+                  <Search className="size-3.5" />
+                  <span>Search</span>
+                </Button>
+              </div>
+            </div>
+
           </div>
-        </Link>
-
-        {/* Center: Desktop Navigation (No Icons) */}
-        <div className="hidden md:flex items-center flex-1 justify-center overflow-visible">
-          <NavigationMenu className="static w-fit overflow-visible">
-            <NavigationMenuList className="flex items-center gap-1.5 overflow-visible">
-              {/* Home */}
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  render={<Link href="/">Home</Link>}
-                />
-              </NavigationMenuItem>
-
-              {/* About Us (using Getting Started w-96 style) */}
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>About Us</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="w-96 p-3 flex flex-col gap-1">
-                    {aboutus.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      >
-                        {item.description}
-                      </ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              {/* Policies (using Components grid style) */}
-              <NavigationMenuItem className="hidden md:flex">
-                <NavigationMenuTrigger>Policies</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3">
-                    {policies.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      >
-                        {item.description}
-                      </ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              {/* Publishing Model (using Components grid style) */}
-              <NavigationMenuItem className="hidden md:flex">
-                <NavigationMenuTrigger>Publishing</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3">
-                    {publishingModel.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      >
-                        {item.description}
-                      </ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              {/* Papers */}
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  render={<Link href="/paper">Papers</Link>}
-                />
-              </NavigationMenuItem>
-
-              {/* Pre-Publish */}
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  render={<Link href="/pre-publish">Pre-Publish</Link>}
-                />
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
         </div>
 
-        {/* Right: Search + Auth + Mobile Menu */}
-        <div className="flex items-center gap-3 flex-shrink-0 overflow-visible">
-          {/* Search Bar Expandable */}
-          {isSearchOpen ? (
-            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 animate-in fade-in slide-in-from-right-4 duration-200">
-              <Input
-                type="text"
-                placeholder="Search papers..."
-                className="h-8 w-36 sm:w-48 bg-transparent border-0 text-white placeholder:text-gray-400 focus-visible:ring-0 text-xs py-0"
-                value={SearchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                onKeyDown={handleSearchKeyPress}
-                autoFocus
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-gray-300 hover:text-white hover:bg-white/10"
-                onClick={() => onClickSearch(SearchValue)}
-              >
-                <Search className="size-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-gray-400 hover:text-white hover:bg-white/10"
-                onClick={() => {
-                  setIsSearchOpen(false);
-                  setSearchValue("");
-                }}
-              >
-                <X className="size-3.5" />
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg"
-              onClick={() => setIsSearchOpen(true)}
-            >
-              <Search className="size-4" />
-            </Button>
-          )}
-
-          {/* Auth Button / User Account */}
-          {session?.user ? (
-            <DropdownMenuProfile
-              profileImage={session.user.image ?? undefined}
+        {/* ── Mobile layout ── */}
+        <div className="md:hidden flex items-center justify-between w-full gap-4 py-3">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <Image
+              src="/logored.jpg"
+              alt="JEDSD Logo"
+              width={40}
+              height={40}
+              className="rounded-lg object-contain border border-white/10"
             />
-          ) : (
-            <Link
-              href="/signup"
-              className="hidden sm:flex items-center px-4.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20"
-            >
-              Create Account
-            </Link>
-          )}
+            <div className="flex flex-col">
+              <span className="text-sm font-extrabold text-white tracking-wider uppercase leading-none">
+                JEDSD
+              </span>
+              <span className="text-[8px] text-gray-400 tracking-normal font-medium mt-1 leading-none">
+                Embedded Systems Journal
+              </span>
+            </div>
+          </Link>
 
-          {/* Mobile Hamburger menu */}
-          <div className="md:hidden">
+          <div className="flex items-center gap-2">
+            {/* Mobile Expandable Search Bar */}
+            {isSearchOpen ? (
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 animate-in fade-in slide-in-from-right-4 duration-200">
+                <Input
+                  type="text"
+                  placeholder="Search papers..."
+                  className="h-8 w-28 sm:w-44 bg-transparent border-0 text-white placeholder:text-gray-400 focus-visible:ring-0 text-xs py-0"
+                  value={SearchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onKeyDown={handleSearchKeyPress}
+                  autoFocus
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg"
+                  onClick={() => onClickSearch(SearchValue)}
+                >
+                  <Search className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg"
+                  onClick={() => {
+                    setIsSearchOpen(false);
+                    setSearchValue("");
+                  }}
+                >
+                  <X className="size-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <Search className="size-4" />
+              </Button>
+            )}
+
+            {/* Profile Dropdown on Mobile */}
+            {session?.user && (
+              <DropdownMenuProfile
+                profileImage={session.user.image ?? undefined}
+              />
+            )}
+
+            {/* Mobile Hamburger menu */}
             <SmNavbar session={session} />
           </div>
         </div>
+
       </div>
     </nav>
   );
