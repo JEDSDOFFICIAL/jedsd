@@ -6,28 +6,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Search,
-  HamburgerIcon,
-  HomeIcon,
   User,
-  UserCog2Icon,
-  Info,
-  Antenna,
-  PhoneCall,
-  Book,
-  UserLockIcon,
-  EthernetPortIcon,
-  ConciergeBell,
-  UploadCloud,
-  Terminal,
-  RectangleVertical,
   LayoutDashboard,
   LogOut,
   Menu,
-  ArrowDownWideNarrow,
-  ArrowDown,
   ChevronDown,
   LogOutIcon,
-  BookCheck,
+  X,
+  UploadCloud,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -39,9 +25,13 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { IconBoxModel } from "@tabler/icons-react";
+import {
+  CircleAlertIcon,
+  CircleCheckIcon,
+  CircleDashedIcon,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,354 +43,254 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import { Label } from "../ui/label";
+} from "@/components/ui/dialog";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../ui/collapsible";
+} from "@/components/ui/collapsible";
+import {
+  aboutus,
+  policies,
+  publishingModel,
+  navSections,
+} from "@/components/home/navData";
 
- const aboutus = [
-  {
-    title: "Our Mission and Vision",
-    href: "/guides/mission-vision",
-    description:
-      "Learn about our mission to empower creators and our vision for the future.",
-    icon: <Antenna />,
-  },
-  {
-    title: "About Us",
-    href: "/guides/about-us",
-    description:
-      "Discover the story behind our platform, our values, and what drives us.",
-    icon: <Info />,
-  },
-  {
-    title: "Our Team",
-    href: "/guides/our-team",
-    description:
-      "Meet the talented individuals behind our platform, dedicated to supporting creators.",
-    icon: <UserCog2Icon />,
-  },
-  {
-    title: "Contact Us",
-    href: "/guides/contact-us",
-    description: "Get in touch with us for any inquiries or support.",
-    icon: <PhoneCall />,
-  },
-];
-
- const Policies = [
-  {
-    title: "Submission Guidelines",
-    href: "/guides/submission-guidelines",
-    description:
-      "Understand the requirements and guidelines for submitting your work.",
-    icon: <Book />,
-  },
-  {
-    title: "Author Guidelines",
-    href: "/guides/author-guidelines",
-    description: "Learn about the expectations and best practices for authors.",
-    icon: <UserLockIcon />,
-  },
-  {
-    title: "Ethical Guidelines",
-    href: "/guides/ethical-guidelines",
-    description:
-      "Understand the ethical responsibilities when creating content.",
-    icon: <EthernetPortIcon />,
-  },
-  {
-    title: "Conflict of Interest",
-    href: "/guides/conflict-of-interest",
-    description:
-      "Understand the potential conflicts of interest and how to address them.",
-    icon: <ConciergeBell />,
-  },
-];
-
- const PublishingModel = [
-  {
-    title: "Publishing Model",
-    href: "/guides/publishing-model",
-    description: "Learn about our publishing model.",
-    icon: <IconBoxModel />,
-  },
-  {
-    title: "Call for Papers",
-    href: "/guides/call-for-papers",
-    description: "Check our current call for papers.",
-    icon: <Book />,
-  },
-  {
-    title: "How we Publish",
-    href: "/guides/how-we-publish",
-    description: "Understand our publishing process.",
-    icon: <UploadCloud />,
-  },
-  {
-    title: "Templates",
-    href: "/guides/templates",
-    description: "Explore templates and formatting guidelines.",
-    icon: <Terminal />,
-  },
-  {
-    title: "Peer Review Process",
-    href: "/guides/peer-review-process",
-    description: "Learn how peer review ensures quality.",
-    icon: <RectangleVertical />,
-  },
-];
 
 function Navbar() {
-  
-
   const { data: session } = useSession();
   const router = useRouter();
   const [SearchValue, setSearchValue] = useState("");
-const [mounted, setMounted] = useState(false);
-useEffect(() => setMounted(true), []);
-if (!mounted) return null;
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
   function onClickSearch(query: string) {
     if (!query.trim()) {
-      router.push('/paper');
+      router.push("/paper");
       return;
     }
-    // Only search by title from navbar
     router.push(`/paper?q=${encodeURIComponent(query)}`);
-    setSearchValue(""); // Clear search input after navigation
+    setSearchValue("");
+    setIsSearchOpen(false);
   }
 
-  function handleSearchKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Enter') {
+  function handleSearchKeyPress(
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) {
+    if (event.key === "Enter") {
       onClickSearch(SearchValue);
     }
   }
 
   return (
-    <div className="w-full max-w-full h-fit bg-white shadow-md">
-      <header className="bg-gray-600 text-white w-full max-w-full px-4 py-2 flex justify-between items-center lg:h-36 md:h-24 h-20">
-        <div className="flex items-center gap-4 w-full max-w-full h-full min-w-0">
+    <nav className="dark relative w-full h-[88px] overflow-visible">
+      <div className="h-full max-w-[80rem] w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-4 overflow-visible">
+        {/* Left: Brand Logo & Title */}
+        <Link href="/" className="flex items-center gap-3 flex-shrink-0 group overflow-visible">
           <Image
             src="/logored.jpg"
-            alt="Logo"
-            width={100}
-            height={100}
-            className="h-full w-auto flex-shrink-0"
+            alt="JEDSD Logo"
+            width={50}
+            height={50}
+            className="rounded-lg object-contain border border-white/10 group-hover:border-blue-500/50 transition-colors"
           />
-          <div className="flex flex-col w-full max-w-full h-full md:justify-center md:items-center min-w-0">
-            <div className="flex items-center justify-end md:hidden h-full gap-4">
-              <DropdownMenuProfile profileImage={session?.user?.image ?? undefined} />
-              <Link href="/paper" className="text-white font-semibold text-lg">
-              <Search/></Link>
-              <SmNavbar session={session} />
-            </div>
-            <div className="w-full  lg:h-1/2 hidden md:block bg-white border-2 border-black rounded-md py-1 relative">
-              <NavigationMenuDemo session={session} />
-            </div>
-            <div className="w-full max-w-full lg:h-1/2 hidden lg:flex gap-3 py-1">
+          <div className="flex flex-col">
+            <span className="text-base font-extrabold text-white tracking-wider uppercase leading-none">
+              JEDSD
+            </span>
+            <span className="text-[10px] text-gray-400 tracking-normal font-medium mt-1.5 leading-none">
+              Embedded Systems Journal
+            </span>
+          </div>
+        </Link>
+
+        {/* Center: Desktop Navigation (No Icons) */}
+        <div className="hidden md:flex items-center flex-1 justify-center overflow-visible">
+          <NavigationMenu className="static w-fit overflow-visible">
+            <NavigationMenuList className="flex items-center gap-1.5 overflow-visible">
+              {/* Home */}
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle()}
+                  render={<Link href="/">Home</Link>}
+                />
+              </NavigationMenuItem>
+
+              {/* About Us (using Getting Started w-96 style) */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>About Us</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="w-96 p-3 flex flex-col gap-1">
+                    {aboutus.map((item) => (
+                      <ListItem
+                        key={item.title}
+                        title={item.title}
+                        href={item.href}
+                      >
+                        {item.description}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Policies (using Components grid style) */}
+              <NavigationMenuItem className="hidden md:flex">
+                <NavigationMenuTrigger>Policies</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3">
+                    {policies.map((item) => (
+                      <ListItem
+                        key={item.title}
+                        title={item.title}
+                        href={item.href}
+                      >
+                        {item.description}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Publishing Model (using Components grid style) */}
+              <NavigationMenuItem className="hidden md:flex">
+                <NavigationMenuTrigger>Publishing</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3">
+                    {publishingModel.map((item) => (
+                      <ListItem
+                        key={item.title}
+                        title={item.title}
+                        href={item.href}
+                      >
+                        {item.description}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Papers */}
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle()}
+                  render={<Link href="/paper">Papers</Link>}
+                />
+              </NavigationMenuItem>
+
+              {/* Pre-Publish */}
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={navigationMenuTriggerStyle()}
+                  render={<Link href="/pre-publish">Pre-Publish</Link>}
+                />
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+
+        {/* Right: Search + Auth + Mobile Menu */}
+        <div className="flex items-center gap-3 flex-shrink-0 overflow-visible">
+          {/* Search Bar Expandable */}
+          {isSearchOpen ? (
+            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 animate-in fade-in slide-in-from-right-4 duration-200">
               <Input
                 type="text"
                 placeholder="Search papers..."
-                className="flex-1 h-full bg-white text-black min-w-0"
+                className="h-8 w-36 sm:w-48 bg-transparent border-0 text-white placeholder:text-gray-400 focus-visible:ring-0 text-xs py-0"
                 value={SearchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                onKeyPress={handleSearchKeyPress}
+                onKeyDown={handleSearchKeyPress}
+                autoFocus
               />
               <Button
-                className="h-full text-black flex-shrink-0"
-                variant="outline"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-gray-300 hover:text-white hover:bg-white/10"
                 onClick={() => onClickSearch(SearchValue)}
               >
-                <Search className="mr-1" /> Search
+                <Search className="size-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-gray-400 hover:text-white hover:bg-white/10"
+                onClick={() => {
+                  setIsSearchOpen(false);
+                  setSearchValue("");
+                }}
+              >
+                <X className="size-3.5" />
               </Button>
             </div>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg"
+              onClick={() => setIsSearchOpen(true)}
+            >
+              <Search className="size-4" />
+            </Button>
+          )}
+
+          {/* Auth Button / User Account */}
+          {session?.user ? (
+            <DropdownMenuProfile
+              profileImage={session.user.image ?? undefined}
+            />
+          ) : (
+            <Link
+              href="/signup"
+              className="hidden sm:flex items-center px-4.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20"
+            >
+              Create Account
+            </Link>
+          )}
+
+          {/* Mobile Hamburger menu */}
+          <div className="md:hidden">
+            <SmNavbar session={session} />
           </div>
         </div>
-      </header>
-
-      <div className="w-full h-16 flex items-center gap-4 p-2 lg:hidden max-w-full">
-        <Input
-          type="text"
-          placeholder="Search papers..."
-          value={SearchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          onKeyPress={handleSearchKeyPress}
-          className="flex-1 h-full bg-white text-black min-w-0"
-        />
-        <Button
-          className="h-full text-black flex-shrink-0"
-          variant="outline"
-          onClick={() => onClickSearch(SearchValue)}
-        >
-          <Search className="mr-1" /> Search
-        </Button>
       </div>
-    </div>
+    </nav>
   );
 }
 
 export default Navbar;
 
-function NavigationMenuDemo({ session }: { session: any }) {
-  return (
-    <div className="flex justify-center items-center w-full h-full relative z-[60] px-3">
-      <NavigationMenu viewport={false} className="w-full h-fit">
-        <NavigationMenuList className="w-full h-full flex items-center justify-between text-black">
-          {/* Home - Left Side */}
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link href="/">
-                <div className="flex items-center gap-2 text-black font-medium">
-                  <HomeIcon className="size-6 text-black" /> Home
-                </div>
-              </Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-
-          {/* Center Navigation Items */}
-          <div className="flex items-center gap-4">
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>About Us</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2 p-4">
-                  {aboutus.map((item) => (
-                    <ListItem
-                      key={item.title}
-                      title={item.title}
-                      href={item.href}
-                      icon={item.icon}
-                    >
-                      {item.description}
-                    </ListItem>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Policies</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2 p-4">
-                  {Policies.map((item) => (
-                    <ListItem
-                      key={item.title}
-                      title={item.title}
-                      href={item.href}
-                      icon={item.icon}
-                    >
-                      {item.description}
-                    </ListItem>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Publishing Model</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] md:w-[500px] lg:w-[600px] md:grid-cols-2 gap-2 p-4">
-                  {PublishingModel.map((item) => (
-                    <ListItem
-                      key={item.title}
-                      title={item.title}
-                      href={item.href}
-                      icon={item.icon}
-                    >
-                      {item.description}
-                    </ListItem>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link href="/paper">
-                  <div className="flex items-center gap-2 text-black font-medium">
-                    <Search className="size-6 text-black" /> Paper
-                  </div>
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link href="/pre-publish">
-                  <div className="flex items-center gap-2 text-black font-medium">
-                    <BookCheck className="size-6 text-black" /> Pre-Publish
-                  </div>
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </div>
-
-         
-        </NavigationMenuList>
-        
-      </NavigationMenu>
-          {session?.user ? (
-            <div className="h-fit w-fit">
-              <DropdownMenuProfile
-                profileImage={session.user.image}
-              />
-            </div>
-          ) : (
-           
-                <Link href="/signup">
-                  <div className="flex items-center gap-2 text-black font-medium">
-                    <User className="size-6 text-black" /> Sign-Up
-                  </div>
-                </Link>
-          
-          )}
-      
-    </div>
-  );
-}
-
+/* ------------------------------------------------------------------ */
+/*  ListItem — restyled for dark dropdowns using render prop            */
+/* ------------------------------------------------------------------ */
 function ListItem({
   title,
   children,
   href,
-  icon,
   ...props
-}: React.ComponentPropsWithoutRef<"li"> & {
-  href: string;
-  icon: React.ReactNode;
-}) {
+}: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
   return (
     <li {...props}>
-      <NavigationMenuLink asChild>
-        <Link href={href} className="block p-3 rounded-md hover:bg-accent transition-colors">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-primary">{icon}</span>
-            <div className="font-medium text-sm">{title}</div>
-          </div>
-          <p className="text-sm leading-snug text-muted-foreground line-clamp-2">
-            {children}
-          </p>
-        </Link>
-      </NavigationMenuLink>
+      <NavigationMenuLink render={<Link href={href}><div className="flex flex-col gap-1 text-sm">
+          <div className="leading-none font-medium text-gray-200">{title}</div>
+          <div className="line-clamp-2 text-gray-400 text-xs mt-0.5 leading-relaxed">{children}</div>
+        </div></Link>} />
     </li>
-  );
+  )
 }
 
+/* ------------------------------------------------------------------ */
+/*  DropdownMenuProfile                                                */
+/* ------------------------------------------------------------------ */
 function DropdownMenuProfile({
   profileImage,
-
 }: {
   profileImage?: string;
-
 }) {
   return (
     <DropdownMenu>
@@ -408,97 +298,116 @@ function DropdownMenuProfile({
         <Image
           src={profileImage || "/default-image.jpg"}
           alt="Profile Image"
-          className="h-7 w-7 md:h-10 md:w-10 rounded-full"
-          height={100}
-          width={100}
+          className="h-8 w-8 rounded-full ring-2 ring-white/10 hover:ring-blue-500 transition-all object-cover"
+          height={32}
+          width={32}
         />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuContent
+        className="w-48 bg-[#0f152d] border border-white/10 text-gray-200"
+        align="end"
+      >
+        <DropdownMenuLabel className="text-gray-400 text-xs">
+          My Account
+        </DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <Link href={`/dashboard`} className="flex items-center gap-2">
-              <LayoutDashboard /> Dashboard
+          <DropdownMenuItem className="hover:bg-white/5 focus:bg-white/5 cursor-pointer text-sm">
+            <Link href="/dashboard" className="w-full">
+              Dashboard
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem className="hover:bg-white/5 focus:bg-white/5 cursor-pointer text-sm">
             <Link
-              href={`/dashboard/paper/upload`}
-              className="flex items-center gap-2"
+              href="/dashboard/paper/upload"
+              className="w-full"
             >
-              <UploadCloud /> Upload a Paper
+              Submit Paper
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>
-          <LogOut /> Log out
+        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuItem
+          className="hover:bg-white/5 focus:bg-white/5 cursor-pointer text-sm text-rose-400 focus:text-rose-300"
+          onClick={() => signOut()}
+        >
+          Sign Out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-const sections = [
-  { title: "About Us", items: aboutus },
-  { title: "Policies", items: Policies },
-  { title: "Publishing Model", items: PublishingModel },
-];
+/* ------------------------------------------------------------------ */
+/*  SmNavbar — mobile Dialog menu, restyled for dark glassmorphism      */
+/* ------------------------------------------------------------------ */
 const SmNavbar = ({ session }: { session: any }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Menu className="cursor-pointer text-white size-6" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 text-gray-300 hover:text-white hover:bg-white/10"
+        >
+          <Menu className="size-5" />
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-screen w-screen sm:max-h-screen h-screen overflow-y-auto bg-[#7e0d0c] border-none px-0">
+      <DialogContent className="sm:max-w-screen w-screen sm:max-h-screen h-screen overflow-y-auto bg-[#070b19] border-none px-0">
         <DialogHeader className="mt-5 px-6">
-          <DialogTitle className="text-white text-lg font-semibold tracking-wide border-b border-white py-6">
+          <DialogTitle className="text-white text-lg font-semibold tracking-wide border-b border-white/10 pb-4">
             Journal of Embedded and Digital System Design
           </DialogTitle>
+          <DialogDescription className="text-gray-400 text-sm">
+            Navigate through our journal sections
+          </DialogDescription>
         </DialogHeader>
 
         <div
-          className="flex flex-col gap-4 px-6 py-9 mx-2 rounded-md my-3 shadow-2xl shadow-blue-500/20"
-          style={{
-            boxShadow:
-              "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset",
-          }}
+          className="flex flex-col gap-3 px-6 py-6 mx-3 rounded-xl my-3 bg-white/5 backdrop-blur-sm border border-white/10"
         >
           {/* Direct navigation links */}
-          <div className="space-y-2">
+          <div className="space-y-1">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-200 text-sm"
+            >
+              <span className="font-medium">Home</span>
+            </Link>
             <Link
               href="/paper"
-              className="flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-white/10 text-white text-sm border-b border-white/20 pb-2"
+              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-200 text-sm"
             >
-              <Search className="size-4" />
               <span className="font-medium">Papers</span>
             </Link>
             <Link
               href="/pre-publish"
-              className="flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-white/10 text-white text-sm border-b border-white/20 pb-2"
+              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-200 text-sm"
             >
-              <BookCheck className="size-4" />
               <span className="font-medium">Pre-Publish</span>
             </Link>
           </div>
-          
-          {sections.map((section, index) => (
+
+          <div className="h-px bg-white/10 my-1" />
+
+          {/* Collapsible sections from navData */}
+          {navSections.map((section, index) => (
             <Collapsible key={index}>
-              <CollapsibleTrigger className="w-full border-b border-r border-white shadow-md shadow-white flex items-center justify-between px-3 py-2 text-white text-lg font-medium">
+              <CollapsibleTrigger className="w-full flex items-center justify-between px-3 py-2.5 text-gray-200 text-sm font-medium rounded-lg hover:bg-white/10 transition-colors">
                 <span>{section.title}</span>
-                <ChevronDown className="h-5 w-5" />
+                <ChevronDown className="h-4 w-4 text-gray-400" />
               </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-2 pt-2 pl-2">
+              <CollapsibleContent className="space-y-0.5 pt-1 pl-2">
                 {section.items.map((item, i) => (
                   <Link
                     key={i}
                     href={item.href}
-                    className="flex items-start gap-2 rounded-md p-2 transition-colors hover:bg-white/10 text-white text-sm"
+                    className="flex items-start gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-300 text-sm"
                   >
-                    {item.icon}
                     <div className="flex flex-col">
-                      <span className="font-medium">{item.title}</span>
-                      <span className="text-xs text-white/70 leading-tight">
+                      <span className="font-medium text-gray-200">
+                        {item.title}
+                      </span>
+                      <span className="text-xs text-gray-500 leading-tight mt-0.5">
                         {item.description}
                       </span>
                     </div>
@@ -511,32 +420,35 @@ const SmNavbar = ({ session }: { session: any }) => {
 
         <DialogFooter className="px-6 py-4">
           {session?.user ? (
-            <div className="flex flex-col gap-4">
-              <Link href={`/dashboard`}>
-                <Button variant="outline" className="text-black font-medium w-full">
-                  <BookCheck className="size-5" />
+            <div className="flex flex-col gap-3 w-full">
+              <Link href="/dashboard" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full bg-white/5 border-white/10 text-gray-200 hover:bg-white/10 hover:text-white"
+                >
                   Dashboard
                 </Button>
               </Link>
               <Button
                 variant="destructive"
-                className="text-black font-medium"
+                className="w-full"
                 onClick={() => {
                   signOut();
                   window.location.href = "/";
                 }}
               >
-                <LogOutIcon className="size-5" />
                 Log Out
               </Button>
             </div>
           ) : (
-            <Button variant="outline" className="text-black font-medium">
-              <Link href="/signup" className="flex items-center gap-2">
-                <User className="size-5" />
-                Sign-Up
-              </Link>
-            </Button>
+            <Link href="/signup" className="w-full">
+              <Button
+                variant="outline"
+                className="w-full bg-white/5 border-white/10 text-gray-200 hover:bg-white/10 hover:text-white"
+              >
+                Submit Paper
+              </Button>
+            </Link>
           )}
         </DialogFooter>
       </DialogContent>

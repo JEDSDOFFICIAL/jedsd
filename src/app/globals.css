@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Chicle&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 
 
 html, body {
@@ -8,16 +8,21 @@ html, body {
   padding: 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  overflow-x: hidden; /* Prevent horizontal scrolling globally */
+  overflow-x: clip; /* Prevent horizontal scrolling globally without breaking position: sticky */
   max-width: 100%;
 }
 
 /* Performance optimizations */
 *{
-  font-family: "Chicle", serif;
-  font-weight: 400;
-  font-style: normal;
   box-sizing: border-box; /* Ensure box-sizing is consistent */
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6,.chicle-regular {
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 /* Prevent horizontal scroll on all elements */
@@ -71,6 +76,20 @@ html, body {
 }
 .scrollbar-thin::-webkit-scrollbar-track {
   background-color: transparent;
+}
+
+/* Animated dashed flow for flowchart arrows */
+@keyframes dash-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.animate-dash-flow {
+  animation: dash-flow 1s linear infinite;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -347,4 +366,67 @@ html, body {
     oklch(1 0 0 / 10%);
   --sidebar-ring:
     oklch(0.556 0 0);
+}
+
+/* === HOMEPAGE REDESIGN UTILITIES === */
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient-shift {
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-25px) rotate(3deg); }
+}
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(-2deg); }
+}
+.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+.animate-float-medium { animation: float-medium 6s ease-in-out infinite; }
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -20; }
+}
+.animate-dash-flow { animation: dash-flow 1.5s linear infinite; }
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.glass-light {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Custom premium styling for Navigation Menu Viewport in Dark Mode */
+.dark [data-slot="navigation-menu-viewport"] {
+  background-color: #0f152d !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }

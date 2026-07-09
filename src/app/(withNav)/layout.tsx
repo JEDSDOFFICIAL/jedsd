@@ -8,8 +8,8 @@ export default function WithNavLayout({
 }>) {
   return (
     <div className="flex flex-col min-h-screen w-full max-w-full">
-      {/* Fixed Navbar */}
-      <header className="sticky top-0 z-40 w-full max-w-full">
+      {/* Sticky Header with Backdrop Blur */}
+      <header className="sticky top-0 z-50 w-full max-w-full bg-[#070b19]/90 backdrop-blur-md border-b border-white/10 overflow-visible">
         <Navbar />
       </header>
 

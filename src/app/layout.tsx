@@ -80,7 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`antialiased overflow-x-hidden w-full max-w-full`}
+        className={`antialiased overflow-x-clip w-full max-w-full`}
       >
         <Providers>
 
