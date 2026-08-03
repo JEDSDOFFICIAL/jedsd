@@ -1,12 +1,11 @@
-// app/api/research-papers/route.ts
-
 import { NextResponse } from "next/server";
-import { PrismaClient, PaperStatus } from "@prisma/client";
+import { PaperStatus } from "@prisma/client";
 import { z } from "zod";
 import { sendPaperUploadMail } from "@/helper/send_Author_and_POC_Paper_Upload_Mail";
 import { sendSpecialPaperUploadMailToEditor } from "@/helper/send_special_mail_for_new_paper";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // --- Zod Schemas for Request Validation ---
 const contactInfoSchema = z.object({
@@ -47,6 +46,13 @@ const deletePapersSchema = z.object({
 
 // POST /api/research-papers - Upload a new research paper
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized access." },
+      { status: 401 }
+    );
+  }
   const generateUniquePaperId = async () => {
     let paperId;
     let existingPaper;
@@ -151,6 +157,7 @@ export async function POST(req: Request) {
 // GET /api/research-papers - Fetch all research papers
 
 export async function GET(request: Request) {
+ 
   try {
     const { searchParams } = new URL(request.url);
 
@@ -281,6 +288,13 @@ export async function GET(request: Request) {
 
 // DELETE /api/research-papers - Delete multiple research papers
 export async function DELETE(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized access." },
+      { status: 401 }
+    );
+  }
   try {
     const body = await req.json();
     const validationResult = deletePapersSchema.safeParse(body);
@@ -350,8 +364,14 @@ const updatePaperSchema = z.object({
   editorDecisionFile: z.string().url("Invalid decision file URL.").optional().nullable(),
 });
 
-// PUT /api/paper - Update an existing research paper
 export async function PUT(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized access." },
+      { status: 401 }
+    );
+  }
   try {
     const url = new URL(req.url);
     const paperId = url.searchParams.get("paperId");
@@ -395,8 +415,7 @@ export async function PUT(req: Request) {
     const updatedPaper = await prisma.researchPaper.update({
       where: { id: validatedPaperId },
       data: {
-        ...updateData,
-        lastUpdated: new Date()
+        ...updateData
       },
       include: {
         author: {

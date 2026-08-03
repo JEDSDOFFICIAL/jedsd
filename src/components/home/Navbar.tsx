@@ -72,7 +72,13 @@ function Navbar() {
 
   useEffect(() => {
     function handleScroll() {
-      setIsScrolled(window.scrollY > 20);
+      // Hysteresis threshold to prevent jitter when scrolling slowly around boundary
+      const currentScroll = window.scrollY;
+      if (currentScroll > 80) {
+        setIsScrolled(true);
+      } else if (currentScroll < 20) {
+        setIsScrolled(false);
+      }
     }
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -117,7 +123,7 @@ function Navbar() {
           </Link>
 
           {/* Right: Two stacked rows taking remaining width */}
-          <div className={`flex flex-col justify-center flex-1 ${isScrolled ? "gap-0" : "gap-2.5"} overflow-visible min-w-0`}>
+          <div className="flex flex-col justify-center flex-1 overflow-visible min-w-0">
 
             {/* Row 1: Navigation links + auth (always visible) */}
             <div className="flex items-center w-full overflow-visible">
@@ -229,7 +235,7 @@ function Navbar() {
               className={`w-full transition-all duration-300 ease-in-out overflow-hidden ${
                 isScrolled
                   ? "max-h-0 opacity-0 mt-0"
-                  : "max-h-16 opacity-100"
+                  : "max-h-16 opacity-100 mt-2.5"
               }`}
             >
               <div className="flex items-center w-full bg-white/5 border border-white/10 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/50 transition-all">

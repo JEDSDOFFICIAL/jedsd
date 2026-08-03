@@ -1,9 +1,12 @@
+"use client";
+
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import storage from "./firebase";
 import toast from "react-hot-toast";
+
 const uploadFileToFirebase = async (file: File, folder: string) => {
   try {
-    // Create a date string like 10-11-22:09.34.36
+    // Create a date string like 10-11-22_09.34.36
     const now = new Date();
     const dateStr = now
       .toLocaleDateString("en-GB") // DD/MM/YYYY
@@ -17,7 +20,7 @@ const uploadFileToFirebase = async (file: File, folder: string) => {
       .split(" ")[0] // HH:MM:SS
       .replace(/:/g, "."); // -> 09.34.36
 
-    const filename = `paper${dateStr}:${timeStr}.${file.name.split(".").pop()}`;
+    const filename = `paper${dateStr}_${timeStr}.${file.name.split(".").pop()}`;
     const fileRef = ref(storage, `${folder}/${filename}`);
 
     toast.loading(`Uploading Manuscript...`);
@@ -37,16 +40,15 @@ const uploadFileToFirebase = async (file: File, folder: string) => {
   }
 };
 
-const deleteFile = (downloadUrl: string) => {
+const deleteFile = async (downloadUrl: string): Promise<void> => {
   const fileRef = ref(storage, downloadUrl);
-
-  // Delete the file
-  deleteObject(fileRef).then(() => {
+  try {
+    await deleteObject(fileRef);
     console.log("File deleted successfully");
-  }).catch((error) => {
+  } catch (error) {
     console.error("Error deleting file:", error);
-  });
+    throw error;
+  }
 };
 
-
-export  {uploadFileToFirebase,deleteFile};
+export { uploadFileToFirebase, deleteFile };

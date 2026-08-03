@@ -9,9 +9,12 @@ export default function GuidesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen h-fit bg-gray-50 overflow-hidden">
+    <div className="flex min-h-screen w-full bg-[#f8f9fc]">
+      {/* Sidebar — sticky, never scrolls the page */}
       <GuidesSidebar />
-      <main className="flex-1 h-screen overflow-y-auto overflow-x-hidden scrollbar-thin">
+
+      {/* Main content — grows naturally, page scrollbar handles everything */}
+      <main className="flex-1 min-w-0">
         {children}
       </main>
     </div>

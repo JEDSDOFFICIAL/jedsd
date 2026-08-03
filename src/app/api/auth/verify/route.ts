@@ -14,6 +14,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Invalid code or user not found" }, { status: 401 });
   }
 
+  if (user.verificationCodeExpiry && user.verificationCodeExpiry < new Date()) {
+    return NextResponse.json({ message: "Verification code has expired" }, { status: 401 });
+  }
+
   await prisma.user.update({
     where: { email },
     data: { isVerified: true, verificationCode: null },

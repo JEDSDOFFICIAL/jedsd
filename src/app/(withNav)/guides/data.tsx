@@ -102,129 +102,150 @@ export const data: GuideData[] = [
   {
     title: "about-us",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">About Us</h2>
-            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
-              Advancing embedded and digital system design through innovative research publication
+      <div className="w-full space-y-0">
+
+        {/* ── Hero Banner ── */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 px-8 py-16 md:py-20">
+          {/* Decorative circles */}
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl" />
+          <div className="relative max-w-3xl">
+            <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">
+              <BookOpen className="w-3.5 h-3.5" /> Journal of Embedded & Digital System Design
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
+              About <span className="text-blue-400">JEDSD</span>
+            </h1>
+            <p className="text-blue-100/80 text-base md:text-lg leading-relaxed max-w-2xl">
+              Advancing embedded and digital system design through rigorous, open-access research publication — empowering engineers and researchers worldwide.
             </p>
           </div>
+        </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <StatCard
-              icon={BookOpen}
-              value="2024"
-              label="Established"
-              description="New journal launch"
-            />
-            <StatCard
-              icon={Target}
-              value="Open Access"
-              label="Publication Model"
-              description="Free to publish"
-            />
-            <StatCard
-              icon={Globe}
-              value="Global"
-              label="Reach"
-              description="Worldwide authors"
-            />
+        {/* ── Stats Row ── */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+            {[
+              { icon: BookOpen, value: '2024', label: 'Established' },
+              { icon: Globe, value: 'Open Access', label: 'Publication Model' },
+              { icon: Shield, value: 'Double-Blind', label: 'Peer Review' },
+              { icon: Award, value: 'DOI + ISSN', label: 'Every Article' },
+            ].map(({ icon: Icon, value, label }) => (
+              <div key={label} className="flex flex-col items-center justify-center py-6 px-4 text-center">
+                <Icon className="w-5 h-5 text-blue-600 mb-2" />
+                <div className="text-lg font-bold text-gray-900">{value}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="space-y-6">
-            <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-blue-100/30">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Lightbulb className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">Our Foundation</h3>
-                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                      A nation&apos;s dream is to build a ubiquitous digital infrastructure so that this will ensure ease of living for the 
-                      people living within. The growth in digital infrastructure is completely relying on the development of secure, 
-                      fast, and reliable digital hardware platforms. Innovative techniques are to be adopted to develop cheaper but 
-                      high-performing embedded or digital systems.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* ── Content Area ── */}
+        <div className="px-8 py-12  mx-auto space-y-12">
 
-            <Card className="border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-green-100/30">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <BookOpen className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">Our Platform</h3>
-                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                      Journal of Embedded and Digital System Design (JEDSD) is a platform where researchers can publish emerging 
-                      techniques for the design of embedded or digital systems. JEDSD is an open-access journal that aims to publish 
-                      full-length manuscripts on emerging design techniques for embedded and digital systems. This journal covers a 
-                      broader area of the aforesaid domain.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50 to-purple-100/30">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Users className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">Our Objective</h3>
-                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                      The objective of this journal is to motivate students right from graduation to focus on developing innovative 
-                      designs, to inspire researchers to propose novel ideas in digital hardware development, and to provide researchers 
-                      with a platform through which their research can reach researchers around the world.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
-            <h3 className="text-xl md:text-2xl font-bold text-center mb-6 text-gray-900">Why Choose JEDSD?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FeatureCard
-                icon={Zap}
-                title="Innovation Focus"
-                description="Cutting-edge research in digital systems"
-                features={[
-                  "Emerging design techniques",
-                  "Novel hardware platforms",
-                  "Innovative system architectures",
-                  "Advanced optimization methods"
-                ]}
-              />
-              <FeatureCard
-                icon={Shield}
-                title="Quality Assurance"
-                description="Rigorous peer review process"
-                features={[
-                  "Expert reviewer network",
-                  "Ethical publication standards",
-                  "Open access model",
-                  "Global research impact"
-                ]}
-              />
+          {/* Our Story */}
+          <section>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Lightbulb className="w-4 h-4 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Our Foundation</h2>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
+              <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                A nation&apos;s dream is to build a ubiquitous digital infrastructure that ensures ease of living for its people.
+                The growth in digital infrastructure relies entirely on the development of secure, fast, and reliable digital
+                hardware platforms. Innovative techniques must be adopted to develop cheaper yet high-performing embedded or digital systems.
+              </p>
+            </div>
+          </section>
+
+          {/* What is JEDSD */}
+          <section>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <BookOpen className="w-4 h-4 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Our Platform</h2>
+            </div>
+            <div className="bg-green-50 border border-green-100 rounded-xl p-6">
+              <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                The <strong>Journal of Embedded and Digital System Design (JEDSD)</strong> is a platform where researchers can publish
+                emerging techniques for the design of embedded or digital systems. JEDSD is an open-access journal that aims to publish
+                full-length manuscripts on emerging design techniques for embedded and digital systems, covering a broad spectrum of this domain.
+              </p>
+            </div>
+          </section>
+
+          {/* Our Objective */}
+          <section>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Target className="w-4 h-4 text-purple-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Our Objective</h2>
+            </div>
+            <div className="bg-purple-50 border border-purple-100 rounded-xl p-6">
+              <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                The objective of this journal is to motivate students right from graduation to focus on developing innovative designs,
+                to inspire researchers to propose novel ideas in digital hardware development, and to provide researchers with a
+                platform through which their research can reach the global scientific community.
+              </p>
+            </div>
+          </section>
+
+          {/* Why JEDSD */}
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Why Choose JEDSD?</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {[
+                { icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-100', title: 'Innovation Focus', items: ['Emerging design techniques', 'Novel hardware platforms', 'Innovative system architectures', 'Advanced optimization methods'] },
+                { icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', title: 'Quality Assurance', items: ['Expert reviewer network', 'Ethical publication standards', 'Open access model', 'Global research impact'] },
+                { icon: Globe, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', title: 'Global Reach', items: ['Worldwide author community', 'International editorial board', 'Indexed and discoverable', 'Free-to-access articles'] },
+                { icon: Award, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', title: 'Credibility', items: ['DOI assigned per article', 'ISSN registered journal', 'Double-blind review', 'Transparent process'] },
+              ].map(({ icon: Icon, color, bg, border, title, items }) => (
+                <div key={title} className={`${bg} ${border} border rounded-xl p-5`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm`}>
+                      <Icon className={`w-4 h-4 ${color}`} />
+                    </div>
+                    <h3 className="font-semibold text-gray-900">{title}</h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {items.map(item => (
+                      <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                        <CheckCircle className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white text-center">
+            <h2 className="text-2xl font-bold mb-2">Ready to publish with JEDSD?</h2>
+            <p className="text-blue-100 mb-6 text-sm">Submit your manuscript and join our growing community of researchers.</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <a href="/guides/submission-guidelines" className="bg-white text-blue-700 font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors inline-block">
+                Submission Guidelines
+              </a>
+              <a href="/guides/contact-us" className="bg-white/10 border border-white/30 text-white font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-white/20 transition-colors inline-block">
+                Contact Us
+              </a>
+            </div>
+          </section>
+
+        </div>
+      </div>
     ),
   },
   {
     title: "mission-vision",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">Our Mission and Vision</h2>
@@ -410,7 +431,7 @@ export const data: GuideData[] = [
   {
     title: "our-team",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Editorial Board</h2>
@@ -514,7 +535,7 @@ export const data: GuideData[] = [
   {
     title: "contact-us",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
         <CardContent className="space-y-6">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4 text-gray-900">Contact Us</h1>
@@ -555,7 +576,7 @@ export const data: GuideData[] = [
   {
     title: "submission-guidelines",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
         <CardContent className="space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4 text-gray-900">Submission Guidelines</h1>
@@ -679,7 +700,7 @@ export const data: GuideData[] = [
   {
     title: "author-guidelines",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Author Guidelines</h2>
@@ -962,7 +983,7 @@ export const data: GuideData[] = [
   {
     title: "ethical-guidelines",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ethical Guidelines</h2>
@@ -1225,7 +1246,7 @@ export const data: GuideData[] = [
   {
     title: "conflict-of-interest",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Conflict of Interest Policy</h2>
@@ -1506,7 +1527,7 @@ export const data: GuideData[] = [
   {
     title: "publishing-model",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Publishing Model</h2>
@@ -1766,7 +1787,7 @@ export const data: GuideData[] = [
   {
     title: "call-for-papers",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
         <CardContent className="space-y-8">
           <div className="text-center">
             <Badge className="mb-4 bg-green-100 text-green-800 px-4 py-2">
@@ -1963,7 +1984,7 @@ export const data: GuideData[] = [
   {
     title: "how-we-publish",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How We Publish</h2>
@@ -2238,7 +2259,7 @@ export const data: GuideData[] = [
   {
     title: "templates",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
         <CardContent className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Author Resources & Templates</h2>
@@ -2560,7 +2581,7 @@ export const data: GuideData[] = [
   {
     title: "peer-review-process",
     content: (
-      <Card className="max-w-6xl bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
+      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
         <CardContent className="space-y-8">
           <div className="text-center">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Peer Review Process</h2>

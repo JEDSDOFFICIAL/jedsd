@@ -59,8 +59,7 @@ export async function PATCH(req: NextRequest,context: { params: Promise<{ paperI
       where: { id: validatedPaperId },
       data: {
         status: status,
-        // Optionally, set acceptedDate if status is ACCEPTED
-        acceptedDate: new Date(),
+        acceptedDate: (status === PaperStatus.ACCEPTED || status === PaperStatus.PUBLISH) ? new Date() : null,
       },
       include: {
         author: {

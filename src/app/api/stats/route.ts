@@ -1,10 +1,7 @@
-// app/api/dashboard-stats/route.ts
-
 import { NextResponse } from "next/server";
-import { PrismaClient, UserType, PaperStatus, ReviewerStatus } from "@prisma/client";
+import { UserType, PaperStatus, ReviewerStatus } from "@prisma/client";
 import { z } from "zod";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 // Zod schema for validating query parameters
 const dashboardStatsQuerySchema = z.object({
@@ -95,8 +92,10 @@ export async function GET(req: Request) {
         });
 
         const submittedReviews = reviewerReviews.filter(
-          (r) => r.reviewerStatus === ReviewerStatus.ACCEPTED_FOR_REVIEW ||
-                 r.reviewerStatus === ReviewerStatus.REJECTED_FOR_PUBLICATION
+          (r) => r.reviewerStatus === ReviewerStatus.ACCEPTED_FOR_PUBLICATION ||
+                 r.reviewerStatus === ReviewerStatus.REJECTED_FOR_PUBLICATION ||
+                 r.reviewerStatus === ReviewerStatus.MINOR_REVISION ||
+                 r.reviewerStatus === ReviewerStatus.MAJOR_REVISION
         ).length;
 
         const pendingReviews = reviewerReviews.filter(
@@ -166,12 +165,17 @@ export async function GET(req: Request) {
           where: { userType: UserType.REVIEWER }
         });
 
-        // Count papers by each status
+        // Count papers by each status using a single groupBy query
+        const statusCounts = await prisma.researchPaper.groupBy({
+          by: ['status'],
+          _count: { id: true },
+        });
         const papersByStatus: Record<PaperStatus, number> = {} as Record<PaperStatus, number>;
         for (const status of Object.values(PaperStatus) as PaperStatus[]) {
-          papersByStatus[status] = await prisma.researchPaper.count({
-            where: { status: status },
-          });
+          papersByStatus[status] = 0;
+        }
+        for (const item of statusCounts) {
+          papersByStatus[item.status] = item._count.id;
         }
 
         // Calculate overall average review rating

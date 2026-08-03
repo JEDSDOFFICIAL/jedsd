@@ -1,10 +1,8 @@
-// app/api/research-papers/[paperId]/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // Schema for validating the paperId from the URL parameters
 const paperIdSchema = z.object({
@@ -14,6 +12,7 @@ const paperIdSchema = z.object({
 // GET /api/research-papers/[paperId] - Fetch details of a single research paper
 export async function GET( req: NextRequest,
   context: { params: Promise<{ paperId: string }> }) {
+ 
   try {
      const { paperId } = await context.params;
      console.log("Fetching details for paperId:", paperId);
@@ -76,11 +75,16 @@ export async function GET( req: NextRequest,
 }
 
 export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized access." },
+      { status: 401 }
+    );
+  }
   try {
-
     const url = new URL(req.url);
     const pathSegments = url.pathname.split("/");
-    // The paperId is expected to be the last segment in a dynamic route like /api/research-papers/[paperId]
     const paperIdparams = pathSegments[pathSegments.length - 1];
     const validationResult = paperIdSchema.safeParse({
       paperId: paperIdparams,
@@ -98,31 +102,48 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { paperId } = validationResult.data;
-    const deleteResult = await prisma.researchPaper.delete({
-      where: { id: paperId },
+
+    // Find paper to resolve UUID vs human-readable paperId
+    const paper = await prisma.researchPaper.findFirst({
+      where: {
+        OR: [
+          { id: paperId },
+          { paperId: paperId }
+        ]
+      }
     });
-    if (!deleteResult) {
+
+    if (!paper) {
       return NextResponse.json(
         { success: false, message: "Research paper not found." },
         { status: 404 }
       );
     }
+
+    // Delete reviews referencing the paper first
     const reviewDelete = await prisma.paperReview.deleteMany({
-        where:{
-            paperId: paperId
-        }
-    })
+      where: {
+        paperId: paper.id
+      }
+    });
+
+    // Delete paper
+    const deleteResult = await prisma.researchPaper.delete({
+      where: { id: paper.id },
+    });
+
     return NextResponse.json({
       success: true,
       message: "Research paper deleted successfully.",
       deletedPaper: deleteResult,
       deletedReviews: reviewDelete.count
     });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({
-      status: 500,
+      success: false,
       message: "Server Error in deleting in [PaperId] route",
-    });
+      error: error.message
+    }, { status: 500 });
   }
 }
 // app/api/research-papers/[paperId]/route.ts (Add this PATCH function alongside your GET function)
@@ -160,6 +181,13 @@ export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ paperId: string }> }
 ) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized access." },
+      { status: 401 }
+    );
+  }
   try {
     const { paperId } = await context.params;
 

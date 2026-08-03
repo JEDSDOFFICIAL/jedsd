@@ -39,10 +39,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const totalCount = await prisma.researchPaper.count({
+      where: {
+        reviews: {
+          some: {
+            reviewerId: reviewerId,
+          },
+        },
+      },
+    });
+
     return NextResponse.json({
       success: true,
       data: papers,
-      count: papers.length,
+      count: totalCount,
     });
   } catch (error) {
     console.error("Error fetching reviewer papers:", error);

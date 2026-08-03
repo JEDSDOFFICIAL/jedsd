@@ -7,7 +7,7 @@ import { sendSuccessAuthenticationMail } from "@/helper/send_Successful_Auth_Mai
 import { UserType } from "@prisma/client";
 
 // Utility function to get effective user type
-async function getEffectiveUserType(email: string): Promise<UserType> {
+export async function getEffectiveUserType(email: string): Promise<UserType> {
   try {
     // First, check UserDetails table
     const userDetails = await prisma.userDetails.findUnique({
