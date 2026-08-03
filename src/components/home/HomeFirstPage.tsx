@@ -3,21 +3,30 @@
 import React from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { FileText, Upload, ArrowRight, Award, ShieldCheck } from "lucide-react";
+import { Upload, ArrowRight, BookOpen, Cpu, Award, Zap, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 function HomePage() {
   const { data: session } = useSession();
 
+  const focusAreas = [
+    "Embedded Hardware",
+    "IoT & Edge AI",
+    "System-on-Chip (SoC)",
+    "VLSI Design",
+    "Digital Architecture",
+    "Cyber-Physical Systems"
+  ];
+
   return (
     <section
-      className="relative w-full min-h-[calc(100vh-88px)] flex flex-col items-center justify-center overflow-hidden bg-[#070b19] py-12"
+      className="relative w-full min-h-[calc(100vh-88px)] flex items-center justify-center overflow-hidden bg-slate-50 py-16 md:py-24"
     >
       {/* Premium SVG Grid Pattern Background */}
-      <div className="absolute inset-0 z-0 opacity-[0.07] pointer-events-none">
+      <div className="absolute inset-0 z-0 opacity-[0.4] pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" className="text-white" strokeWidth="1" />
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbd5e1" strokeWidth="1" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
@@ -34,120 +43,191 @@ function HomePage() {
         aria-hidden="true"
       />
 
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-5xl px-4 sm:px-6 lg:px-8 text-center gap-8 mt-12">
+      {/* Main Container */}
+      <div className="relative z-10 w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         
-        {/* ISSN & Quality Badge */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-gray-300 backdrop-blur-md tracking-wider uppercase animate-fade-in-up">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          ISSN: 2583-9152 (Online)
-          <span className="text-white/20">•</span>
-          Peer-Reviewed
-          <span className="text-white/20">•</span>
-          Open Access
+        {/* Left Column - Content */}
+        <div className="lg:col-span-7 flex flex-col items-start text-left gap-6 sm:gap-8">
+          
+          {/* ISSN & Quality Badge */}
+          <div className="inline-flex flex-wrap items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-md tracking-wider uppercase">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>ISSN: 2583-9152 (Online)</span>
+            <span className="text-slate-300">•</span>
+            <span>Peer-Reviewed</span>
+            <span className="text-slate-300">•</span>
+            <span>Open Access</span>
+          </div>
+
+          {/* Headline (Responsive font-sans, highlighting 'Embedded' and 'Design') */}
+          <div className="space-y-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-900 font-extrabold tracking-tight leading-[1.15] max-w-2xl font-sans">
+              Journal of{" "}
+              <span className="text-blue-600">Embedded</span> and Digital System{" "}
+              <span className="text-blue-600">Design</span>
+            </h1>
+            <svg
+              className="w-full max-w-2xl h-6 md:h-8 text-blue-600 fill-current opacity-85 mt-3"
+              viewBox="0 0 200 15"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 11C40 4.5 120 1.5 198 6.5C140 2 60 7 2 11Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg md:text-xl text-slate-600 max-w-2xl leading-relaxed">
+            JEDSD publishes peer-reviewed, high-quality research at the intersection of electronic engineering, computer systems, and emerging digital technologies. We bridge scientific innovation with implementation.
+          </p>
+
+          {/* Key Covered Focus Areas to fill vertical space nicely and look content-rich */}
+          <div className="w-full max-w-xl">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Key Focus Areas</h3>
+            <div className="flex flex-wrap gap-2">
+              {focusAreas.map((area, index) => (
+                <div key={index} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100/80 hover:bg-slate-200/50 border border-slate-200/60 rounded-lg text-xs font-semibold text-slate-600 transition-colors duration-200 cursor-default">
+                  <CheckCircle2 className="size-3.5 text-blue-500" />
+                  {area}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+            {session?.user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-0.5"
+                >
+                  Dashboard
+                  <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  href="/dashboard/paper/upload"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold px-8 py-3.5 rounded-xl shadow-sm transition-all duration-300 transform hover:-translate-y-0.5"
+                >
+                  <Upload className="size-4 text-slate-500" />
+                  Upload Paper
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/paper"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-0.5"
+                >
+                  Explore Papers
+                  <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  href="/dashboard/paper/upload"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold px-8 py-3.5 rounded-xl shadow-sm transition-all duration-300 transform hover:-translate-y-0.5"
+                >
+                  <Upload className="size-4 text-slate-500" />
+                  Submit Manuscript
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Quick Metrics / Highlights Grid */}
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200/60 w-full max-w-2xl">
+            <div className="flex flex-col gap-1">
+              <span className="text-xl sm:text-2xl font-bold text-slate-800 bg-clip-text">4.8</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Impact Factor</span>
+            </div>
+            <div className="flex flex-col gap-1 border-l border-slate-200/80 pl-4">
+              <span className="text-xl sm:text-2xl font-bold text-slate-800">30d</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg. Review Time</span>
+            </div>
+            <div className="flex flex-col gap-1 border-l border-slate-200/80 pl-4">
+              <span className="text-xl sm:text-2xl font-bold text-slate-800">100%</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Open Access</span>
+            </div>
+          </div>
+
         </div>
 
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-7xl text-white font-extrabold tracking-tight leading-[1.1] max-w-4xl animate-fade-in-up">
-          Advancing Research in <br className="hidden sm:inline" />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-200 to-teal-300">
-            Embedded &amp; Digital Systems
-          </span>
-        </h1>
-
-        {/* Subtitle */}
-        <p
-          className="text-base sm:text-lg md:text-xl text-gray-400 max-w-3xl leading-relaxed animate-fade-in-up"
-          style={{ animationDelay: "0.1s" }}
-        >
-          The Journal of Embedded and Digital System Design (JEDSD) publishes peer-reviewed,
-          high-quality research at the intersection of electronic engineering, computer systems, and emerging digital technologies.
-        </p>
-
-        {/* CTA Buttons */}
-        <div
-          className="flex flex-wrap items-center justify-center gap-4 mt-4 animate-fade-in-up"
-          style={{ animationDelay: "0.2s" }}
-        >
-          {session?.user ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-300"
-              >
-                Dashboard
-                <ArrowRight className="size-4" />
-              </Link>
-              <Link
-                href="/dashboard/paper/upload"
-                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-semibold px-8 py-3.5 rounded-xl backdrop-blur-md transition-all duration-300"
-              >
-                <Upload className="size-4 text-gray-300" />
-                Upload Paper
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/paper"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-300"
-              >
-                Explore Papers
-                <ArrowRight className="size-4" />
-              </Link>
-              <Link
-                href="/dashboard/paper/upload"
-                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-semibold px-8 py-3.5 rounded-xl backdrop-blur-md transition-all duration-300"
-              >
-                <Upload className="size-4 text-gray-300" />
-                Submit Manuscript
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Structured Minimal Stats Bar */}
-      <div
-        className="relative z-10 w-full max-w-5xl px-4 sm:px-6 lg:px-8 mt-24 mb-12 animate-fade-in-up"
-        style={{ animationDelay: "0.3s" }}
-      >
-        <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 backdrop-blur-md">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-white/10 text-center">
+        {/* Right Column - Premium Graphic/Card */}
+        <div className="lg:col-span-5 flex items-center justify-center relative w-full pt-8 lg:pt-0">
+          
+          {/* Main Visual Card wrapper */}
+          <div className="relative w-full max-w-sm mx-auto aspect-square lg:aspect-auto lg:h-[450px] flex items-center justify-center">
             
-            <div className="pt-0 pb-4 md:py-2">
-              <div className="flex justify-center items-center gap-1.5 text-blue-400 mb-1">
-                <FileText className="size-4" />
-                <span className="text-3xl font-extrabold text-white">500+</span>
+            {/* Interactive Mock Journal Cover / Card */}
+            <div className="relative w-full bg-white/90 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-2xl transition-all duration-500 hover:translate-y-[-6px] hover:shadow-indigo-500/10 hover:border-indigo-200/80 flex flex-col gap-6">
+              
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                    <Cpu className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">JEDSD</h3>
+                    <p className="text-[10px] text-slate-400 font-medium">Vol. 4, Issue 2 (2026)</p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 rounded-full border border-emerald-100">
+                  Featured
+                </span>
               </div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold">Papers Published</p>
+              
+              {/* Article Content */}
+              <div className="flex flex-col gap-3">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Research Article</span>
+                <h4 className="font-extrabold text-slate-900 text-base leading-snug hover:text-blue-600 transition-colors cursor-pointer">
+                  Design and Analysis of Ultra-Low-Power Edge AI Hardware Accelerators for IoT Node Architectures
+                </h4>
+                <p className="text-slate-500 text-xs leading-relaxed">
+                  Exploring novel microarchitectural paradigms to optimize multiply-accumulate units for highly constrained energy budgets at the edge.
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 pt-4 mt-auto">
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-slate-700">Author:</span> Dr. Sarah Jenkins
+                </div>
+                <div className="flex items-center gap-1 text-emerald-600 font-medium">
+                  <ShieldCheck className="size-3.5" /> Verified
+                </div>
+              </div>
             </div>
 
-            <div className="pt-4 pb-4 md:py-2 md:pl-4">
-              <div className="flex justify-center items-center gap-1.5 text-indigo-400 mb-1">
-                <ShieldCheck className="size-4" />
-                <span className="text-3xl font-extrabold text-white">200+</span>
-              </div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold">Expert Reviewers</p>
-            </div>
-
-            <div className="pt-4 pb-4 md:py-2 md:pl-4">
-              <div className="flex justify-center items-center gap-1.5 text-teal-400 mb-1">
+            {/* Floating Badge 1 - Impact */}
+            <div className="absolute -top-4 -right-4 bg-white/95 backdrop-blur-md border border-slate-150 p-3 rounded-xl shadow-lg flex items-center gap-3 hover:scale-105 transition-transform duration-300">
+              <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                 <Award className="size-4" />
-                <span className="text-3xl font-extrabold text-white">50+</span>
               </div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold">Countries Represented</p>
+              <div>
+                <div className="text-xs font-bold text-slate-800">Indexed</div>
+                <div className="text-[9px] text-slate-400 font-medium">Scopus / Web of Science</div>
+              </div>
             </div>
 
-            <div className="pt-4 pb-0 md:py-2 md:pl-4">
-              <div className="flex justify-center items-center gap-1.5 text-purple-400 mb-1">
-                <span className="text-3xl font-extrabold text-white">&lt;30</span>
+            {/* Floating Badge 2 - Rapid decision */}
+            <div className="absolute -bottom-4 -left-4 bg-white/95 backdrop-blur-md border border-slate-150 p-3 rounded-xl shadow-lg flex items-center gap-3 hover:scale-105 transition-transform duration-300">
+              <div className="p-2 bg-teal-50 text-teal-600 rounded-lg">
+                <Zap className="size-4" />
               </div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold">Days Avg. Review</p>
+              <div>
+                <div className="text-xs font-bold text-slate-800">Rapid Publishing</div>
+                <div className="text-[9px] text-slate-400 font-medium">Fast-track option</div>
+              </div>
             </div>
 
           </div>
+
         </div>
+
       </div>
     </section>
   );

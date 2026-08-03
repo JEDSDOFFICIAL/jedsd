@@ -11,7 +11,6 @@ import {
   LogOut,
   Menu,
   ChevronDown,
-  LogOutIcon,
   X,
   UploadCloud,
 } from "lucide-react";
@@ -23,13 +22,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import {
-  CircleAlertIcon,
-  CircleCheckIcon,
-  CircleDashedIcon,
-} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,7 +55,6 @@ import {
   navSections,
 } from "@/components/home/navData";
 
-
 function Navbar() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -72,7 +64,6 @@ function Navbar() {
 
   useEffect(() => {
     function handleScroll() {
-      // Hysteresis threshold to prevent jitter when scrolling slowly around boundary
       const currentScroll = window.scrollY;
       if (currentScroll > 80) {
         setIsScrolled(true);
@@ -103,20 +94,20 @@ function Navbar() {
   }
 
   return (
-    <nav className="dark relative w-full overflow-visible">
+    <nav className="relative w-full overflow-visible bg-transparent">
       <div className="max-w-[80rem] w-full mx-auto px-4 sm:px-6 overflow-visible">
 
         {/* ── Desktop layout ── */}
         <div className="hidden md:flex items-center gap-6 overflow-visible py-1">
 
-          {/* Left: Logo — resizes to match visible row height */}
+          {/* Left: Logo */}
           <Link href="/" className="flex items-center flex-shrink-0 group select-none">
             <Image
               src="/logored.jpg"
               alt="JEDSD Logo"
               width={65}
               height={65}
-              className={`rounded-lg object-contain border border-white/10 group-hover:border-blue-500/50 transition-all duration-300 ${
+              className={`rounded-lg object-contain border border-slate-200 group-hover:border-blue-500 transition-all duration-300 ${
                 isScrolled ? "h-9 w-9" : "h-[65px] w-[65px]"
               }`}
             />
@@ -125,25 +116,25 @@ function Navbar() {
           {/* Right: Two stacked rows taking remaining width */}
           <div className="flex flex-col justify-center flex-1 overflow-visible min-w-0">
 
-            {/* Row 1: Navigation links + auth (always visible) */}
+            {/* Row 1: Navigation links + auth */}
             <div className="flex items-center w-full overflow-visible">
               <NavigationMenu className={`static flex-1 overflow-visible ${isScrolled ? "justify-center" : "justify-start"}`}>
                 <NavigationMenuList className="flex items-center gap-1 overflow-visible">
                   {/* Home */}
                   <NavigationMenuItem>
                     <NavigationMenuLink
-                      className="bg-transparent hover:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent text-gray-300 hover:text-white transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
                       render={<Link href="/">Home</Link>}
                     />
                   </NavigationMenuItem>
 
                   {/* About Us */}
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent hover:text-white text-gray-300 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-slate-50 focus:bg-transparent data-[state=open]:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
                       About Us
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <ul className="w-96 p-3 flex flex-col gap-1 bg-[#0f152d] border border-white/10 rounded-xl shadow-xl">
+                      <ul className="w-96 p-3 flex flex-col gap-1 bg-white border border-slate-250 rounded-xl shadow-xl">
                         {aboutus.map((item) => (
                           <ListItem
                             key={item.title}
@@ -159,11 +150,11 @@ function Navbar() {
 
                   {/* Policies */}
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent hover:text-white text-gray-300 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-slate-50 focus:bg-transparent data-[state=open]:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
                       Policies
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3 bg-[#0f152d] border border-white/10 rounded-xl shadow-xl">
+                      <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3 bg-white border border-slate-250 rounded-xl shadow-xl">
                         {policies.map((item) => (
                           <ListItem
                             key={item.title}
@@ -179,11 +170,11 @@ function Navbar() {
 
                   {/* Publishing */}
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent hover:text-white text-gray-300 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-slate-50 focus:bg-transparent data-[state=open]:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 shadow-none border-none cursor-pointer select-none">
                       Publishing
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3 bg-[#0f152d] border border-white/10 rounded-xl shadow-xl">
+                      <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-3 bg-white border border-slate-250 rounded-xl shadow-xl">
                         {publishingModel.map((item) => (
                           <ListItem
                             key={item.title}
@@ -200,7 +191,7 @@ function Navbar() {
                   {/* Papers */}
                   <NavigationMenuItem>
                     <NavigationMenuLink
-                      className="bg-transparent hover:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent text-gray-300 hover:text-white transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
                       render={<Link href="/paper">Papers</Link>}
                     />
                   </NavigationMenuItem>
@@ -208,7 +199,7 @@ function Navbar() {
                   {/* Pre-Publish */}
                   <NavigationMenuItem>
                     <NavigationMenuLink
-                      className="bg-transparent hover:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent text-gray-300 hover:text-white transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
                       render={<Link href="/pre-publish">Pre-Publish</Link>}
                     />
                   </NavigationMenuItem>
@@ -238,18 +229,18 @@ function Navbar() {
                   : "max-h-16 opacity-100 mt-2.5"
               }`}
             >
-              <div className="flex items-center w-full bg-white/5 border border-white/10 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/50 transition-all">
+              <div className="flex items-center w-full bg-slate-100/80 border border-slate-200 rounded-xl overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
                 <Input
                   type="text"
                   placeholder="Search papers by title, abstract, keywords, or authors..."
-                  className="h-9 flex-1 bg-transparent border-0 text-white placeholder:text-gray-400 focus-visible:ring-0 text-xs px-4"
+                  className="h-9 flex-1 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 focus-visible:ring-0 text-xs px-4"
                   value={SearchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onKeyDown={handleSearchKeyPress}
                 />
                 <Button
                   type="button"
-                  className="h-9 px-5 rounded-none bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 border-l border-white/10 flex-shrink-0"
+                  className="h-9 px-5 rounded-none bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 border-l border-slate-200 flex-shrink-0"
                   onClick={() => onClickSearch(SearchValue)}
                 >
                   <Search className="size-3.5" />
@@ -269,13 +260,13 @@ function Navbar() {
               alt="JEDSD Logo"
               width={40}
               height={40}
-              className="rounded-lg object-contain border border-white/10"
+              className="rounded-lg object-contain border border-slate-200"
             />
             <div className="flex flex-col">
-              <span className="text-sm font-extrabold text-white tracking-wider uppercase leading-none">
+              <span className="text-sm font-extrabold text-slate-800 tracking-wider uppercase leading-none">
                 JEDSD
               </span>
-              <span className="text-[8px] text-gray-400 tracking-normal font-medium mt-1 leading-none">
+              <span className="text-[8px] text-slate-500 tracking-normal font-medium mt-1 leading-none">
                 Embedded Systems Journal
               </span>
             </div>
@@ -284,11 +275,11 @@ function Navbar() {
           <div className="flex items-center gap-2">
             {/* Mobile Expandable Search Bar */}
             {isSearchOpen ? (
-              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 animate-in fade-in slide-in-from-right-4 duration-200">
+              <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 rounded-xl p-1 animate-in fade-in slide-in-from-right-4 duration-200">
                 <Input
                   type="text"
                   placeholder="Search papers..."
-                  className="h-8 w-28 sm:w-44 bg-transparent border-0 text-white placeholder:text-gray-400 focus-visible:ring-0 text-xs py-0"
+                  className="h-8 w-28 sm:w-44 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 focus-visible:ring-0 text-xs py-0"
                   value={SearchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onKeyDown={handleSearchKeyPress}
@@ -297,7 +288,7 @@ function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg"
+                  className="h-7 w-7 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
                   onClick={() => onClickSearch(SearchValue)}
                 >
                   <Search className="size-3.5" />
@@ -305,7 +296,7 @@ function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg"
+                  className="h-7 w-7 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
                   onClick={() => {
                     setIsSearchOpen(false);
                     setSearchValue("");
@@ -318,7 +309,7 @@ function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg"
+                className="h-8 w-8 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
                 onClick={() => setIsSearchOpen(true)}
               >
                 <Search className="size-4" />
@@ -345,7 +336,7 @@ function Navbar() {
 export default Navbar;
 
 /* ------------------------------------------------------------------ */
-/*  ListItem — restyled for dark dropdowns using render prop            */
+/*  ListItem — restyled for light dropdowns using render prop           */
 /* ------------------------------------------------------------------ */
 function ListItem({
   title,
@@ -355,12 +346,12 @@ function ListItem({
 }: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
   return (
     <li {...props}>
-      <NavigationMenuLink render={<Link href={href}><div className="flex flex-col gap-1 text-sm">
-          <div className="leading-none font-medium text-gray-200">{title}</div>
-          <div className="line-clamp-2 text-gray-400 text-xs mt-0.5 leading-relaxed">{children}</div>
+      <NavigationMenuLink render={<Link href={href}><div className="flex flex-col gap-1 text-sm p-2 hover:bg-slate-50 rounded-lg transition-colors">
+          <div className="leading-none font-semibold text-slate-800">{title}</div>
+          <div className="line-clamp-2 text-slate-500 text-xs mt-0.5 leading-relaxed">{children}</div>
         </div></Link>} />
     </li>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -377,25 +368,25 @@ function DropdownMenuProfile({
         <Image
           src={profileImage || "/default-image.jpg"}
           alt="Profile Image"
-          className="h-8 w-8 rounded-full ring-2 ring-white/10 hover:ring-blue-500 transition-all object-cover"
+          className="h-8 w-8 rounded-full ring-2 ring-slate-200 hover:ring-blue-500 transition-all object-cover"
           height={32}
           width={32}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-48 bg-[#0f152d] border border-white/10 text-gray-200"
+        className="w-48 bg-white border border-slate-200 text-slate-800"
         align="end"
       >
-        <DropdownMenuLabel className="text-gray-400 text-xs">
+        <DropdownMenuLabel className="text-slate-400 text-xs">
           My Account
         </DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem className="hover:bg-white/5 focus:bg-white/5 cursor-pointer text-sm">
+          <DropdownMenuItem className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer text-sm">
             <Link href="/dashboard" className="w-full">
               Dashboard
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem className="hover:bg-white/5 focus:bg-white/5 cursor-pointer text-sm">
+          <DropdownMenuItem className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer text-sm">
             <Link
               href="/dashboard/paper/upload"
               className="w-full"
@@ -404,9 +395,9 @@ function DropdownMenuProfile({
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator className="bg-slate-100" />
         <DropdownMenuItem
-          className="hover:bg-white/5 focus:bg-white/5 cursor-pointer text-sm text-rose-400 focus:text-rose-300"
+          className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer text-sm text-rose-600 focus:text-rose-500"
           onClick={() => signOut()}
         >
           Sign Out
@@ -417,7 +408,7 @@ function DropdownMenuProfile({
 }
 
 /* ------------------------------------------------------------------ */
-/*  SmNavbar — mobile Dialog menu, restyled for dark glassmorphism      */
+/*  SmNavbar — mobile Dialog menu                                      */
 /* ------------------------------------------------------------------ */
 const SmNavbar = ({ session }: { session: any }) => {
   return (
@@ -426,67 +417,67 @@ const SmNavbar = ({ session }: { session: any }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 text-gray-300 hover:text-white hover:bg-white/10"
+          className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
         >
           <Menu className="size-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-screen w-screen sm:max-h-screen h-screen overflow-y-auto bg-[#070b19] border-none px-0">
+      <DialogContent className="sm:max-w-screen w-screen sm:max-h-screen h-screen overflow-y-auto bg-white border-none px-0">
         <DialogHeader className="mt-5 px-6">
-          <DialogTitle className="text-white text-lg font-semibold tracking-wide border-b border-white/10 pb-4">
+          <DialogTitle className="text-slate-900 text-lg font-bold tracking-wide border-b border-slate-150 pb-4">
             Journal of Embedded and Digital System Design
           </DialogTitle>
-          <DialogDescription className="text-gray-400 text-sm">
+          <DialogDescription className="text-slate-500 text-sm">
             Navigate through our journal sections
           </DialogDescription>
         </DialogHeader>
 
         <div
-          className="flex flex-col gap-3 px-6 py-6 mx-3 rounded-xl my-3 bg-white/5 backdrop-blur-sm border border-white/10"
+          className="flex flex-col gap-3 px-6 py-6 mx-3 rounded-xl my-3 bg-slate-50 border border-slate-200"
         >
           {/* Direct navigation links */}
           <div className="space-y-1">
             <Link
               href="/"
-              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-200 text-sm"
+              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-700 text-sm"
             >
               <span className="font-medium">Home</span>
             </Link>
             <Link
               href="/paper"
-              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-200 text-sm"
+              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-700 text-sm"
             >
               <span className="font-medium">Papers</span>
             </Link>
             <Link
               href="/pre-publish"
-              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-200 text-sm"
+              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-700 text-sm"
             >
               <span className="font-medium">Pre-Publish</span>
             </Link>
           </div>
 
-          <div className="h-px bg-white/10 my-1" />
+          <div className="h-px bg-slate-200 my-1" />
 
           {/* Collapsible sections from navData */}
           {navSections.map((section, index) => (
             <Collapsible key={index}>
-              <CollapsibleTrigger className="w-full flex items-center justify-between px-3 py-2.5 text-gray-200 text-sm font-medium rounded-lg hover:bg-white/10 transition-colors">
+              <CollapsibleTrigger className="w-full flex items-center justify-between px-3 py-2.5 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-100 transition-colors">
                 <span>{section.title}</span>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-slate-400" />
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-0.5 pt-1 pl-2">
                 {section.items.map((item, i) => (
                   <Link
                     key={i}
                     href={item.href}
-                    className="flex items-start gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-white/10 text-gray-300 text-sm"
+                    className="flex items-start gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-600 text-sm"
                   >
                     <div className="flex flex-col">
-                      <span className="font-medium text-gray-200">
+                      <span className="font-semibold text-slate-800">
                         {item.title}
                       </span>
-                      <span className="text-xs text-gray-500 leading-tight mt-0.5">
+                      <span className="text-xs text-slate-500 leading-tight mt-0.5">
                         {item.description}
                       </span>
                     </div>
@@ -503,7 +494,7 @@ const SmNavbar = ({ session }: { session: any }) => {
               <Link href="/dashboard" className="w-full">
                 <Button
                   variant="outline"
-                  className="w-full bg-white/5 border-white/10 text-gray-200 hover:bg-white/10 hover:text-white"
+                  className="w-full bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 >
                   Dashboard
                 </Button>
@@ -523,7 +514,7 @@ const SmNavbar = ({ session }: { session: any }) => {
             <Link href="/signup" className="w-full">
               <Button
                 variant="outline"
-                className="w-full bg-white/5 border-white/10 text-gray-200 hover:bg-white/10 hover:text-white"
+                className="w-full bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
               >
                 Submit Paper
               </Button>
