@@ -324,17 +324,17 @@ export default function PaperActionPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <a href={paper.filePath} target="_blank" rel="noopener noreferrer">
+                    <Link href={paper.filePath} target="_blank" rel="noopener noreferrer">
                       <FileText className="w-4 h-4 mr-2" />
                       View Paper
-                    </a>
+                    </Link>
                   </Button>
                   {paper.coverLetterPath && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={paper.coverLetterPath} target="_blank" rel="noopener noreferrer">
+                      <Link href={paper.coverLetterPath} target="_blank" rel="noopener noreferrer">
                         <Eye className="w-4 h-4 mr-2" />
                         Cover Letter
-                      </a>
+                      </Link>
                     </Button>
                   )}
                 </div>

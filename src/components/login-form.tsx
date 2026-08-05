@@ -117,9 +117,9 @@ const handleGoogleSignIn = async () => {
             <div className="grid gap-3">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
-                <a href="#" className="ml-auto text-sm underline-offset-4 hover:underline">
+                <Link href="#" className="ml-auto text-sm underline-offset-4 hover:underline">
                   Forgot your password?
-                </a>
+                </Link>
               </div>
               <Input id="password" type="password" {...register("password")} />
               {errors.password && <p className="text-red-400">{errors.password.message}</p>}
@@ -138,13 +138,13 @@ const handleGoogleSignIn = async () => {
 
       <div className="text-muted-foreground text-center text-xs text-balance">
         By clicking continue, you agree to our{" "}
-        <a href="#" className="underline underline-offset-4 hover:text-primary">
+        <Link href="#" className="underline underline-offset-4 hover:text-primary">
           Terms of Service
-        </a>{" "}
+        </Link>{" "}
         and{" "}
-        <a href="#" className="underline underline-offset-4 hover:text-primary">
+        <Link href="#" className="underline underline-offset-4 hover:text-primary">
           Privacy Policy
-        </a>
+        </Link>
         .
       </div>
     </div>

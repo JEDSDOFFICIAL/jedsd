@@ -60,6 +60,7 @@ import { fetchReviewerPapers, submitReview } from "@/lib/Frontend-actions";
 import { uploadFileToFirebase } from "@/lib/Firebase-Action";
 import { PaperWithRelations, ReviewFormData } from "@/types/dataTypes";
 import { format, formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 export default function WriteReviewPage() {
   const { data: session, status: sessionStatus } = useSession();
@@ -372,10 +373,10 @@ export default function WriteReviewPage() {
                       You haven't accepted any papers for review yet. Go to the Allocated Papers page to accept assignments.
                     </p>
                     <Button asChild>
-                      <a href="/dashboard/reviewer/allocated">
+                      <Link href="/dashboard/reviewer/allocated">
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Go to Allocated Papers
-                      </a>
+                      </Link>
                     </Button>
                   </div>
                 ) : (

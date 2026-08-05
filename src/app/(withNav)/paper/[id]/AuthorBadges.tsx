@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 interface Contributor {
   fullName: string;
@@ -53,13 +54,13 @@ export default function AuthorBadges({ contributors }: AuthorBadgesProps) {
                   {contributor.email && (
                     <DropdownMenuItem className="flex items-center gap-2">
                       <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      <a
+                      <Link
                         href={`mailto:${contributor.email}`}
                         className="hover:text-primary hover:underline break-all flex-1"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {contributor.email}
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                   )}
                   {contributor.affiliation && (

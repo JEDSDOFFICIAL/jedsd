@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 interface ReviewWithDetails extends PaperReview {
   reviewer: User;
@@ -680,10 +681,10 @@ export default function ReviewsPage() {
                             </div>
                             {review.correspondingFile && (
                               <Button variant="outline" size="sm" asChild>
-                                <a href={review.correspondingFile} target="_blank" rel="noopener noreferrer">
+                                <Link href={review.correspondingFile} target="_blank" rel="noopener noreferrer">
                                   <Download className="h-4 w-4 mr-1" />
                                   Download Attachment
-                                </a>
+                                </Link>
                               </Button>
                             )}
                           </div>

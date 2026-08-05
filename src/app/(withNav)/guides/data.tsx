@@ -229,12 +229,12 @@ export const data: GuideData[] = [
             <h2 className="text-2xl font-bold mb-2">Ready to publish with JEDSD?</h2>
             <p className="text-blue-100 mb-6 text-sm">Submit your manuscript and join our growing community of researchers.</p>
             <div className="flex flex-wrap justify-center gap-3">
-              <a href="/guides/submission-guidelines" className="bg-white text-blue-700 font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors inline-block">
+              <Link href="/guides/submission-guidelines" className="bg-white text-blue-700 font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors inline-block">
                 Submission Guidelines
-              </a>
-              <a href="/guides/contact-us" className="bg-white/10 border border-white/30 text-white font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-white/20 transition-colors inline-block">
+              </Link>
+              <Link href="/guides/contact-us" className="bg-white/10 border border-white/30 text-white font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-white/20 transition-colors inline-block">
                 Contact Us
-              </a>
+              </Link>
             </div>
           </section>
 
@@ -498,13 +498,13 @@ export const data: GuideData[] = [
                       </p>
                       {member.email && (
                         <div className="pt-2 border-t border-gray-100">
-                          <a 
+                          <Link 
                             href={`mailto:${member.email}`}
                             className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
                           >
                             <Mail className="w-3 h-3" />
                             <span className="truncate">{member.email}</span>
-                          </a>
+                          </Link>
                         </div>
                       )}
                     </div>
@@ -2334,7 +2334,7 @@ export const data: GuideData[] = [
                     </div>
                     
                     <div className="text-center">
-                      <a
+                      <Link
                         href="/Journal_Template_latex.zip"
                         download
                         className="inline-flex"
@@ -2343,7 +2343,7 @@ export const data: GuideData[] = [
                           <Download className="w-4 h-4 mr-2" />
                           Download LaTeX Template (.zip)
                         </Button>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </StepCard>
@@ -2383,7 +2383,7 @@ export const data: GuideData[] = [
                     </div>
                     
                     <div className="text-center">
-                      <a
+                      <Link
                         href="/Journal_Template_word.docx"
                         download
                         className="inline-flex"
@@ -2392,7 +2392,7 @@ export const data: GuideData[] = [
                           <Download className="w-4 h-4 mr-2" />
                           Download Word Template (.docx)
                         </Button>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </StepCard>
