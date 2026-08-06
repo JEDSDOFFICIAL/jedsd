@@ -13,7 +13,6 @@ import {
 import { ContactForm } from "@/components/guides/ContactForm";
 import Link from "next/link";
 import React from "react";
-import { Fade } from "react-awesome-reveal";
 import {
   FileText,
   Users,
@@ -463,7 +462,7 @@ export const data: GuideData[] = [
 
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {members.map((member, index) => (
-              <Fade key={index} direction="up" triggerOnce>
+              <div key={index}>
                 <Card className={`h-full transition-all duration-300 hover:shadow-lg ${
                   member.role === "Editor-in-Chief" 
                     ? "border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100/50" 
@@ -510,7 +509,7 @@ export const data: GuideData[] = [
                     </div>
                   </CardContent>
                 </Card>
-              </Fade>
+              </div>
             ))}
           </div>
 
