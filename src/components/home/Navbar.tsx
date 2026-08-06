@@ -105,20 +105,20 @@ function Navbar() {
 
   return (
     <nav className="relative w-full overflow-visible bg-gray-200/70">
-      <div className="max-w-[80rem] w-full mx-auto px-4 sm:px-6 overflow-visible">
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 overflow-visible">
 
         {/* ── Desktop layout (unchanged) ── */}
         <div className="hidden md:flex items-center gap-6 overflow-visible py-1">
 
           {/* Left: Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0 group select-none">
+          <Link href="/" className="flex items-center shrink-0 group select-none">
             <Image
               src="/logored.jpg"
               alt="JEDSD Logo"
               width={65}
               height={65}
               className={`rounded-lg object-contain border border-slate-200 group-hover:border-blue-500 transition-all duration-300 ${
-                isScrolled ? "h-9 w-9" : "h-[65px] w-[65px]"
+                isScrolled ? "h-9 w-9" : "h-16.25 w-16.25"
               }`}
             />
           </Link>
@@ -128,7 +128,8 @@ function Navbar() {
 
             {/* Row 1: Navigation links + auth */}
             <div className="flex items-center w-full overflow-visible">
-              <NavigationMenu className={`static flex-1 overflow-visible ${isScrolled ? "justify-center" : "justify-start"}`}>
+              <div className="flex-1" style={{height:"stretch"}} >
+              <NavigationMenu className={`absolute flex-1 overflow-visible ${isScrolled ? "justify-center" : "justify-start"}`}>
                 <NavigationMenuList className="flex items-center gap-1 overflow-visible">
                   {/* Home */}
                   <NavigationMenuItem>
@@ -215,7 +216,7 @@ function Navbar() {
                   </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>
-
+</div>
               {/* Auth */}
               {session?.user ? (
                 <DropdownMenuProfile

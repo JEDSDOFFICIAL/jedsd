@@ -41,7 +41,7 @@ export default function Allroute() {
   return (
     <div className="min-h-full bg-[#f8f9fc]">
       {/* Breadcrumb + page header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-5">
+      <div className="bg-white border-b border-gray-200  p-5">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
           <button
@@ -66,7 +66,7 @@ export default function Allroute() {
       </div>
 
       {/* Content */}
-      <div className="px-6 py-8">
+      <div className="px-4 py-8">
         {path &&
           data
             .filter(item => item.title === path)

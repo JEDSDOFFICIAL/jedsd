@@ -104,7 +104,7 @@ export const data: GuideData[] = [
       <div className="w-full space-y-0">
 
         {/* ── Hero Banner ── */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 px-8 py-16 md:py-20">
+        <div className=" overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 px-4 py-7 md:py-10">
           {/* Decorative circles */}
           <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl" />
@@ -115,7 +115,7 @@ export const data: GuideData[] = [
             <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
               About <span className="text-blue-400">JEDSD</span>
             </h1>
-            <p className="text-blue-100/80 text-base md:text-lg leading-relaxed max-w-2xl">
+            <p className="text-blue-100/80 text-base md:text-lg leading-relaxed max-w-2xl text-justify">
               Advancing embedded and digital system design through rigorous, open-access research publication — empowering engineers and researchers worldwide.
             </p>
           </div>
@@ -140,7 +140,7 @@ export const data: GuideData[] = [
         </div>
 
         {/* ── Content Area ── */}
-        <div className="px-8 py-12  mx-auto space-y-12">
+        <div className="px-2 py-6 mx-auto space-y-12">
 
           {/* Our Story */}
           <section>
@@ -244,8 +244,8 @@ export const data: GuideData[] = [
   {
     title: "mission-vision",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className="md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">Our Mission and Vision</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -423,15 +423,15 @@ export const data: GuideData[] = [
             indexed in major databases, and recognized globally for advancing technological innovation 
             in digital infrastructure development.
           </InfoBox>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "our-team",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className="md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Editorial Board</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -513,13 +513,13 @@ export const data: GuideData[] = [
             ))}
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+          <div className="bg-gradient-to-r from-blue-200 to-purple-200 rounded-lg p-6">
             <h3 className="text-xl md:text-2xl font-bold text-center mb-4 text-gray-900">Join Our Editorial Network</h3>
             <p className="text-center text-gray-600 mb-6">
               We&apos;re always looking for qualified researchers to join our editorial board and reviewer network.
             </p>
             <div className="flex justify-center">
-              <Link href="/contact-us">
+              <Link href="/guides/contact-us">
                 <Button>
                   <Mail className="w-4 h-4 mr-2" />
                   Contact Editorial Office
@@ -527,15 +527,15 @@ export const data: GuideData[] = [
               </Link>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "contact-us",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-6">
+      <div className="md:p-4 ">
+        <div className="space-y-6">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4 text-gray-900">Contact Us</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -568,15 +568,15 @@ export const data: GuideData[] = [
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "submission-guidelines",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-8">
+      <div className=" md:p-4">
+        <div className="space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4 text-gray-900">Submission Guidelines</h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
@@ -692,15 +692,15 @@ export const data: GuideData[] = [
               </Link>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "author-guidelines",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className=" md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Author Guidelines</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -975,15 +975,15 @@ export const data: GuideData[] = [
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "ethical-guidelines",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className=" md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ethical Guidelines</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -1238,15 +1238,15 @@ export const data: GuideData[] = [
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "conflict-of-interest",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className="md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Conflict of Interest Policy</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -1519,15 +1519,15 @@ export const data: GuideData[] = [
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "publishing-model",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className="md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Publishing Model</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -1779,15 +1779,15 @@ export const data: GuideData[] = [
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "call-for-papers",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-8">
+      <div className="md:p-4">
+        <div className="space-y-8">
           <div className="text-center">
             <Badge className="mb-4 bg-green-100 text-green-800 px-4 py-2">
               <span className="flex items-center space-x-2">
@@ -1976,15 +1976,15 @@ export const data: GuideData[] = [
               </Link>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "how-we-publish",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className=" md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How We Publish</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -2240,26 +2240,26 @@ export const data: GuideData[] = [
                 Our editorial team is here to guide you through every step of the publication journey.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button>
+                <Link href={"/guides/contact-us"} className="bg-black rounded-md shadow-2xs text-white flex justify-center items-center gap-1 px-2 py-3">
                   <Mail className="w-4 h-4 mr-2" />
                   Contact Editorial Office
-                </Button>
-                <Button variant="outline">
+                </Link>
+                <Link href={"/"} className="bg-green-900 rounded-md shadow-2xs text-white flex justify-center items-center gap-1 px-2 py-3">
                   <Download className="w-4 h-4 mr-2" />
                   Publication Guide
-                </Button>
+                </Link>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "templates",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-4">
-        <CardContent className="space-y-6 md:space-y-8">
+      <div className="md:p-4">
+        <div className="space-y-6 md:space-y-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Author Resources & Templates</h2>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
@@ -2563,25 +2563,24 @@ export const data: GuideData[] = [
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button>
+                  <Link href={"/guides/contact-us"} className="flex">
                   <Mail className="w-4 h-4 mr-2" />
                   Template Support
+                  </Link>
                 </Button>
-                <Button variant="outline">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Formatting Guide
-                </Button>
+               
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
   {
     title: "peer-review-process",
     content: (
-      <Card className=" bg-blue-200/20 backdrop-blur-md bg-clip-padding backdrop-filter border border-gray-100 shadow-lg rounded-2xl md:p-6 p-2">
-        <CardContent className="space-y-8">
+      <div className=" md:p-4">
+        <div className="space-y-8">
           <div className="text-center">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Peer Review Process</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
@@ -2725,8 +2724,8 @@ export const data: GuideData[] = [
               Our goal is to advance research quality in embedded and digital system design.
             </InfoBox>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     ),
   },
 ];
