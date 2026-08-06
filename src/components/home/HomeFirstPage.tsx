@@ -19,10 +19,10 @@ function HomePage() {
 
   return (
     <section
-      className="relative w-full min-h-[calc(100vh-88px)] flex items-center justify-center overflow-hidden bg-slate-50 py-16 md:py-24"
+      className="relative w-full min-h-[calc(100vh-88px)] flex items-center justify-center overflow-hidden overflow-x-clip bg-slate-50 py-2 h-full"
     >
       {/* Premium SVG Grid Pattern Background */}
-      <div className="absolute inset-0 z-0 opacity-[0.4] pointer-events-none">
+      <div className="absolute inset-0 z-0 opacity-[0.4] pointer-events-none hidden lg:block">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -35,19 +35,19 @@ function HomePage() {
 
       {/* Decorative Radial Ambient Glows */}
       <div
-        className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"
+        className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 hidden lg:block w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none"
+        className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 hidden lg:block w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none"
         aria-hidden="true"
       />
 
       {/* Main Container */}
-      <div className="relative z-10 w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      <div className="relative z- h-full py-2 w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center min-w-0">
         
         {/* Left Column - Content */}
-        <div className="lg:col-span-7 flex flex-col items-start text-left gap-6 sm:gap-8">
+        <div className="lg:col-span-7 flex flex-col items-start text-left gap-3 sm:gap-8 min-w-0">
           
           {/* ISSN & Quality Badge */}
           <div className="inline-flex flex-wrap items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-md tracking-wider uppercase">
@@ -60,7 +60,7 @@ function HomePage() {
           </div>
 
           {/* Headline (Responsive font-sans, highlighting 'Embedded' and 'Design') */}
-          <div className="space-y-4">
+          <div className="md:space-y-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-900 font-extrabold tracking-tight leading-[1.15] max-w-2xl font-sans">
               Journal of{" "}
               <span className="text-blue-600">Embedded</span> and Digital System{" "}
@@ -156,7 +156,7 @@ function HomePage() {
         </div>
 
         {/* Right Column - Premium Graphic/Card */}
-        <div className="lg:col-span-5 flex items-center justify-center relative w-full pt-8 lg:pt-0">
+        <div className="lg:col-span-5 flex items-center justify-center relative w-full pt-8 lg:pt-0 min-w-0">
           
           {/* Main Visual Card wrapper */}
           <div className="relative w-full max-w-sm mx-auto aspect-square lg:aspect-auto lg:h-[450px] flex items-center justify-center">
