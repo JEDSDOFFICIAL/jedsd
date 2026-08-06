@@ -6,7 +6,7 @@ import AboutUs from "@/components/home/homeSecondElementAboutUs";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import SubmissionFlowchart from "@/components/home/SubmissionFlowchart";
 import CallForPapers from "@/components/home/CallForPapers";
-import NewsletterSection from "@/components/home/NewsletterSection";
+
 
 const MemoizedHomePage = memo(HomePage);
 const MemoizedAboutUs = memo(AboutUs);
@@ -20,7 +20,6 @@ export default function Home() {
       <FeaturesSection />
       <MemoizedSubmissionFlowchart />
       <CallForPapers />
-      <NewsletterSection />
     </div>
   );
 }

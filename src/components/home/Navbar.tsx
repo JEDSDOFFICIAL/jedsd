@@ -13,6 +13,12 @@ import {
   ChevronDown,
   X,
   UploadCloud,
+  Home,
+  FileText,
+  Clock3,
+  BookOpen,
+  ShieldCheck,
+  Newspaper,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -55,6 +61,10 @@ import {
   navSections,
 } from "@/components/home/navData";
 
+/* Small icon set cycled across the collapsible sections in the mobile
+   drawer, purely decorative/wayfinding — swap or extend as sections grow. */
+const SECTION_ICONS = [BookOpen, ShieldCheck, Newspaper];
+
 function Navbar() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -94,10 +104,10 @@ function Navbar() {
   }
 
   return (
-    <nav className="relative w-full overflow-visible bg-transparent">
+    <nav className="relative w-full overflow-visible bg-gray-200/70">
       <div className="max-w-[80rem] w-full mx-auto px-4 sm:px-6 overflow-visible">
 
-        {/* ── Desktop layout ── */}
+        {/* ── Desktop layout (unchanged) ── */}
         <div className="hidden md:flex items-center gap-6 overflow-visible py-1">
 
           {/* Left: Logo */}
@@ -252,80 +262,107 @@ function Navbar() {
           </div>
         </div>
 
-        {/* ── Mobile layout ── */}
-        <div className="md:hidden flex items-center justify-between w-full gap-4 py-3">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <Image
-              src="/logored.jpg"
-              alt="JEDSD Logo"
-              width={40}
-              height={40}
-              className="rounded-lg object-contain border border-slate-200"
-            />
-            <div className="flex flex-col">
-              <span className="text-sm font-extrabold text-slate-800 tracking-wider uppercase leading-none">
-                JEDSD
-              </span>
-              <span className="text-[8px] text-slate-500 tracking-normal font-medium mt-1 leading-none">
-                Embedded Systems Journal
+        {/* ── Mobile layout (redesigned) ── */}
+        <div className="md:hidden">
+          <div className="flex items-center justify-between w-full gap-3 py-2.5">
+            {/* Logo + wordmark */}
+            <Link href="/" className="flex items-center gap-2.5 min-w-0 group">
+              <Image
+                src="/logored.jpg"
+                alt="JEDSD Logo"
+                width={38}
+                height={38}
+                className="h-9 w-9 rounded-lg object-contain border border-slate-200 flex-shrink-0"
+              />
+              <div className="flex flex-col min-w-0 leading-none">
+                <span className="text-[13px] font-extrabold text-slate-900 tracking-wide uppercase truncate">
+                  JEDSD
+                </span>
+                <span className="text-[10px] text-slate-500 font-medium mt-1 truncate">
+                  Embedded Systems Journal
+                </span>
+              </div>
+            </Link>
+
+            {/* Action cluster: search / profile / menu */}
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              {!isSearchOpen && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Open search"
+                  className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full"
+                  onClick={() => setIsSearchOpen(true)}
+                >
+                  <Search className="size-[18px]" />
+                </Button>
+              )}
+
+              {session?.user && !isSearchOpen && (
+                <>
+                  <div className="w-px h-5 bg-slate-200 mx-1" />
+                  <DropdownMenuProfile
+                    profileImage={session.user.image ?? undefined}
+                  />
+                </>
+              )}
+
+              {!isSearchOpen && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Open menu"
+                  className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full ml-0.5"
+                  onClick={() => document.getElementById("mobile-menu-trigger")?.click()}
+                >
+                  <Menu className="size-[19px]" />
+                </Button>
+              )}
+              {/* Hidden real trigger so the Dialog wiring stays untouched */}
+              <span className="hidden">
+                <SmNavbar session={session} />
               </span>
             </div>
-          </Link>
+          </div>
 
-          <div className="flex items-center gap-2">
-            {/* Mobile Expandable Search Bar */}
-            {isSearchOpen ? (
-              <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 rounded-xl p-1 animate-in fade-in slide-in-from-right-4 duration-200">
+          {/* Expandable search row — slides open in place of the icon row */}
+          {isSearchOpen && (
+            <div className="flex items-center gap-2 pb-2.5 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="flex items-center flex-1 bg-slate-100/80 border border-slate-200 rounded-xl overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+                <Search className="size-4 text-slate-400 ml-3 flex-shrink-0" />
                 <Input
                   type="text"
-                  placeholder="Search papers..."
-                  className="h-8 w-28 sm:w-44 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 focus-visible:ring-0 text-xs py-0"
+                  placeholder="Search papers, authors, keywords..."
+                  className="h-10 flex-1 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 focus-visible:ring-0 text-sm px-2.5"
                   value={SearchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onKeyDown={handleSearchKeyPress}
                   autoFocus
                 />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
-                  onClick={() => onClickSearch(SearchValue)}
-                >
-                  <Search className="size-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
-                  onClick={() => {
-                    setIsSearchOpen(false);
-                    setSearchValue("");
-                  }}
-                >
-                  <X className="size-3.5" />
-                </Button>
               </div>
-            ) : (
+              <Button
+                type="button"
+                className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex-shrink-0"
+                onClick={() => onClickSearch(SearchValue)}
+              >
+                Go
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
-                onClick={() => setIsSearchOpen(true)}
+                aria-label="Close search"
+                className="h-10 w-10 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex-shrink-0"
+                onClick={() => {
+                  setIsSearchOpen(false);
+                  setSearchValue("");
+                }}
               >
-                <Search className="size-4" />
+                <X className="size-4" />
               </Button>
-            )}
+            </div>
+          )}
 
-            {/* Profile Dropdown on Mobile */}
-            {session?.user && (
-              <DropdownMenuProfile
-                profileImage={session.user.image ?? undefined}
-              />
-            )}
-
-            {/* Mobile Hamburger menu */}
-            <SmNavbar session={session} />
-          </div>
+          <div className="h-px bg-slate-100" />
         </div>
 
       </div>
@@ -382,24 +419,27 @@ function DropdownMenuProfile({
         </DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer text-sm">
-            <Link href="/dashboard" className="w-full">
+            <Link href="/dashboard" className="w-full flex items-center gap-2">
+              <LayoutDashboard className="size-3.5 text-slate-400" />
               Dashboard
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer text-sm">
             <Link
               href="/dashboard/paper/upload"
-              className="w-full"
+              className="w-full flex items-center gap-2"
             >
+              <UploadCloud className="size-3.5 text-slate-400" />
               Submit Paper
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator className="bg-slate-100" />
         <DropdownMenuItem
-          className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer text-sm text-rose-600 focus:text-rose-500"
+          className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer text-sm text-rose-600 focus:text-rose-500 flex items-center gap-2"
           onClick={() => signOut()}
         >
+          <LogOut className="size-3.5" />
           Sign Out
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -408,115 +448,157 @@ function DropdownMenuProfile({
 }
 
 /* ------------------------------------------------------------------ */
-/*  SmNavbar — mobile Dialog menu                                      */
+/*  SmNavbar — mobile menu, now a right-anchored drawer                */
 /* ------------------------------------------------------------------ */
+
+const MOBILE_LINKS = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/paper", label: "Papers", icon: FileText },
+  { href: "/pre-publish", label: "Pre-Publish", icon: Clock3 },
+];
+
 const SmNavbar = ({ session }: { session: any }) => {
+  const [open, setOpen] = useState(false);
+  const closeMenu = () => setOpen(false);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-        >
-          <Menu className="size-5" />
-        </Button>
+        {/* Real trigger — kept off-screen; the visible menu button in the
+            navbar row above forwards its click here via id lookup. */}
+        <button id="mobile-menu-trigger" aria-hidden className="hidden" />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-screen w-screen sm:max-h-screen h-screen overflow-y-auto bg-white border-none px-0">
-        <DialogHeader className="mt-5 px-6">
-          <DialogTitle className="text-slate-900 text-lg font-bold tracking-wide border-b border-slate-150 pb-4">
-            Journal of Embedded and Digital System Design
-          </DialogTitle>
-          <DialogDescription className="text-slate-500 text-sm">
-            Navigate through our journal sections
-          </DialogDescription>
+
+      <DialogContent
+        showCloseButton={false}
+        className="fixed inset-y-0 left-auto right-0 top-0 h-dvh max-h-dvh w-[88%] max-w-sm translate-x-0 translate-y-0 !rounded-none rounded-l-2xl border-l border-slate-200 bg-white p-0 shadow-2xl gap-0 flex flex-col overflow-hidden data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
+      >
+        {/* Header */}
+        <DialogHeader className="flex-shrink-0 border-b border-slate-100 px-5 py-4 space-y-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Image
+                src="/logored.jpg"
+                alt="JEDSD Logo"
+                width={34}
+                height={34}
+                className="h-8 w-8 rounded-lg object-contain border border-slate-200 flex-shrink-0"
+              />
+              <div className="flex flex-col min-w-0 leading-none">
+                <DialogTitle className="text-slate-900 text-[13px] font-bold tracking-wide truncate">
+                  JEDSD
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 text-[10px] mt-1 truncate">
+                  Journal of Embedded &amp; Digital System Design
+                </DialogDescription>
+              </div>
+            </div>
+            <button
+              onClick={closeMenu}
+              aria-label="Close menu"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
         </DialogHeader>
 
-        <div
-          className="flex flex-col gap-3 px-6 py-6 mx-3 rounded-xl my-3 bg-slate-50 border border-slate-200"
-        >
-          {/* Direct navigation links */}
-          <div className="space-y-1">
-            <Link
-              href="/"
-              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-700 text-sm"
-            >
-              <span className="font-medium">Home</span>
-            </Link>
-            <Link
-              href="/paper"
-              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-700 text-sm"
-            >
-              <span className="font-medium">Papers</span>
-            </Link>
-            <Link
-              href="/pre-publish"
-              className="flex items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-700 text-sm"
-            >
-              <span className="font-medium">Pre-Publish</span>
-            </Link>
+        {/* Scrollable nav body */}
+        <div className="flex-1 overflow-y-auto px-3 py-4">
+          {/* Primary links */}
+          <div className="space-y-0.5 mb-4">
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Navigate
+            </p>
+            {MOBILE_LINKS.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={closeMenu}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-slate-700 text-sm font-medium hover:bg-slate-50 active:bg-slate-100 transition-colors"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-500">
+                  <Icon className="size-4" />
+                </span>
+                {label}
+              </Link>
+            ))}
           </div>
 
-          <div className="h-px bg-slate-200 my-1" />
+          <div className="h-px bg-slate-100 mx-1 mb-4" />
 
           {/* Collapsible sections from navData */}
-          {navSections.map((section, index) => (
-            <Collapsible key={index}>
-              <CollapsibleTrigger className="w-full flex items-center justify-between px-3 py-2.5 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-100 transition-colors">
-                <span>{section.title}</span>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-0.5 pt-1 pl-2">
-                {section.items.map((item, i) => (
-                  <Link
-                    key={i}
-                    href={item.href}
-                    className="flex items-start gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-slate-100 text-slate-600 text-sm"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-800">
-                        {item.title}
+          <div className="space-y-1">
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Explore
+            </p>
+            {navSections.map((section, index) => {
+              const SectionIcon = SECTION_ICONS[index % SECTION_ICONS.length];
+              return (
+                <Collapsible key={index}>
+                  <CollapsibleTrigger className="group w-full flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
+                    <span className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-500">
+                        <SectionIcon className="size-4" />
                       </span>
-                      <span className="text-xs text-slate-500 leading-tight mt-0.5">
-                        {item.description}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
+                      {section.title}
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-0.5 pt-1 pl-11 pr-1">
+                    {section.items.map((item, i) => (
+                      <Link
+                        key={i}
+                        href={item.href}
+                        onClick={closeMenu}
+                        className="flex flex-col gap-0.5 rounded-lg px-3 py-2 hover:bg-slate-50 active:bg-slate-100 transition-colors border-l border-slate-100"
+                      >
+                        <span className="text-[13px] font-semibold text-slate-800">
+                          {item.title}
+                        </span>
+                        <span className="text-[11px] text-slate-500 leading-snug line-clamp-2">
+                          {item.description}
+                        </span>
+                      </Link>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+          </div>
         </div>
 
-        <DialogFooter className="px-6 py-4">
+        {/* Footer CTA */}
+        <DialogFooter className="flex-shrink-0 border-t border-slate-100 px-5 py-4">
           {session?.user ? (
-            <div className="flex flex-col gap-3 w-full">
-              <Link href="/dashboard" className="w-full">
+            <div className="flex flex-col gap-2 w-full">
+              <Link href="/dashboard" className="w-full" onClick={closeMenu}>
                 <Button
                   variant="outline"
-                  className="w-full bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                  className="w-full justify-center gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                 >
+                  <LayoutDashboard className="size-3.5" />
                   Dashboard
                 </Button>
               </Link>
               <Button
                 variant="destructive"
-                className="w-full"
+                className="w-full justify-center gap-2"
                 onClick={() => {
+                  closeMenu();
                   signOut();
                   window.location.href = "/";
                 }}
               >
+                <LogOut className="size-3.5" />
                 Log Out
               </Button>
             </div>
           ) : (
-            <Link href="/signup" className="w-full">
-              <Button
-                variant="outline"
-                className="w-full bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-              >
-                Submit Paper
+            <Link href="/signup" className="w-full" onClick={closeMenu}>
+              <Button className="w-full justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/10">
+                <UploadCloud className="size-3.5" />
+                Create Account
               </Button>
             </Link>
           )}

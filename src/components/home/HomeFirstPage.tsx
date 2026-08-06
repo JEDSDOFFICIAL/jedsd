@@ -19,7 +19,7 @@ function HomePage() {
 
   return (
     <section
-      className="relative w-full min-h-[calc(100vh-88px)] flex items-center justify-center overflow-hidden overflow-x-clip bg-slate-50 py-2 h-full"
+      className="relative w-full flex items-center justify-center overflow-hidden   lg:py-12"
     >
       {/* Premium SVG Grid Pattern Background */}
       <div className="absolute inset-0 z-0 opacity-[0.4] pointer-events-none hidden lg:block">
@@ -35,7 +35,7 @@ function HomePage() {
 
       {/* Decorative Radial Ambient Glows */}
       <div
-        className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 hidden lg:block w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"
+        className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 block w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"
         aria-hidden="true"
       />
       <div
@@ -44,20 +44,12 @@ function HomePage() {
       />
 
       {/* Main Container */}
-      <div className="relative z- h-full py-2 w-full max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center min-w-0">
-        
+      <div className="relative z-10 w-full h-fit! max-w-7xl px-4 sm:px-6 lg:px-8 mx-auto flex flex-col lg:flex-row gap-8 py-10 lg:gap-16 items-center min-w-0 ">
+
         {/* Left Column - Content */}
-        <div className="lg:col-span-7 flex flex-col items-start text-left gap-3 sm:gap-8 min-w-0">
-          
-          {/* ISSN & Quality Badge */}
-          <div className="inline-flex flex-wrap items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-md tracking-wider uppercase">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>ISSN: 2583-9152 (Online)</span>
-            <span className="text-slate-300">•</span>
-            <span>Peer-Reviewed</span>
-            <span className="text-slate-300">•</span>
-            <span>Open Access</span>
-          </div>
+        <div className="w-full lg:basis-7/12 lg:shrink-0 flex flex-col items-start text-left gap-3 sm:gap-8 min-w-0 ">
+
+
 
           {/* Headline (Responsive font-sans, highlighting 'Embedded' and 'Design') */}
           <div className="md:space-y-4">
@@ -138,16 +130,16 @@ function HomePage() {
           </div>
 
           {/* Quick Metrics / Highlights Grid */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200/60 w-full max-w-2xl">
-            <div className="flex flex-col gap-1">
+          <div className="flex items-start gap-4 pt-4 border-t border-slate-200/60 w-full max-w-2xl">
+            <div className="flex-1 flex flex-col gap-1">
               <span className="text-xl sm:text-2xl font-bold text-slate-800 bg-clip-text">4.8</span>
               <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Impact Factor</span>
             </div>
-            <div className="flex flex-col gap-1 border-l border-slate-200/80 pl-4">
+            <div className="flex-1 flex flex-col gap-1 border-l border-slate-200/80 pl-4">
               <span className="text-xl sm:text-2xl font-bold text-slate-800">30d</span>
               <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg. Review Time</span>
             </div>
-            <div className="flex flex-col gap-1 border-l border-slate-200/80 pl-4">
+            <div className="flex-1 flex flex-col gap-1 border-l border-slate-200/80 pl-4">
               <span className="text-xl sm:text-2xl font-bold text-slate-800">100%</span>
               <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Open Access</span>
             </div>
@@ -156,14 +148,14 @@ function HomePage() {
         </div>
 
         {/* Right Column - Premium Graphic/Card */}
-        <div className="lg:col-span-5 flex items-center justify-center relative w-full pt-8 lg:pt-0 min-w-0">
-          
+        <div className="w-[90%] lg:basis-5/12 lg:shrink-0 flex items-center justify-center relative lg:pt-0 min-w-0 ">
+
           {/* Main Visual Card wrapper */}
-          <div className="relative w-full max-w-sm mx-auto aspect-square lg:aspect-auto lg:h-[450px] flex items-center justify-center">
-            
+          <div className="relative w-full max-w-sm mx-auto flex items-center justify-center">
+
             {/* Interactive Mock Journal Cover / Card */}
             <div className="relative w-full bg-white/90 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-2xl transition-all duration-500 hover:translate-y-[-6px] hover:shadow-indigo-500/10 hover:border-indigo-200/80 flex flex-col gap-6">
-              
+
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-2.5">
@@ -179,7 +171,7 @@ function HomePage() {
                   Featured
                 </span>
               </div>
-              
+
               {/* Article Content */}
               <div className="flex flex-col gap-3">
                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Research Article</span>

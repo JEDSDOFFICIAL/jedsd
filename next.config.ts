@@ -4,6 +4,9 @@ const nextConfig = {
     domains: ['lh3.googleusercontent.com'],
   },
   // SEO optimizations
+  
+  allowedDevOrigins: ['10.95.23.180'],
+
   trailingSlash: false,
   poweredByHeader: false,
   compress: true,
