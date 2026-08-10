@@ -43,7 +43,7 @@ model PaperReview {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   reviewerStatus    ReviewerStatus?
-  paper             ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id])
+  paper             ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id], onDelete: Cascade)
   reviewer          User            @relation("UserToReviews", fields: [reviewerId], references: [id])
 }
 

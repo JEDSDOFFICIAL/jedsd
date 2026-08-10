@@ -7,19 +7,32 @@ import prisma from "@/lib/prisma";
 import { sendReviewedMail } from "@/helper/send_reviewer_reviewed_mail";
 import { sendThankYouEmail } from "@/helper/send_Thank_you_mail_to_reviewer";
 
-
-// Zod Schema for review submission
 const reviewSubmissionSchema = z.object({
   paperId: z.string().uuid("Invalid paperId format."),
   reviewerId: z.string().uuid("Invalid reviewerId format."),
-  reviewText: z.string().min(10, "Review text must be at least 10 characters."),
-  rating: z.number().int().min(1).max(5, "Rating must be between 1 and 5."),
-  correspondingFile: z.string().url().optional(),
-  reviewerStatus: z.nativeEnum(ReviewerStatus, {
-    errorMap: () => ({ message: "Invalid reviewer status." }),
-  }).optional(),
-});
 
+  reviewText: z
+    .string()
+    .min(10, "Review text must be at least 10 characters."),
+
+  rating: z
+    .number()
+    .int()
+    .min(1)
+    .max(5, "Rating must be between 1 and 5."),
+
+  correspondingFile: z
+    .string()
+    .url("Invalid corresponding file URL.")
+    .nullable()
+    .optional(),
+
+  reviewerStatus: z
+    .nativeEnum(ReviewerStatus, {
+      errorMap: () => ({ message: "Invalid reviewer status." }),
+    })
+    .optional(),
+});
 // POST handler for submitting/publishing a review
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +49,7 @@ export async function POST(req: NextRequest) {
     const validationResult = reviewSubmissionSchema.safeParse(body);
 
     if (!validationResult.success) {
+      console.log("Validation errors:", validationResult.error.errors);
       return NextResponse.json(
         { 
           success: false, 

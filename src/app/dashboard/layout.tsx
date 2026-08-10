@@ -75,7 +75,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       <SidebarInset className="flex h-full w-full flex-col gap-1 overflow-hidden">
         <DashboardHeader />
         {/* Main content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-2">
           {children}
         </div>
       </SidebarInset>

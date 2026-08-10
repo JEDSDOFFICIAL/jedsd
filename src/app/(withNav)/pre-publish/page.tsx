@@ -140,7 +140,6 @@ function PrePublishContent() {
       // Fetch only accepted papers
       const urlParams = new URLSearchParams();
       urlParams.append("status", "ACCEPTED");
-      urlParams.append("status", "PUBLISH");
 
       urlParams.append("page", "1");
       urlParams.append("limit", "100");

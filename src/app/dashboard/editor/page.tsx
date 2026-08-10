@@ -657,7 +657,7 @@ export default function EditorPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
+    <div className="min-h-screen px-3 bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
       <div className="container mx-auto py-8 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
