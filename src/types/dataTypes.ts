@@ -13,6 +13,14 @@ import {
   PartyPopper,
   CheckCheck,
   Award,
+  BookOpenText,
+  CreditCard,
+
+  GitCompare,
+  Copyright,
+  ShieldCheck,
+  ClipboardCheck,
+  FileType,
 } from "lucide-react";
 
 
@@ -40,6 +48,49 @@ export const DashboardItems = [
      
     ],
   },
+{
+  title: "Guidelines",
+  url: "#",
+  icon: BookOpenText,
+  access: ["AUTHOR"],
+  items: [
+    {
+      title: "Author Guidelines",
+      url: "/dashboard/author/guideline/author",
+      icon: BookOpenText,
+    },
+    {
+      title: "Formatting & Templates",
+      url: "/dashboard/author/guideline/templates",
+      icon: FileType,
+    },
+    {
+      title: "Submission Requirements",
+      url: "/dashboard/author/guideline/submission",
+      icon: ClipboardCheck,
+    },
+    {
+      title: "Publication Ethics",
+      url: "/dashboard/author/guideline/ethical",
+      icon: ShieldCheck,
+    },
+  
+    {
+      title: "Peer Review Process",
+      url: "/dashboard/author/guideline/peer-review",
+      icon: Users,
+    },
+  ],
+},
+  {
+    title: "Profile & Settings",
+    url: "#",
+    icon: UserCog,
+    access: ["AUTHOR", "REVIEWER", "EDITOR", "ADMIN"],
+    items: [
+      { title: "Profile Setup", url: "/dashboard/profile", icon: UserCog },
+    ],
+  },
   {
     title: "Admin Panel",
     url: "#",
@@ -54,15 +105,7 @@ export const DashboardItems = [
   },
 
   // PROFILE & SETTINGS (shared)
-  {
-    title: "Profile & Settings",
-    url: "#",
-    icon: UserCog,
-    access: ["AUTHOR", "REVIEWER", "EDITOR", "ADMIN"],
-    items: [
-      { title: "Profile Setup", url: "/dashboard/profile", icon: UserCog },
-    ],
-  },
+  
 
  
 ];
