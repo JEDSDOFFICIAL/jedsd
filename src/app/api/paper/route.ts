@@ -252,6 +252,7 @@ export async function GET(request: Request) {
                 },
               },
               reviewText: true,
+              reviewTextForAuthor: true,
               correspondingFile: true,
               rating: true,
               reviewerStatus: true,

@@ -44,9 +44,11 @@ export async function POST(req: NextRequest,context: { params: Promise<{ paperId
     });
 
     if (reviewers.length !== reviewerIds.length) {
-      console.error("One or more reviewers are invalid:", reviewerIds);
+      const foundIds = reviewers.map(r => r.id);
+      const invalidIds = reviewerIds.filter(id => !foundIds.includes(id));
+      console.error("One or more reviewers are invalid:", invalidIds);
       return NextResponse.json(
-        { success: false, message: "One or more reviewers are invalid" },
+        { success: false, message: "One or more reviewers are invalid", invalidIds },
         { status: 400 }
       );
     }

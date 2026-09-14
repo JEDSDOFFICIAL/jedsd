@@ -75,9 +75,13 @@ import {
   Upload,
   AlertTriangle,
   Download,
+  Mail,
+  Lock,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import toast from "react-hot-toast";
+import axios from "axios";
 import { ResearchPaper, PaperReview, User } from "@prisma/client";
 import {
   fetchPapers,
@@ -138,6 +142,9 @@ export default function FinalDecisionPage() {
   const [decisionDialogOpen, setDecisionDialogOpen] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<PaperWithRelations | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Track which review is currently being forwarded to the author
+  const [forwardingReviewId, setForwardingReviewId] = useState<string | null>(null);
 
   // Edit form states
   const [editFormData, setEditFormData] = useState({
@@ -294,6 +301,49 @@ export default function FinalDecisionPage() {
       setPaperFile(null);
       setCoverLetterFile(null);
     }, 300);
+  };
+
+  // Forward a reviewer's author-facing comments to the paper's author via email
+  const handleForwardReviewToAuthor = async (
+    paper: PaperWithRelations,
+    review: PaperReviewWithReviewer
+  ) => {
+    const reviewTextForAuthor = (review as any).reviewTextForAuthor;
+    if (!reviewTextForAuthor?.trim()) {
+      toast.error("This review has no author-facing comments to forward.");
+      return;
+    }
+
+    // Collect all author recipient emails
+    const recipients: string[] = [];
+    if (paper.pointOfContact?.email) recipients.push(paper.pointOfContact.email);
+    if (paper.author?.email && !recipients.includes(paper.author.email)) {
+      recipients.push(paper.author.email);
+    }
+    if (recipients.length === 0) {
+      toast.error("No author email found for this paper.");
+      return;
+    }
+
+    setForwardingReviewId(review.id);
+    const toastId = toast.loading("Forwarding reviewer comments to author...");
+    try {
+      await axios.post("/api/editor/send-email", {
+        recipients,
+        subject: `Reviewer Comments for Your Paper: ${paper.title}`,
+        message: reviewTextForAuthor,
+        paperInfo: { paperId: paper.paperId, title: paper.title },
+        reviewerName: review.reviewer?.name || "Anonymous Reviewer",
+        reviewerRating: review.rating,
+        reviewerStatus: review.reviewerStatus,
+      });
+      toast.success("Reviewer comments forwarded to author successfully!", { id: toastId });
+    } catch (err: any) {
+      console.error("Failed to forward review:", err);
+      toast.error(err?.response?.data?.message || "Failed to forward comments.", { id: toastId });
+    } finally {
+      setForwardingReviewId(null);
+    }
   };
 
   const handleUpdatePaper = async () => {
@@ -1015,22 +1065,83 @@ export default function FinalDecisionPage() {
                     <Label className="text-sm font-semibold">Reviews ({selectedPaper.reviews.length})</Label>
                     <div className="mt-2 space-y-3">
                       {selectedPaper.reviews.map((review) => (
-                        <Card key={review.id}>
-                          <CardContent className="pt-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <p className="text-sm font-medium">
-                                Reviewer: {review.reviewer?.name || "Anonymous"}
-                              </p>
-                              {review.rating && (
-                                <Badge variant="outline">{review.rating}/5</Badge>
+                        <Card key={review.id} className="border-2">
+                          <CardHeader className="pb-3">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm font-semibold">
+                                  {review.reviewer?.name || "Anonymous"}
+                                </p>
+                                {review.reviewer?.affiliation && (
+                                  <p className="text-xs text-muted-foreground">{review.reviewer.affiliation}</p>
+                                )}
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                {review.rating && (
+                                  <Badge variant="outline" className="flex items-center gap-1">
+                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                    {review.rating}/5
+                                  </Badge>
+                                )}
+                                {review.reviewerStatus && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {review.reviewerStatus.replace(/_/g, " ")}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {/* Private editor comments */}
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-1.5">
+                                <Lock className="h-3.5 w-3.5 text-red-500" />
+                                <span className="text-xs font-semibold text-red-600">Editor Comments (Private)</span>
+                              </div>
+                              <div className="bg-red-50 border border-red-100 rounded-md p-3 text-sm text-slate-700 whitespace-pre-wrap">
+                                {review.reviewText}
+                              </div>
+                            </div>
+
+                            {/* Author-facing comments + Forward button */}
+                            <div>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex items-center gap-1.5">
+                                  <Mail className="h-3.5 w-3.5 text-blue-500" />
+                                  <span className="text-xs font-semibold text-blue-600">Author Comments (Shared)</span>
+                                </div>
+                                {(review as any).reviewTextForAuthor?.trim() && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                                    disabled={forwardingReviewId === review.id}
+                                    onClick={() => handleForwardReviewToAuthor(selectedPaper, review)}
+                                  >
+                                    {forwardingReviewId === review.id ? (
+                                      <>
+                                        <div className="h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-1.5" />
+                                        Forwarding...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Mail className="h-3 w-3 mr-1.5" />
+                                        Forward to Author
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                              {(review as any).reviewTextForAuthor?.trim() ? (
+                                <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-sm text-slate-700 whitespace-pre-wrap">
+                                  {(review as any).reviewTextForAuthor}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 p-3 rounded-md bg-amber-50 border border-amber-100 text-xs text-amber-700">
+                                  ⚠️ No author-facing comments provided for this review.
+                                </div>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">{review.reviewText}</p>
-                            {review.reviewerStatus && (
-                              <Badge className="mt-2" variant="secondary">
-                                {review.reviewerStatus.replace(/_/g, " ")}
-                              </Badge>
-                            )}
                           </CardContent>
                         </Card>
                       ))}

@@ -78,11 +78,10 @@ export default function WriteReviewPage() {
   // Review Form State
   const [reviewForm, setReviewForm] = useState<ReviewFormData>({
     reviewText: "",
+    reviewTextForAuthor: "",
     rating: 3,
     correspondingFile: null,
     reviewerStatus: "MINOR_REVISION",
-    confidentialComments: "",
-    recommendation: "MINOR_REVISION"
   });
 
   // Utility Functions
@@ -161,9 +160,10 @@ export default function WriteReviewPage() {
   // Calculate form completion
   const calculateFormCompletion = () => {
     let completed = 0;
-    const total = 3; // reviewText, rating, decision
+    const total = 4; // reviewText, reviewTextForAuthor, rating, decision
     
-    if (reviewForm.reviewText.trim().length > 50) completed++;
+    if (reviewForm.reviewText.trim().length >= 50) completed++;
+    if (reviewForm.reviewTextForAuthor.trim().length >= 50) completed++;
     if (reviewForm.rating > 0) completed++;
     if (reviewForm.reviewerStatus) completed++;
     
@@ -184,7 +184,17 @@ export default function WriteReviewPage() {
     }
 
     if (reviewForm.reviewText.trim().length < 50) {
-      toast.error("Review comments must be at least 50 characters");
+      toast.error("Editor comments must be at least 50 characters");
+      return;
+    }
+
+    if (!reviewForm.reviewTextForAuthor.trim()) {
+      toast.error("Please provide comments for the author");
+      return;
+    }
+
+    if (reviewForm.reviewTextForAuthor.trim().length < 50) {
+      toast.error("Author comments must be at least 50 characters");
       return;
     }
 
@@ -222,6 +232,7 @@ export default function WriteReviewPage() {
         selectedPaper.id,
         session.user.id,
         reviewForm.reviewText,
+        reviewForm.reviewTextForAuthor || null,
         reviewForm.rating,
         reviewForm.reviewerStatus,
         uploadedFileUrl,
@@ -231,11 +242,10 @@ export default function WriteReviewPage() {
           // Reset form
           setReviewForm({
             reviewText: "",
+            reviewTextForAuthor: "",
             rating: 3,
             correspondingFile: null,
             reviewerStatus: "MINOR_REVISION",
-            confidentialComments: "",
-            recommendation: "MINOR_REVISION"
           });
           setSelectedPaper(null);
           setActiveTab("select");
@@ -560,23 +570,60 @@ export default function WriteReviewPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {/* Review Comments */}
+                      {/* Private Comments for Editor */}
                       <div className="space-y-2">
-                        <Label htmlFor="reviewText" className="flex items-center gap-2">
-                          Review Comments *
-                          <Badge variant="secondary" className="text-xs">
-                            {reviewForm.reviewText.trim().length} chars
-                          </Badge>
-                        </Label>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="reviewText" className="flex items-center gap-2">
+                            Comments for Editor
+                            <Badge variant="destructive" className="text-xs">Private</Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {reviewForm.reviewText.trim().length} chars
+                            </Badge>
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          These comments are <strong>only visible to the editor</strong> and will never be shared with the author. Include your candid assessment, concerns about plagiarism, methodology issues, or any sensitive observations.
+                        </p>
                         <Textarea
                           id="reviewText"
-                          placeholder="Provide detailed, constructive feedback on the paper's strengths, weaknesses, methodology, results, and contribution to the field..."
+                          placeholder="Private assessment for the editor: methodology concerns, originality issues, comparison with related work, overall recommendation rationale..."
                           value={reviewForm.reviewText}
                           onChange={(e) => setReviewForm(prev => ({
                             ...prev,
                             reviewText: e.target.value
                           }))}
-                          className="min-h-[200px] resize-y"
+                          className="min-h-[160px] resize-y border-red-200 focus-visible:ring-red-300"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Minimum 50 characters required
+                        </p>
+                      </div>
+
+                      <Separator />
+
+                      {/* Comments for Author */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="reviewTextForAuthor" className="flex items-center gap-2">
+                            Comments for Author
+                            <Badge className="text-xs bg-blue-100 text-blue-800 border border-blue-200">Shared with Author</Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {reviewForm.reviewTextForAuthor.trim().length} chars
+                            </Badge>
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          These comments <strong>will be forwarded to the author</strong> by the editor. Provide constructive, actionable feedback on the paper's strengths, weaknesses, and suggested improvements.
+                        </p>
+                        <Textarea
+                          id="reviewTextForAuthor"
+                          placeholder="Constructive feedback for the author: what works well, what needs improvement, specific revisions required, clarity of writing, structure of arguments, quality of figures/tables..."
+                          value={reviewForm.reviewTextForAuthor}
+                          onChange={(e) => setReviewForm(prev => ({
+                            ...prev,
+                            reviewTextForAuthor: e.target.value
+                          }))}
+                          className="min-h-[160px] resize-y border-blue-200 focus-visible:ring-blue-300"
                         />
                         <p className="text-xs text-muted-foreground">
                           Minimum 50 characters required
@@ -671,27 +718,7 @@ export default function WriteReviewPage() {
 
                       <Separator />
 
-                      {/* Confidential Comments */}
-                      <div className="space-y-2">
-                        <Label htmlFor="confidentialComments" className="flex items-center gap-2">
-                          Confidential Comments to Editor
-                          <Badge variant="outline" className="text-xs">Optional</Badge>
-                        </Label>
-                        <Textarea
-                          id="confidentialComments"
-                          placeholder="Private comments for the editor only (not shared with authors)..."
-                          value={reviewForm.confidentialComments || ""}
-                          onChange={(e) => setReviewForm(prev => ({ 
-                            ...prev, 
-                            confidentialComments: e.target.value 
-                          }))}
-                          className="min-h-[100px]"
-                        />
-                      </div>
-
-                      <Separator />
-
-                      {/* File Upload */}
+                      {/* Rating and Decision Row */}
                       <div className="space-y-2">
                         <Label htmlFor="file" className="flex items-center gap-2">
                           Annotated Manuscript or Supporting File
@@ -743,11 +770,10 @@ export default function WriteReviewPage() {
                             setActiveTab("select");
                             setReviewForm({
                               reviewText: "",
+                              reviewTextForAuthor: "",
                               rating: 3,
                               correspondingFile: null,
                               reviewerStatus: "MINOR_REVISION",
-                              confidentialComments: "",
-                              recommendation: "MINOR_REVISION"
                             });
                           }}
                         >
@@ -758,7 +784,9 @@ export default function WriteReviewPage() {
                           disabled={
                             submitting || 
                             !reviewForm.reviewText.trim() || 
-                            reviewForm.reviewText.trim().length < 50
+                            reviewForm.reviewText.trim().length < 50 ||
+                            !reviewForm.reviewTextForAuthor.trim() ||
+                            reviewForm.reviewTextForAuthor.trim().length < 50
                           }
                           className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
                         >
@@ -880,12 +908,29 @@ export default function WriteReviewPage() {
 
                             {userReview?.reviewText && (
                               <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">Your Review Comments</Label>
-                                <div className="bg-muted/50 p-4 rounded-lg">
+                                <Label className="text-xs font-semibold text-red-600 flex items-center gap-1">
+                                  🔒 Your Editor Comments (Private)
+                                </Label>
+                                <div className="bg-red-50 border border-red-100 p-4 rounded-lg">
                                   <p className="text-sm whitespace-pre-wrap">
                                     {userReview.reviewText.length > 300 
                                       ? `${userReview.reviewText.substring(0, 300)}...` 
                                       : userReview.reviewText}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {(userReview as any)?.reviewTextForAuthor && (
+                              <div className="space-y-2">
+                                <Label className="text-xs font-semibold text-blue-600 flex items-center gap-1">
+                                  📤 Your Author Comments (Shared)
+                                </Label>
+                                <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
+                                  <p className="text-sm whitespace-pre-wrap">
+                                    {(userReview as any).reviewTextForAuthor.length > 300 
+                                      ? `${(userReview as any).reviewTextForAuthor.substring(0, 300)}...` 
+                                      : (userReview as any).reviewTextForAuthor}
                                   </p>
                                 </div>
                               </div>

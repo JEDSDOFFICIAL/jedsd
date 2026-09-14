@@ -106,6 +106,7 @@ export default function ReviewsPage() {
         );
         
         setPapers(papersWithReviews);
+        console.log(" the paper content is ",papersWithReviews)
       } catch (err) {
         console.error("Error fetching papers:", err);
         setError("Failed to load reviews");
@@ -660,12 +661,34 @@ export default function ReviewsPage() {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                          {/* Private comments — editor only */}
                           <div>
-                            <h4 className="font-semibold mb-2">Review Text:</h4>
-                            <div className="bg-muted p-4 rounded-lg whitespace-pre-wrap">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold text-sm">Editor Comments</h4>
+                              <Badge variant="destructive" className="text-xs">Private</Badge>
+                            </div>
+                            <div className="bg-red-50 border border-red-100 p-4 rounded-lg whitespace-pre-wrap text-sm">
                               {review.reviewText}
                             </div>
                           </div>
+
+                          {/* Author-facing comments */}
+                          {(review as any).reviewTextForAuthor ? (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold text-sm">Author Comments</h4>
+                                <Badge className="text-xs bg-blue-100 text-blue-800 border border-blue-200">Shared with Author</Badge>
+                              </div>
+                              <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg whitespace-pre-wrap text-sm">
+                                {(review as any).reviewTextForAuthor}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-100 text-sm text-amber-700">
+                              <span className="text-base">⚠️</span>
+                              No author-facing comments provided for this review.
+                            </div>
+                          )}
                           
                           <div className="flex justify-between items-center text-sm text-muted-foreground">
                             <div className="flex items-center gap-4">

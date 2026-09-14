@@ -38,14 +38,21 @@ export async function GET( req: NextRequest,
         },
         reviews: {
           select: {
+            id: true,
+            reviewerId: true,
             reviewText: true,
+            reviewTextForAuthor: true,
             rating: true,
             reviewerStatus: true,
             correspondingFile: true,
+            createdAt: true,
+            updatedAt: true,
             reviewer: {
               select: {
+                id: true,
                 name: true,
                 email: true,
+                affiliation: true,
               },
             },
           },

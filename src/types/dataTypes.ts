@@ -149,6 +149,22 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface ReviewerEntry {
+  id: string;
+  email: string;
+  userType: string;
+  isAuthenticated: boolean;
+  name: string | null;
+  affiliation: string | null;
+  profileImage?: string | null;
+  stats: {
+    activeReviews: number;
+    completedReviews: number;
+    averageRating: number;
+    expertise: string[];
+  };
+}
+
 export interface UserWithStats extends User {
   _count?: {
     authoredPapers: number;
@@ -161,6 +177,7 @@ export interface PaperReview {
   paperId: string;
   reviewerId: string;
   reviewText: string;
+  reviewTextForAuthor?: string | null;
   correspondingFile?: string | null;
   rating?: number | null;
   createdAt: Date;
@@ -218,12 +235,11 @@ export interface FetchPapersResponse {
 }
 
 export interface ReviewFormData {
-  reviewText: string;
+  reviewText: string;           // Private — editor only
+  reviewTextForAuthor: string;  // Shared with author
   rating: number;
   correspondingFile: File | null;
   reviewerStatus: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "MINOR_REVISION" | "MAJOR_REVISION";
-  confidentialComments?: string;
-  recommendation?: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "MINOR_REVISION" | "MAJOR_REVISION";
 }
 
 // Reviewer Dashboard specific types

@@ -137,6 +137,7 @@ export async function GET() {
         isAuthenticated: !!registeredUser,
         name: registeredUser?.name ?? null,
         affiliation: registeredUser?.affiliation ?? null,
+        profileImage: registeredUser?.profileImage ?? null,
         stats: {
           ...stats,
           expertise: registeredUser?.areaOfInterest ?? [],
@@ -154,6 +155,7 @@ export async function GET() {
         isAuthenticated: true,
         name: user.name,
         affiliation: user.affiliation ?? null,
+        profileImage: user.profileImage ?? null,
         stats: {
           ...stats,
           expertise: user.areaOfInterest ?? [],

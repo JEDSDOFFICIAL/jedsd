@@ -283,6 +283,7 @@ export async function submitReview(
   paperId: string,
   reviewerId: string,
   reviewText: string,
+  reviewTextForAuthor: string | null,
   rating: number,
   reviewerStatus: "ACCEPTED_FOR_PUBLICATION" | "REJECTED_FOR_PUBLICATION" | "MINOR_REVISION" | "MAJOR_REVISION",
   correspondingFile?: string | null,
@@ -294,6 +295,7 @@ export async function submitReview(
       paperId,
       reviewerId,
       reviewText,
+      reviewTextForAuthor: reviewTextForAuthor || null,
       rating,
       reviewerStatus,
       correspondingFile

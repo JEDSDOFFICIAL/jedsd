@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResearchPaper, PaperReview, User } from "@prisma/client";
+import { ReviewerEntry } from "@/types/dataTypes";
 import { 
   FileText, 
   Eye, 
@@ -123,7 +124,7 @@ export default function NewPapersPage() {
   const [papers, setPapers] = useState<PaperWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [reviewers, setReviewers] = useState<User[]>([]);
+  const [reviewers, setReviewers] = useState<ReviewerEntry[]>([]);
   const [selectedReviewers, setSelectedReviewers] = useState<string[]>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -234,7 +235,7 @@ export default function NewPapersPage() {
           <div className="flex flex-wrap gap-1">
             {reviews.map((review, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
-                {review.reviewer.name}
+                {review.reviewer.name || "Unknown Reviewer"}
               </Badge>
             ))}
           </div>
@@ -859,29 +860,27 @@ export default function NewPapersPage() {
                   : "Reassign Reviewers"}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-base">
-                <div className="space-y-2">
-                  <div className="font-medium text-gray-900">
-                    Paper: {selectedPaper.title}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {actionType === "ASSIGN_REVIEWER" 
-                      ? "Select reviewers for this paper (maximum 3 reviewers total)"
-                      : "Select a current reviewer to replace and choose a new reviewer"}
-                  </div>
-                  {selectedPaper.reviews && selectedPaper.reviews.length > 0 && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-sm font-medium">Currently assigned:</span>
-                      <div className="flex gap-1">
-                        {selectedPaper.reviews.map((review, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {review.reviewer.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                Paper: {selectedPaper.title}
               </AlertDialogDescription>
+              <div className="space-y-2 mt-2">
+                <div className="text-sm text-gray-600">
+                  {actionType === "ASSIGN_REVIEWER" 
+                    ? "Select reviewers for this paper (maximum 3 reviewers total)"
+                    : "Select a current reviewer to replace and choose a new reviewer"}
+                </div>
+                {selectedPaper.reviews && selectedPaper.reviews.length > 0 && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-sm font-medium">Currently assigned:</span>
+                    <div className="flex gap-1">
+                      {selectedPaper.reviews.map((review, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {review.reviewer.name || "Unknown Reviewer"}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </AlertDialogHeader>
 
             <div className="grid gap-6 py-4">
@@ -914,13 +913,15 @@ export default function NewPapersPage() {
                           <AvatarImage src={review.reviewer.profileImage || ""} />
                           <AvatarFallback className="bg-red-100 text-red-700">
                             {review.reviewer.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
+                              ? review.reviewer.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                              : "??"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <div className="font-medium">{review.reviewer.name}</div>
+                          <div className="font-medium">{review.reviewer.name || "Unknown Reviewer"}</div>
                           <div className="text-sm text-gray-500">{review.reviewer.email}</div>
                           {review.reviewer.affiliation && (
                             <div className="text-xs text-gray-400">{review.reviewer.affiliation}</div>
@@ -998,7 +999,7 @@ export default function NewPapersPage() {
                         (review) => review.reviewerId === reviewer.id
                       );
                       const isDisabled = actionType === "ASSIGN_REVIEWER" 
-                        ? (!isSelected && (selectedReviewers.length + (selectedPaper.reviews?.length || 0)) >= 3)
+                        ? (!isSelected && (selectedReviewers.length + (selectedPaper.reviews?.length || 0)) >= 3) || !reviewer.isAuthenticated
                         : false;
 
                       return (
@@ -1036,20 +1037,25 @@ export default function NewPapersPage() {
                             <AvatarImage src={reviewer.profileImage || ""} />
                             <AvatarFallback className={`${isSelected ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
                               {reviewer.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
+                                ? reviewer.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                : "??"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                            <div className="font-medium text-gray-900">{reviewer.name}</div>
+                            <div className="font-medium text-gray-900">{reviewer.name || "Unknown Reviewer"}</div>
                             <div className="text-sm text-gray-600">{reviewer.email}</div>
                             {reviewer.affiliation && (
                               <div className="text-xs text-gray-500 mt-1">{reviewer.affiliation}</div>
                             )}
-                            {reviewer.areaOfInterest && reviewer.areaOfInterest.length > 0 && (
+                            {!reviewer.isAuthenticated && (
+                              <div className="text-xs text-red-500 mt-1 font-medium">⚠ Not authenticated</div>
+                            )}
+                            {reviewer.stats?.expertise && reviewer.stats.expertise.length > 0 && (
                               <div className="flex gap-1 mt-2">
-                                {reviewer.areaOfInterest.slice(0, 3).map((exp, idx) => (
+                                {reviewer.stats.expertise.slice(0, 3).map((exp, idx) => (
                                   <Badge key={idx} variant="outline" className="text-xs">
                                     {exp}
                                   </Badge>
@@ -1092,10 +1098,10 @@ export default function NewPapersPage() {
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={reviewer.profileImage || ""} />
                             <AvatarFallback className="bg-green-100 text-green-700 text-xs">
-                              {reviewer.name.split(" ").map((n) => n[0]).join("")}
+                              {reviewer.name ? reviewer.name.split(" ").map((n) => n[0]).join("") : "??"}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-medium text-sm">{reviewer.name}</span>
+                          <span className="font-medium text-sm">{reviewer.name || "Unknown Reviewer"}</span>
                           <Button
                             variant="ghost"
                             size="sm"

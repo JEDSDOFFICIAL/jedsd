@@ -11,9 +11,17 @@ const reviewSubmissionSchema = z.object({
   paperId: z.string().uuid("Invalid paperId format."),
   reviewerId: z.string().uuid("Invalid reviewerId format."),
 
+  // Private comments — visible to editor only
   reviewText: z
     .string()
     .min(10, "Review text must be at least 10 characters."),
+
+  // Comments to be shared with the author (optional)
+  reviewTextForAuthor: z
+    .string()
+    .min(10, "Author comments must be at least 10 characters.")
+    .nullable()
+    .optional(),
 
   rating: z
     .number()
@@ -63,7 +71,8 @@ export async function POST(req: NextRequest) {
     const { 
       paperId, 
       reviewerId, 
-      reviewText, 
+      reviewText,
+      reviewTextForAuthor,
       rating, 
       correspondingFile, 
       reviewerStatus
@@ -99,6 +108,7 @@ export async function POST(req: NextRequest) {
         where: { id: existingReview.id },
         data: {
           reviewText,
+          reviewTextForAuthor: reviewTextForAuthor ?? null,
           rating,
           correspondingFile,
           reviewerStatus: reviewerStatus || ReviewerStatus.PENDING,
@@ -129,6 +139,7 @@ export async function POST(req: NextRequest) {
           paperId,
           reviewerId,
           reviewText,
+          reviewTextForAuthor: reviewTextForAuthor ?? null,
           rating,
           correspondingFile,
           reviewerStatus: reviewerStatus || ReviewerStatus.PENDING,

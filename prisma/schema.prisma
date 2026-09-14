@@ -34,17 +34,18 @@ model User {
 }
 
 model PaperReview {
-  id                String          @id @default(uuid())
-  paperId           String
-  reviewerId        String
-  reviewText        String
-  correspondingFile String?
-  rating            Int?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  reviewerStatus    ReviewerStatus?
-  paper             ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id], onDelete: Cascade)
-  reviewer          User            @relation("UserToReviews", fields: [reviewerId], references: [id])
+  id                  String          @id @default(uuid())
+  paperId             String
+  reviewerId          String
+  reviewText          String          // Private comments for the editor only
+  reviewTextForAuthor String?         // Comments to be shared with the author
+  correspondingFile   String?
+  rating              Int?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  reviewerStatus      ReviewerStatus?
+  paper               ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id], onDelete: Cascade)
+  reviewer            User            @relation("UserToReviews", fields: [reviewerId], references: [id])
 }
 
 model ResearchPaper {
