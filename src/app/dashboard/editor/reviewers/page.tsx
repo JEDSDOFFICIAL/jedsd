@@ -109,12 +109,13 @@ export default function ReviewerManagementPage() {
   }, [session?.user?.email]);
 
   useEffect(() => {
+    const term = searchTerm.toLowerCase();
     const filtered = reviewers.filter(reviewer =>
-      reviewer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reviewer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reviewer.affiliation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reviewer.areaOfInterest.some(interest => 
-        interest.toLowerCase().includes(searchTerm.toLowerCase())
+      reviewer.name?.toLowerCase().includes(term) ||
+      reviewer.email?.toLowerCase().includes(term) ||
+      reviewer.affiliation?.toLowerCase().includes(term) ||
+      reviewer.areaOfInterest?.some(interest =>
+        interest?.toLowerCase().includes(term)
       )
     );
     setFilteredReviewers(filtered);
@@ -325,14 +326,14 @@ export default function ReviewerManagementPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1 max-w-[200px]">
-                        {reviewer.areaOfInterest.slice(0, 3).map((interest, index) => (
+                        {(reviewer.areaOfInterest ?? []).slice(0, 3).map((interest, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
                             {interest}
                           </Badge>
                         ))}
-                        {reviewer.areaOfInterest.length > 3 && (
+                        {(reviewer.areaOfInterest?.length ?? 0) > 3 && (
                           <Badge variant="secondary" className="text-xs">
-                            +{reviewer.areaOfInterest.length - 3} more
+                            +{(reviewer.areaOfInterest?.length ?? 0) - 3} more
                           </Badge>
                         )}
                       </div>
@@ -357,7 +358,7 @@ export default function ReviewerManagementPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {format(new Date(reviewer.updatedAt), "MMM dd, yyyy")}
+                        {reviewer.updatedAt ? format(new Date(reviewer.updatedAt), "MMM dd, yyyy") : "—"}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

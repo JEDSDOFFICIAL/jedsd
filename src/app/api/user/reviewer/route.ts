@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { UserType } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
+const ALLOWED_ROLES = ["ADMIN", "EDITOR"];
+
+async function assertAllowed() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return false;
+  const caller = await prisma.user.findUnique({ where: { email: session.user.email } });
+  const role = (caller?.variableUserType || caller?.userType) as string | undefined;
+  return role ? ALLOWED_ROLES.includes(role) : false;
+}
 
 // POST: Create a new UserDetails
 export async function POST(req: NextRequest) {
+  if (!(await assertAllowed())) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
   const body = await req.json();
   const { email, userType } = body;
 
@@ -34,6 +49,9 @@ export async function POST(req: NextRequest) {
 
 // DELETE: Delete one or multiple UserDetails by email(s)
 export async function DELETE(req: NextRequest) {
+  if (!(await assertAllowed())) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
   const body = await req.json();
   const { emails } = body;
 
@@ -63,6 +81,9 @@ export async function DELETE(req: NextRequest) {
 
 // GET: Return merged list of UserDetails + User records (REVIEWER / EDITOR / ADMIN)
 export async function GET() {
+  if (!(await assertAllowed())) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
   try {
     const specialRoles = [UserType.REVIEWER, UserType.ADMIN, UserType.EDITOR];
 
@@ -174,6 +195,9 @@ export async function GET() {
 
 // PUT: Update UserDetails (and User if exists)
 export async function PUT(req: NextRequest) {
+  if (!(await assertAllowed())) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
   const body = await req.json();
   const { email, userType } = body;
 

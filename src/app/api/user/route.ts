@@ -78,6 +78,11 @@ export async function PUT(req: NextRequest) {
       { status: 401 }
     );
   }
+  const caller = await prisma.user.findUnique({ where: { email: session.user.email! } });
+  const callerRole = (caller?.variableUserType || caller?.userType) as string | undefined;
+  if (!callerRole || !["ADMIN", "EDITOR"].includes(callerRole)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const searchParams = req.nextUrl.searchParams;
     const userId = searchParams.get("userId");

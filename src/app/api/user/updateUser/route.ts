@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient, UserType } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 const prisma = new PrismaClient();
@@ -20,6 +22,16 @@ const updateUserSchema = z.object({
 // POST /api/user/updateUser - Update user details
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ success: false, message: "Unauthorized." }, { status: 401 });
+    }
+    const caller = await prisma.user.findUnique({ where: { email: session.user.email } });
+    const callerRole = (caller?.variableUserType || caller?.userType) as string | undefined;
+    if (!callerRole || !["ADMIN", "EDITOR"].includes(callerRole)) {
+      return NextResponse.json({ success: false, message: "Forbidden." }, { status: 403 });
+    }
+
     const body = await req.json();
     const validationResult = updateUserSchema.safeParse(body);
 

@@ -95,7 +95,7 @@ export const DashboardItems = [
     title: "Admin Panel",
     url: "#",
     icon: Users,
-    access: ["ADMIN"],
+    access: ["ADMIN", "EDITOR"],
     items: [
       { title: "User Management", url: "/dashboard/admin/users", icon: Users },
       { title: "Role Management", url: "/dashboard/admin/roles", icon: UserCog },
