@@ -1,12 +1,46 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Upload, ArrowRight, BookOpen, Cpu, Award, Zap, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Upload, ArrowRight, Cpu, Award, Zap, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { AuthorOrContact } from "@/types/dataTypes";
+
+interface LatestPaper {
+  paperId: string;
+  title: string;
+  abstract: string;
+  keywords: string[];
+  acceptedDate: string | null;
+  contributors: AuthorOrContact[];
+  pointOfContact: AuthorOrContact;
+}
 
 function HomePage() {
   const { data: session } = useSession();
+  const [latestPaper, setLatestPaper] = useState<LatestPaper | null>(null);
+  const [paperLoading, setPaperLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatestPaper = async () => {
+      try {
+        const res = await fetch(
+          "/api/paper?status=PUBLISH&page=1&limit=1"
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.papers && data.papers.length > 0) {
+          setLatestPaper(data.papers[0]);
+        }
+      } catch {
+        // silently fail — card will show placeholder
+      } finally {
+        setPaperLoading(false);
+      }
+    };
+
+    fetchLatestPaper();
+  }, []);
 
   const focusAreas = [
     "Embedded Hardware",
@@ -153,7 +187,7 @@ function HomePage() {
           {/* Main Visual Card wrapper */}
           <div className="relative w-full max-w-sm mx-auto flex items-center justify-center">
 
-            {/* Interactive Mock Journal Cover / Card */}
+            {/* Latest Published Paper Card */}
             <div className="relative w-full bg-white/90 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-2xl transition-all duration-500 hover:translate-y-[-6px] hover:shadow-indigo-500/10 hover:border-indigo-200/80 flex flex-col gap-6">
 
               {/* Header */}
@@ -164,32 +198,78 @@ function HomePage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-800 text-sm">JEDSD</h3>
-                    <p className="text-[10px] text-slate-400 font-medium">Vol. 4, Issue 2 (2026)</p>
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      {latestPaper?.acceptedDate
+                        ? new Date(latestPaper.acceptedDate).toLocaleDateString("en-US", { year: "numeric", month: "long" })
+                        : "Latest Issue"}
+                    </p>
                   </div>
                 </div>
                 <span className="px-2.5 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 rounded-full border border-emerald-100">
-                  Featured
+                  {latestPaper ? "New" : "Featured"}
                 </span>
               </div>
 
               {/* Article Content */}
-              <div className="flex flex-col gap-3">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Research Article</span>
-                <h4 className="font-extrabold text-slate-900 text-base leading-snug hover:text-blue-600 transition-colors cursor-pointer">
-                  Design and Analysis of Ultra-Low-Power Edge AI Hardware Accelerators for IoT Node Architectures
-                </h4>
-                <p className="text-slate-500 text-xs leading-relaxed">
-                  Exploring novel microarchitectural paradigms to optimize multiply-accumulate units for highly constrained energy budgets at the edge.
-                </p>
-              </div>
+              {paperLoading ? (
+                <div className="flex flex-col gap-3 animate-pulse">
+                  <div className="h-3 w-24 bg-slate-200 rounded" />
+                  <div className="h-4 w-full bg-slate-200 rounded" />
+                  <div className="h-4 w-4/5 bg-slate-200 rounded" />
+                  <div className="h-3 w-full bg-slate-100 rounded mt-1" />
+                  <div className="h-3 w-3/4 bg-slate-100 rounded" />
+                </div>
+              ) : latestPaper ? (
+                <div className="flex flex-col gap-3">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Research Article</span>
+                  <Link href={`/paper/${latestPaper.paperId}`}>
+                    <h4 className="font-extrabold text-slate-900 text-base leading-snug hover:text-blue-600 transition-colors cursor-pointer line-clamp-3">
+                      {latestPaper.title}
+                    </h4>
+                  </Link>
+                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-3">
+                    {latestPaper.abstract}
+                  </p>
+                  {latestPaper.keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {latestPaper.keywords.slice(0, 3).map((kw) => (
+                        <span key={kw} className="px-2 py-0.5 text-[9px] font-semibold bg-blue-50 text-blue-600 rounded-full border border-blue-100">
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Research Article</span>
+                  <h4 className="font-extrabold text-slate-900 text-base leading-snug">
+                    No published papers yet
+                  </h4>
+                  <p className="text-slate-500 text-xs leading-relaxed">
+                    Be the first to submit your research to JEDSD.
+                  </p>
+                </div>
+              )}
 
               {/* Footer */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 pt-4 mt-auto">
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold text-slate-700">Author:</span> Dr. Sarah Jenkins
+                <div className="flex items-center gap-1 truncate pr-2">
+                  {latestPaper ? (
+                    <>
+                      <span className="font-semibold text-slate-700 shrink-0">Author:</span>
+                      <span className="truncate">
+                        {latestPaper.pointOfContact?.fullName ||
+                          (latestPaper.contributors?.[0]?.fullName) ||
+                          "—"}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
                 </div>
-                <div className="flex items-center gap-1 text-emerald-600 font-medium">
-                  <ShieldCheck className="size-3.5" /> Verified
+                <div className="flex items-center gap-1 text-emerald-600 font-medium shrink-0">
+                  <ShieldCheck className="size-3.5" /> Published
                 </div>
               </div>
             </div>

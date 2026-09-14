@@ -61,55 +61,109 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
-// GET: Return all UserDetails
+// GET: Return merged list of UserDetails + User records (REVIEWER / EDITOR / ADMIN)
 export async function GET() {
   try {
-    const users = await prisma.user.findMany({
-      where:{
-        userType: { in: [UserType.REVIEWER, UserType.ADMIN, UserType.EDITOR] }
-      },
-      include: {
-        reviews: {
-          select: {
-            id: true,
-            reviewerStatus: true,
-            rating: true,
-            reviewText: true
-          }
-        }
-      }
-    });
+    const specialRoles = [UserType.REVIEWER, UserType.ADMIN, UserType.EDITOR];
 
-    // Calculate basic stats for each user
-    const usersWithStats = users.map(user => {
-      const reviews = user.reviews || [];
-      const completedReviews = reviews.filter(r => r.reviewText && r.reviewText.trim() !== '');
-      const activeReviews = reviews.filter(r => 
-        r.reviewerStatus === 'PENDING' || 
-        r.reviewerStatus === 'ACCEPTED_FOR_REVIEW'
+    // Fetch all pre-auth entries and all registered users in parallel
+    const [allUserDetails, registeredUsers] = await Promise.all([
+      prisma.userDetails.findMany({
+        where: { userType: { in: specialRoles } },
+      }),
+      prisma.user.findMany({
+        where: { userType: { in: specialRoles } },
+        include: {
+          reviews: {
+            select: {
+              id: true,
+              reviewerStatus: true,
+              rating: true,
+              reviewText: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    // Build a lookup map for registered users by email for O(1) access
+    const registeredByEmail = new Map(registeredUsers.map((u) => [u.email, u]));
+
+    // Build a set of emails already covered by UserDetails
+    const detailsEmails = new Set(allUserDetails.map((d) => d.email));
+
+    // Also include registered users whose email is NOT in UserDetails
+    // (e.g. role was set directly on User table without a UserDetails entry)
+    const extraUsers = registeredUsers.filter((u) => !detailsEmails.has(u.email));
+
+    type MergedEntry = {
+      id: string;
+      email: string;
+      userType: string;
+      isAuthenticated: boolean;
+      name: string | null;
+      affiliation: string | null;
+      stats: {
+        activeReviews: number;
+        completedReviews: number;
+        averageRating: number;
+        expertise: string[];
+      };
+    };
+
+    const computeStats = (reviews: { reviewText: string; rating: number | null; reviewerStatus: string | null }[]) => {
+      const completed = reviews.filter((r) => r.reviewText?.trim());
+      const active = reviews.filter(
+        (r) => r.reviewerStatus === "PENDING" || r.reviewerStatus === "ACCEPTED_FOR_REVIEW"
       );
-      
-      const ratingsGiven = completedReviews
-        .map(r => r.rating)
-        .filter(rating => rating !== null) as number[];
-      
-      const averageRating = ratingsGiven.length > 0 
-        ? ratingsGiven.reduce((sum, rating) => sum + rating, 0) / ratingsGiven.length 
-        : 0;
+      const ratings = completed.map((r) => r.rating).filter((r): r is number => r !== null);
+      return {
+        activeReviews: active.length,
+        completedReviews: completed.length,
+        averageRating: ratings.length > 0 ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0,
+      };
+    };
+
+    // Merge: each UserDetails entry as the source of truth for role intent
+    const mergedFromDetails: MergedEntry[] = allUserDetails.map((detail) => {
+      const registeredUser = registeredByEmail.get(detail.email);
+      const reviews = registeredUser?.reviews ?? [];
+      const stats = computeStats(reviews);
 
       return {
-        ...user,
-        reviews: undefined, // Remove the detailed reviews from the response
+        id: detail.id,
+        email: detail.email,
+        userType: detail.userType,
+        isAuthenticated: !!registeredUser,
+        name: registeredUser?.name ?? null,
+        affiliation: registeredUser?.affiliation ?? null,
         stats: {
-          activeReviews: activeReviews.length,
-          completedReviews: completedReviews.length,
-          averageRating: averageRating,
-          expertise: user.areaOfInterest || []
-        }
+          ...stats,
+          expertise: registeredUser?.areaOfInterest ?? [],
+        },
       };
     });
 
-    return NextResponse.json(usersWithStats, { status: 200 });
+    // Extra registered users not in UserDetails (already authenticated)
+    const mergedFromExtra: MergedEntry[] = extraUsers.map((user) => {
+      const stats = computeStats(user.reviews);
+      return {
+        id: user.id,
+        email: user.email,
+        userType: user.userType,
+        isAuthenticated: true,
+        name: user.name,
+        affiliation: user.affiliation ?? null,
+        stats: {
+          ...stats,
+          expertise: user.areaOfInterest ?? [],
+        },
+      };
+    });
+
+    const result = [...mergedFromDetails, ...mergedFromExtra];
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("GET error:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });

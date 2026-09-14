@@ -16,7 +16,7 @@ import {
   VisibilityState,
   flexRender, // Added for rendering headers/cells
 } from "@tanstack/react-table";
-import { ArrowUpDown, Copy, MoreHorizontal, ShieldCheck, Trash2, UserPlus } from "lucide-react";
+import { ArrowUpDown, Copy, MoreHorizontal, ShieldCheck, Trash2, UserPlus, CheckCircle2, Clock } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {
@@ -66,7 +66,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { UserDetails } from "@prisma/client";
+import { Badge } from "@/components/ui/badge";
 import {
   IconChevronDown,
   IconLayoutColumns,
@@ -74,7 +74,23 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-} from "@tabler/icons-react"; // Imported missing icons
+} from "@tabler/icons-react";
+
+// Merged type returned by GET /api/user/reviewer
+interface MergedUser {
+  id: string;
+  email: string;
+  userType: string;
+  isAuthenticated: boolean;
+  name: string | null;
+  affiliation: string | null;
+  stats: {
+    activeReviews: number;
+    completedReviews: number;
+    averageRating: number;
+    expertise: string[];
+  };
+}
 
 // Form schema for adding special role users
 const addUserSchema = z.object({
@@ -242,8 +258,7 @@ function AddUserForm({ onUserAdded }: { onUserAdded: () => void }) {
 
 function FacultyList() {
   const { data: session } = useSession();
-  //console.log("Session from FacultyList:", session);
-  const [data, setData] = React.useState<UserDetails[]>([]);
+  const [data, setData] = React.useState<MergedUser[]>([]);
   const [loading, setLoading] = React.useState(false);
 
   // Define state variables for react-table
@@ -261,22 +276,17 @@ function FacultyList() {
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
-      // Assuming your /api/user/reviewer endpoint supports pagination
-      // If not, you might need to adjust this to fetch all and paginate client-side,
-      // or modify your API to support pagination.
-      const res = await axios.get(
-        `/api/user/reviewer?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}`
-      );
-      setData(res.data.users || res.data); // Adjust based on your API response structure (e.g., res.data.users for paginated results)
-      // If your API returns total pages, set it here:
-      setTotalPages(res.data.totalPages || 1); // Default to 1 if not provided by API
+      const res = await axios.get("/api/user/reviewer");
+      const rows: MergedUser[] = Array.isArray(res.data) ? res.data : (res.data.users ?? []);
+      setData(rows);
+      setTotalPages(res.data.totalPages || 1);
     } catch (error) {
       console.error("Failed to fetch data:", error);
       toast.error("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize]); // Dependencies for useCallback
+  }, [pagination.pageIndex, pagination.pageSize]);
 
   // Delete data function
   const deleteData = React.useCallback(
@@ -322,125 +332,130 @@ function FacultyList() {
     [fetchData]
   );
 
-  // Define columns for UserDetails
-  const columns: ColumnDef<UserDetails>[] = React.useMemo(
+  // Define columns for MergedUser
+  const columns: ColumnDef<MergedUser>[] = React.useMemo(
     () => [
-      // Add a select column for bulk actions if needed
-      // {
-      //   id: "select",
-      //   header: ({ table }) => (
-      //     <Checkbox
-      //       checked={table.getIsAllPageRowsSelected()}
-      //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      //       aria-label="Select all"
-      //     />
-      //   ),
-      //   cell: ({ row }) => (
-      //     <Checkbox
-      //       checked={row.getIsSelected()}
-      //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-      //       aria-label="Select row"
-      //     />
-      //   ),
-      //   enableSorting: false,
-      //   enableHiding: false,
-      // },
       {
         accessorKey: "id",
         header: () => <div className="text-left">ID</div>,
         cell: ({ row }) => (
-          <div className="lowercase">{row.getValue("id")}</div>
+          <div className="text-xs text-muted-foreground truncate max-w-[80px]">{row.getValue("id")}</div>
         ),
       },
       {
-        accessorKey: "email", 
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Name/Email
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="lowercase">{row.getValue("email")}</div>
+        accessorKey: "email",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Name / Email
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
         ),
-      },
-      {
-        accessorKey: "userType",
-        header: () => <div className="text-right">User Type</div>, // Corrected casing
         cell: ({ row }) => {
+          const user = row.original;
           return (
-            <div className="text-right font-medium uppercase">
-              {row.getValue("userType")}
+            <div className="flex flex-col gap-0.5">
+              {user.name && (
+                <span className="font-medium text-sm">{user.name}</span>
+              )}
+              <span className="text-xs text-muted-foreground">{user.email}</span>
+              {user.affiliation && (
+                <span className="text-[11px] text-muted-foreground">{user.affiliation}</span>
+              )}
             </div>
           );
         },
       },
-      // Add an actions column for delete/edit if needed
-     {
+      {
+        accessorKey: "userType",
+        header: () => <div className="text-center">Role</div>,
+        cell: ({ row }) => (
+          <div className="text-center font-medium uppercase text-sm">
+            {row.getValue("userType")}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "isAuthenticated",
+        header: () => <div className="text-center">Auth Status</div>,
+        cell: ({ row }) => {
+          const authenticated = row.getValue("isAuthenticated") as boolean;
+          return (
+            <div className="flex justify-center">
+              {authenticated ? (
+                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 text-xs font-semibold">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Authenticated
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 text-xs font-semibold">
+                  <Clock className="h-3 w-3" />
+                  Not Authenticated
+                </Badge>
+              )}
+            </div>
+          );
+        },
+      },
+      {
         id: "actions",
         enableHiding: false,
         cell: ({ row }) => {
           const user = row.original;
           return (
             <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Open menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-        <DropdownMenuItem
-          onClick={() => navigator.clipboard.writeText(user.email)}
-          className="text-muted-foreground cursor-pointer"
-        >
-          <Copy className="mr-2 h-4 w-4 text-blue-500" />
-          Copy email
-        </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigator.clipboard.writeText(user.email)}
+                  className="text-muted-foreground cursor-pointer"
+                >
+                  <Copy className="mr-2 h-4 w-4 text-blue-500" />
+                  Copy email
+                </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-        <DropdownMenuItem
-          onClick={() => deleteData(user.email)}
-          className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 cursor-pointer"
-        >
-          <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-          Delete User
-        </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => deleteData(user.email)}
+                  className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 cursor-pointer"
+                >
+                  <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                  Delete User
+                </DropdownMenuItem>
 
-        <DropdownMenuItem
-          onClick={() => updateData(user.email, "ADMIN", user.email)}
-          className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer"
-        >
-          <ShieldCheck className="mr-2 h-4 w-4 text-green-600" />
-          Make Admin
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => updateData(user.email, "REVIEWER", user.email)}
-          className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer"
-        >
-          <ShieldCheck className="mr-2 h-4 w-4 text-green-600" />
-          Make Reviewer
-        </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => updateData(user.email, "ADMIN", user.email)}
+                  className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer"
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4 text-green-600" />
+                  Make Admin
+                </DropdownMenuItem>
 
-       
-      </DropdownMenuContent>
-    </DropdownMenu>
+                <DropdownMenuItem
+                  onClick={() => updateData(user.email, "REVIEWER", user.email)}
+                  className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer"
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4 text-green-600" />
+                  Make Reviewer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           );
-         },
+        },
       },
     ],
-    [deleteData, updateData] // Add deleteData and updateData to dependencies
+    [deleteData, updateData]
   );
 
   React.useEffect(() => {
@@ -450,8 +465,6 @@ function FacultyList() {
   const table = useReactTable({
     data,
     columns,
-    pageCount: totalPages,
-    manualPagination: true, // Set to true since you're handling pagination manually
     state: {
       sorting,
       columnVisibility,
@@ -496,9 +509,6 @@ function FacultyList() {
       
       {/* Users List */}
       <div className="w-full">
-        <h2 className="dark:text-white text-black text-xl font-bold py-3 text-center w-full sm:text-2xl">
-          Current Reviewers and Admins
-        </h2>
         <h2 className="dark:text-white text-black text-xl font-bold py-3 text-center w-full sm:text-2xl">
           Current Reviewers and Admins
         </h2>
