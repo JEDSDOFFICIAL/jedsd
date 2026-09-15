@@ -171,12 +171,13 @@ export async function reviewerAllocation(paperId:string,reviewerIds:string[],onS
       reviewerIds,
     });
     console.log("Successfully allocated reviewers:", res.data);
-     onSuccess?.()
+    onSuccess?.();
     return res.data;
-  } catch (error) {
-    console.error("Failed to Allocating reviewers", error);
-    toast.error("Failed to allocate reviewers.");
-    return null;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || "Failed to allocate reviewers.";
+    console.error("Failed to allocating reviewers:", error);
+    toast.error(message);
+    throw new Error(message);
   }
  
 }

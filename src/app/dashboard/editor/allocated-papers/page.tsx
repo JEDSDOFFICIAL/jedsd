@@ -192,6 +192,7 @@ export default function AllocatedPapersPage() {
   };
 
   const columns: ColumnDef<PaperWithRelations>[] = useMemo(
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     () => [
       {
         accessorKey: "title",
@@ -433,7 +434,7 @@ export default function AllocatedPapersPage() {
         },
       },
     ],
-    []
+    [handleAssignMoreReviewers, handleReassignReviewer]
   );
 
   const table = useReactTable({

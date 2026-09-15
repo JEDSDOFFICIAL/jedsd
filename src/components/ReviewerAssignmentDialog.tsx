@@ -57,17 +57,17 @@ export default function ReviewerAssignmentDialog({
 
   useEffect(() => {
     if (open) {
-      fetchAvailableReviewers();
+      fetchAvailableReviewers(currentReviewers);
     }
-  }, [open]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchAvailableReviewers = async () => {
+  const fetchAvailableReviewers = async (assignedReviewers: PaperReviewWithReviewer[]) => {
     try {
       setFetchingReviewers(true);
       const response = await fetchReviewer();
       if (response && Array.isArray(response)) {
-        // Filter out currently assigned reviewers
-        const currentReviewerIds = currentReviewers.map(r => r.reviewerId);
+        // Filter out currently assigned reviewers using the up-to-date list passed in
+        const currentReviewerIds = assignedReviewers.map(r => r.reviewerId);
         const available = response.filter(
           (reviewer: User) => !currentReviewerIds.includes(reviewer.id)
         );
@@ -118,7 +118,6 @@ export default function ReviewerAssignmentDialog({
         await reviewerAllocation(paperId, selectedReviewers, onSuccess);
         toast.success("Reviewers assigned successfully");
       } else if (mode === "reassign" && reviewerToReassign) {
-        // For reassignment, we only allow one reviewer selection
         await reassignReviewer(paperId, reviewerToReassign.reviewerId, selectedReviewers[0]);
         toast.success("Reviewer reassigned successfully");
         onSuccess();
@@ -127,8 +126,8 @@ export default function ReviewerAssignmentDialog({
       onOpenChange(false);
       setSelectedReviewers([]);
     } catch (error) {
-      console.error("Error assigning reviewers:", error);
-      toast.error("Failed to assign reviewers");
+      // Error toast is already shown by the action function; just log here
+      console.error("Error in handleAssign:", error);
     } finally {
       setLoading(false);
     }
