@@ -19,13 +19,33 @@ import { Separator } from "@/components/ui/separator";
 import { Search, UserCheck, UserX, Users } from "lucide-react";
 import { fetchReviewer, reviewerAllocation, reassignReviewer } from "@/lib/Frontend-actions";
 import toast from "react-hot-toast";
-import { User } from "@prisma/client";
+
+// Matches the actual shape returned by GET /api/user/reviewer
+interface ReviewerUser {
+  id: string;
+  email: string;
+  name: string | null;
+  affiliation: string | null;
+  userType: string;
+  isAuthenticated: boolean;
+  stats: {
+    activeReviews: number;
+    completedReviews: number;
+    averageRating: number;
+    expertise: string[];
+  };
+}
 
 interface PaperReviewWithReviewer {
   id: string;
   reviewerId: string;
   reviewerStatus: string;
-  reviewer: User;
+  reviewer: {
+    id: string;
+    name: string;
+    email: string;
+    affiliation?: string | null;
+  };
 }
 
 interface ReviewerAssignmentDialogProps {
@@ -49,7 +69,7 @@ export default function ReviewerAssignmentDialog({
   mode,
   reviewerToReassign,
 }: ReviewerAssignmentDialogProps) {
-  const [availableReviewers, setAvailableReviewers] = useState<User[]>([]);
+  const [availableReviewers, setAvailableReviewers] = useState<ReviewerUser[]>([]);
   const [selectedReviewers, setSelectedReviewers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,8 +88,8 @@ export default function ReviewerAssignmentDialog({
       if (response && Array.isArray(response)) {
         // Filter out currently assigned reviewers using the up-to-date list passed in
         const currentReviewerIds = assignedReviewers.map(r => r.reviewerId);
-        const available = response.filter(
-          (reviewer: User) => !currentReviewerIds.includes(reviewer.id)
+        const available = (response as ReviewerUser[]).filter(
+          (reviewer) => !currentReviewerIds.includes(reviewer.id) && reviewer.isAuthenticated
         );
         setAvailableReviewers(available);
       }
@@ -82,9 +102,9 @@ export default function ReviewerAssignmentDialog({
   };
 
   const filteredReviewers = availableReviewers.filter(reviewer =>
-    reviewer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (reviewer.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     reviewer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reviewer.areaOfInterest.some(area => 
+    (reviewer.stats?.expertise ?? []).some(area => 
       area.toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
@@ -241,7 +261,7 @@ export default function ReviewerAssignmentDialog({
                     <div className="flex items-start space-x-3">
                       <Checkbox
                         checked={selectedReviewers.includes(reviewer.id)}
-                        onChange={() => handleReviewerToggle(reviewer.id)}
+                        onCheckedChange={() => handleReviewerToggle(reviewer.id)}
                       />
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{reviewer.name}</h4>
@@ -249,16 +269,16 @@ export default function ReviewerAssignmentDialog({
                         {reviewer.affiliation && (
                           <p className="text-xs text-gray-600 mb-2">{reviewer.affiliation}</p>
                         )}
-                        {reviewer.areaOfInterest.length > 0 && (
+                        {(reviewer.stats?.expertise ?? []).length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {reviewer.areaOfInterest.slice(0, 3).map((area, index) => (
+                            {reviewer.stats.expertise.slice(0, 3).map((area, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
                                 {area}
                               </Badge>
                             ))}
-                            {reviewer.areaOfInterest.length > 3 && (
+                            {reviewer.stats.expertise.length > 3 && (
                               <Badge variant="outline" className="text-xs">
-                                +{reviewer.areaOfInterest.length - 3} more
+                                +{reviewer.stats.expertise.length - 3} more
                               </Badge>
                             )}
                           </div>

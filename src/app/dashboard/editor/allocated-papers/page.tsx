@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -117,7 +117,7 @@ export default function AllocatedPapersPage() {
   const fetchAllocatedPapers = async () => {
     try {
       setLoading(true);
-      const response = await fetchPapers();
+      const response = await fetchPapers({ limit: 1000 });
       const papers = (response?.papers || []).map((paper: any) => ({
         ...paper,
         reviews: paper.reviews ?? [],
@@ -136,19 +136,19 @@ export default function AllocatedPapersPage() {
     }
   };
 
-  const handleReassignReviewer = (paper: PaperWithRelations, reviewer: PaperReviewWithReviewer) => {
+  const handleReassignReviewer = useCallback((paper: PaperWithRelations, reviewer: PaperReviewWithReviewer) => {
     setSelectedPaper(paper);
     setReviewerToReassign(reviewer);
     setAssignmentMode("reassign");
     setAssignmentDialogOpen(true);
-  };
+  }, []);
 
-  const handleAssignMoreReviewers = (paper: PaperWithRelations) => {
+  const handleAssignMoreReviewers = useCallback((paper: PaperWithRelations) => {
     setSelectedPaper(paper);
     setReviewerToReassign(null);
     setAssignmentMode("assign");
     setAssignmentDialogOpen(true);
-  };
+  }, []);
 
   const getReviewerStatusColor = (status: string) => {
     switch (status) {
@@ -192,7 +192,6 @@ export default function AllocatedPapersPage() {
   };
 
   const columns: ColumnDef<PaperWithRelations>[] = useMemo(
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     () => [
       {
         accessorKey: "title",
