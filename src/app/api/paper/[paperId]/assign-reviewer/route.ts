@@ -39,25 +39,51 @@ export async function POST(req: NextRequest,context: { params: Promise<{ paperId
     }
 
     // Get reviewers and validate
-    const reviewers = await prisma.user.findMany({
+    let reviewers = await prisma.user.findMany({
       where: { id: { in: reviewerIds } }
     });
+
+    // If some reviewers were not found directly by User.id, check if any reviewerIds are UserDetails.id
+    if (reviewers.length !== reviewerIds.length) {
+      const foundUserIds = new Set(reviewers.map(r => r.id));
+      const missingIds = reviewerIds.filter(id => !foundUserIds.has(id));
+
+      const details = await prisma.userDetails.findMany({
+        where: { id: { in: missingIds } }
+      });
+
+      if (details.length > 0) {
+        const detailEmails = details.map(d => d.email);
+        const usersFromDetails = await prisma.user.findMany({
+          where: { email: { in: detailEmails } }
+        });
+
+        for (const u of usersFromDetails) {
+          if (!foundUserIds.has(u.id)) {
+            reviewers.push(u);
+            foundUserIds.add(u.id);
+          }
+        }
+      }
+    }
 
     if (reviewers.length !== reviewerIds.length) {
       const foundIds = reviewers.map(r => r.id);
       const invalidIds = reviewerIds.filter(id => !foundIds.includes(id));
       console.error("One or more reviewers are invalid:", invalidIds);
       return NextResponse.json(
-        { success: false, message: "One or more reviewers are invalid", invalidIds },
+        { success: false, message: "One or more reviewers are invalid or not registered", invalidIds },
         { status: 400 }
       );
     }
+
+    const resolvedReviewerIds = reviewers.map(r => r.id);
 
     // Check for existing reviews (more comprehensive check)
     const existingReviews = await prisma.paperReview.findMany({
       where: {
         paperId: paperId.data,
-        reviewerId: { in: reviewerIds }
+        reviewerId: { in: resolvedReviewerIds }
       }
     });
 
@@ -76,7 +102,7 @@ export async function POST(req: NextRequest,context: { params: Promise<{ paperId
 
     // Create PaperReview entries
     const paperReviews = await Promise.all(
-      reviewerIds.map((rid) =>
+      resolvedReviewerIds.map((rid) =>
         prisma.paperReview.create({
           data: {
             paperId: paperId.data,
@@ -88,27 +114,19 @@ export async function POST(req: NextRequest,context: { params: Promise<{ paperId
       )
     );
 
-    // Send emails to reviewers (using existing reviewer data to avoid extra queries)
-    const reviewerMap = new Map(reviewers.map(r => [r.id, r]));
-    
+    // Send emails to reviewers (using resolved reviewer records)
     const emailResults = await Promise.allSettled(
-      reviewerIds.map(async (rid) => {
-        const reviewer = reviewerMap.get(rid);
-        if (!reviewer) {
-          console.error(`Reviewer not found in map: ${rid}`);
-          return { success: false, reviewerId: rid, error: 'Reviewer not found' };
-        }
-
+      reviewers.map(async (reviewer) => {
         try {
           const emailRes = await sendReviewerAllocationMail({
             paper,
             reviewerName: reviewer.name as string,
             revieweremail: reviewer.email as string
           });
-          return { success: true, reviewerId: rid, result: emailRes };
+          return { success: true, reviewerId: reviewer.id, result: emailRes };
         } catch (error) {
-          console.error(`Failed to send email to reviewer ${rid}:`, error);
-          return { success: false, reviewerId: rid, error };
+          console.error(`Failed to send email to reviewer ${reviewer.id}:`, error);
+          return { success: false, reviewerId: reviewer.id, error };
         }
       })
     );
@@ -140,7 +158,7 @@ export async function POST(req: NextRequest,context: { params: Promise<{ paperId
       emailStatus: {
         sent: successfulEmails,
         failed: failedEmails.length,
-        total: reviewerIds.length
+        total: reviewers.length
       }
     });
 

@@ -108,9 +108,20 @@ export async function POST(req: Request) {
       where: { id: rejectedReview.id },
     });
 
-    const newReviewer = await prisma.user.findUnique({
+    let newReviewer = await prisma.user.findUnique({
       where: { id: newReviewerId },
     });
+
+    if (!newReviewer) {
+      const detail = await prisma.userDetails.findUnique({
+        where: { id: newReviewerId },
+      });
+      if (detail) {
+        newReviewer = await prisma.user.findUnique({
+          where: { email: detail.email },
+        });
+      }
+    }
 
     // Check if the user exists and has REVIEWER role (either as base role or switched role)
     const effectiveUserType = newReviewer?.variableUserType || newReviewer?.userType;
@@ -124,7 +135,7 @@ export async function POST(req: Request) {
     const reassignedReview = await prisma.paperReview.create({
       data: {
         paperId,
-        reviewerId: newReviewerId,
+        reviewerId: newReviewer.id,
         reviewText: "",
         reviewerStatus: ReviewerStatus.PENDING,
       },

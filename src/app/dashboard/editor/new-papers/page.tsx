@@ -502,7 +502,7 @@ export default function NewPapersPage() {
         setSelectedReviewers([]);
       });
     } catch (error) {
-      toast.error("Failed to assign reviewers");
+      console.error("Failed to assign reviewers:", error);
     } finally {
       setIsAllocating(false);
       setAssigningPaperId(null);
@@ -516,6 +516,7 @@ export default function NewPapersPage() {
   ) => {
     try {
       setIsAllocating(true);
+      setAssigningPaperId(selectedPaperId);
       await reassignReviewer(selectedPaperId, oldReviewerId, newReviewerId);
       toast.success("Reviewer reassigned successfully");
       fetchAllPapers();
@@ -528,6 +529,7 @@ export default function NewPapersPage() {
       toast.error("Failed to reassign reviewers");
     } finally {
       setIsAllocating(false);
+      setAssigningPaperId(null);
     }
   };
 
@@ -843,10 +845,15 @@ export default function NewPapersPage() {
       {selectedPaper && actionType && (
         <AlertDialog
           open={!!selectedPaper}
-          onOpenChange={() => {
-            setSelectedPaper(null);
-            setActionType(null);
-            setSelectedReviewers([]);
+          onOpenChange={(open) => {
+            if (isAllocating) return;
+            if (!open) {
+              setSelectedPaper(null);
+              setActionType(null);
+              setSelectedReviewers([]);
+              setSelectedOldReviewer("");
+              setNewReviewer("");
+            }
           }}
         >
           <AlertDialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
@@ -898,8 +905,9 @@ export default function NewPapersPage() {
                           selectedOldReviewer === review.reviewerId
                             ? "bg-red-100 border-red-300 shadow-sm"
                             : "bg-white border-gray-200 hover:bg-red-50"
-                        }`}
+                        } ${isAllocating ? "pointer-events-none opacity-60" : ""}`}
                         onClick={() => {
+                          if (isAllocating) return;
                           setSelectedOldReviewer(
                             selectedOldReviewer === review.reviewerId ? "" : review.reviewerId
                           );
@@ -1013,9 +1021,9 @@ export default function NewPapersPage() {
                                 : isAlreadyAssigned
                                   ? "bg-yellow-50 border-yellow-200 cursor-not-allowed"
                                   : "bg-white border-gray-200 hover:bg-blue-50 hover:border-blue-200"
-                          }`}
+                          } ${isAllocating ? "pointer-events-none opacity-60" : ""}`}
                           onClick={() => {
-                            if (!isDisabled && !isAlreadyAssigned) {
+                            if (!isDisabled && !isAlreadyAssigned && !isAllocating) {
                               if (actionType === "REASSIGN_REVIEWER") {
                                 setNewReviewer(isSelected ? "" : reviewer.id);
                               } else {
@@ -1030,7 +1038,7 @@ export default function NewPapersPage() {
                         >
                           <Checkbox
                             checked={isSelected}
-                            disabled={isDisabled || isAlreadyAssigned}
+                            disabled={isDisabled || isAlreadyAssigned || isAllocating}
                             className={`${isSelected ? 'data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600' : ''}`}
                           />
                           <Avatar className="h-12 w-12">
@@ -1171,13 +1179,16 @@ export default function NewPapersPage() {
                     setSelectedOldReviewer("");
                     setNewReviewer("");
                   }}
+                  disabled={isAllocating}
                   className="px-6"
                 >
                   Cancel
                 </AlertDialogCancel>
                 
                 <AlertDialogAction
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (isAllocating) return;
                     if (actionType === "ASSIGN_REVIEWER") {
                       handleAssignReviewers();
                     } else if (actionType === "REASSIGN_REVIEWER" && selectedOldReviewer && newReviewer) {
@@ -1199,14 +1210,20 @@ export default function NewPapersPage() {
                   {isAllocating ? (
                     <div className="flex items-center gap-2">
                       <IconLoader className="h-4 w-4 animate-spin" />
-                      Processing...
+                      <span>
+                        {actionType === "ASSIGN_REVIEWER"
+                          ? `Assigning ${selectedReviewers.length} Reviewer${selectedReviewers.length !== 1 ? 's' : ''}...`
+                          : "Reassigning Reviewer..."}
+                      </span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
-                      {actionType === "ASSIGN_REVIEWER"
-                        ? `Assign ${selectedReviewers.length} Reviewer${selectedReviewers.length !== 1 ? 's' : ''}`
-                        : "Reassign Reviewer"}
+                      <span>
+                        {actionType === "ASSIGN_REVIEWER"
+                          ? `Assign ${selectedReviewers.length} Reviewer${selectedReviewers.length !== 1 ? 's' : ''}`
+                          : "Reassign Reviewer"}
+                      </span>
                     </div>
                   )}
                 </AlertDialogAction>

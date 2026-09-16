@@ -152,7 +152,7 @@ export async function GET() {
       const stats = computeStats(reviews);
 
       return {
-        id: detail.id,
+        id: registeredUser ? registeredUser.id : detail.id,
         email: detail.email,
         userType: detail.userType,
         isAuthenticated: !!registeredUser,

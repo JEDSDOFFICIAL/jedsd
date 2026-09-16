@@ -25,6 +25,7 @@ import {
   Filter,
   RefreshCw,
   Expand,
+  Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -90,6 +91,7 @@ export default function AdminWorkflowManagement() {
   const [selectedReviewer, setSelectedReviewer] = React.useState<string>("");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
   const [actionType, setActionType] = React.useState<"ASSIGN_REVIEWER" | "ASSIGN_EDITOR" | "REASSIGN_EDITOR" | "PUBLISH" | null>(null);
+  const [isAssigning, setIsAssigning] = React.useState(false);
 
   React.useEffect(() => {
     fetchAllPapers();
@@ -141,6 +143,7 @@ export default function AdminWorkflowManagement() {
     }
 
     try {
+      setIsAssigning(true);
       await reviewerAllocation(selectedPaper.id, [selectedReviewer], () => {
         toast.success("Reviewer assigned successfully");
         setSelectedPaper(null);
@@ -150,7 +153,8 @@ export default function AdminWorkflowManagement() {
       });
     } catch (error) {
       console.error("Error assigning reviewer:", error);
-      toast.error("Failed to assign reviewer");
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -556,11 +560,11 @@ export default function AdminWorkflowManagement() {
               <div className="flex justify-end gap-2 pt-4">
                 <Button 
                   variant="outline" 
+                  disabled={isAssigning}
                   onClick={() => {
                     setActionType(null);
                     setSelectedPaper(null);
                     setSelectedReviewer("");
-                
                   }}
                 >
                   Cancel
@@ -571,10 +575,17 @@ export default function AdminWorkflowManagement() {
                     else if (actionType === "PUBLISH") handlePublishPaper();
                   }}
                   disabled={
-                    (actionType === "ASSIGN_REVIEWER" && !selectedReviewer)
+                    (actionType === "ASSIGN_REVIEWER" && (!selectedReviewer || isAssigning))
                   }
                 >
-                  {actionType === "ASSIGN_REVIEWER" && "Assign Reviewer"}
+                  {actionType === "ASSIGN_REVIEWER" && (
+                    isAssigning ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Assigning...
+                      </span>
+                    ) : "Assign Reviewer"
+                  )}
                   {actionType === "ASSIGN_EDITOR" && "Assign Editor"}
                   {actionType === "REASSIGN_EDITOR" && "Reassign Editor"}
                   {actionType === "PUBLISH" && "Publish Paper"}
