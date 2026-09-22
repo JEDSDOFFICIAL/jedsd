@@ -105,7 +105,7 @@ export default function EditorRevisionDetailPage() {
         fetchReviewRounds(paperId),
         fetchReviewer(),
       ]);
-
+    
       if (paperRes.status === "fulfilled") setPaper(paperRes.value.data.paper);
       if (revisionsRes.status === "fulfilled" && revisionsRes.value?.revisions) {
         const revs: ManuscriptRevision[] = revisionsRes.value.revisions;
@@ -116,11 +116,19 @@ export default function EditorRevisionDetailPage() {
         }
       }
       if (roundsRes.status === "fulfilled" && roundsRes.value?.rounds) setRounds(roundsRes.value.rounds);
-      if (reviewerRes.status === "fulfilled" && reviewerRes.value?.reviewers) setReviewers(reviewerRes.value.reviewers);
+     if (reviewerRes.status === "fulfilled") {
+  const data = reviewerRes.value;
+  if (Array.isArray(data)) {
+    setReviewers(data);
+  } else if (data?.reviewers) {
+    setReviewers(data.reviewers);
+  }
+}
     } catch {
       toast.error("Failed to load revision details.");
     } finally {
       setLoading(false);
+    
     }
   };
 
@@ -749,6 +757,8 @@ export default function EditorRevisionDetailPage() {
                   <div className="space-y-1">
                     {reviewers.map((r: any) => (
                       <label key={r.id} className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-slate-50">
+                      
+                       
                         <input
                           type="checkbox"
                           checked={selectedReviewerIds.includes(r.id)}

@@ -125,7 +125,7 @@ export async function fetchPaperDetails(
 export async function fetchReviewer(){
   try {
     const res = await axios.get(`/api/user/reviewer`);
-    console.log("Fetched reviewers:", res.data);
+    console.log("Fetched reviewers data:", res.data);
     return res.data; 
   } catch (error) {
     console.error("Failed to fetch reviewers:", error);
