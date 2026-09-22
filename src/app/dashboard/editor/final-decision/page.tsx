@@ -588,7 +588,19 @@ export default function FinalDecisionPage() {
         }
       }
 
-      // Submit the decision
+      // If decision is MINOR_REVISION or MAJOR_REVISION → use the dedicated request-revision API
+      if (decisionForm.decision === "MINOR_REVISION" || decisionForm.decision === "MAJOR_REVISION") {
+        await axios.post(`/api/paper/${selectedPaper.id}/request-revision`, {
+          comments: decisionForm.comments,
+          decision: decisionForm.decision,
+        });
+        toast.success("Revision requested. Author has been notified.", { id: toastId });
+        handleCloseDecisionDialog(false);
+        fetchFinalPapers();
+        return;
+      }
+
+      // Otherwise update paper metadata (ACCEPT handled separately via acceptPaper)
       toast.loading("Saving decision...", { id: toastId });
       await updatePaper(selectedPaper.paperId, {
         editorDecision: decisionForm.decision,

@@ -43,6 +43,7 @@ export const DashboardItems = [
       { title: "New Papers", url: "/dashboard/editor/new-papers", icon: FileText, access: ["EDITOR"] },
       { title: "Allocated Papers", url: "/dashboard/editor/allocated-papers", icon: CheckCheck, access: ["EDITOR"] },
       { title: "Final Decision", url: "/dashboard/editor/final-decision", icon: Award, access: ["EDITOR"] },
+      { title: "Revisions Inbox", url: "/dashboard/editor/revisions", icon: FileSignature, access: ["EDITOR"] },
       { title: "Reviewer Management", url: "/dashboard/editor/reviewers", icon: Users, access: ["EDITOR"] },
       { title: "Read Reviews", url: "/dashboard/editor/reviews", icon: FileSignature, access: ["EDITOR"] },
      
@@ -254,4 +255,104 @@ export interface AllocatedPaper extends ResearchPaper {
   reviewDeadline?: string;
   allocationDate?: string;
   reviewStatus?: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED";
+}
+
+// ─── New workflow types ───────────────────────────────────────────────────────
+
+export type ManuscriptFileType =
+  | "MANUSCRIPT_PDF"
+  | "MANUSCRIPT_DOCX"
+  | "COVER_LETTER"
+  | "SOURCE_ZIP"
+  | "RESPONSE_TO_REVIEWERS"
+  | "EDITOR_DECISION_FILE"
+  | "FINAL_PUBLICATION_FILE"
+  | "OTHER";
+
+export type FileAccessLevel =
+  | "PUBLIC"
+  | "AUTHOR_EDITOR"
+  | "EDITOR_ONLY"
+  | "REVIEWER_ASSIGNED";
+
+export type AuditAction =
+  | "AUTHOR_SUBMITTED_MANUSCRIPT"
+  | "EDITOR_ASSIGNED_REVIEWER"
+  | "REVIEWER_ACCEPTED_ASSIGNMENT"
+  | "REVIEWER_REJECTED_ASSIGNMENT"
+  | "REVIEWER_SUBMITTED_REVIEW"
+  | "EDITOR_VIEWED_REVIEW"
+  | "EDITOR_REQUESTED_REVISION"
+  | "AUTHOR_SUBMITTED_REVISION"
+  | "EDITOR_VIEWED_REVISION"
+  | "EDITOR_SENT_REVISION_FOR_REVIEW"
+  | "EDITOR_ACCEPTED_REVISION"
+  | "EDITOR_REQUESTED_FURTHER_REVISION"
+  | "EDITOR_REJECTED_PAPER"
+  | "EDITOR_ACCEPTED_PAPER"
+  | "EDITOR_REQUESTED_FINAL_FILES"
+  | "AUTHOR_SUBMITTED_FINAL_FILES"
+  | "AUTHORIZED_USER_ASSIGNED_DOI"
+  | "AUTHORIZED_USER_UPLOADED_FINAL_FILES"
+  | "PAPER_PUBLISHED"
+  | "REVIEWER_ASSIGNMENT_CREATED"
+  | "REVIEW_ROUND_CREATED";
+
+export interface ManuscriptFile {
+  id: string;
+  paperId: string;
+  revisionId: string | null;
+  fileType: ManuscriptFileType;
+  filePath: string;
+  fileName: string;
+  fileSize: number | null;
+  uploadedAt: Date;
+  uploadedById: string;
+  accessLevel: FileAccessLevel;
+  uploadedBy?: { id: string; name: string; email: string };
+}
+
+export interface ManuscriptRevision {
+  id: string;
+  paperId: string;
+  revisionNumber: number;
+  submittedById: string;
+  submittedAt: Date;
+  responseToReviewers: string | null;
+  revisionNotes: string | null;
+  visibleToReviewers: boolean;
+  triggeredByRoundId: string | null;
+  submittedBy?: { id: string; name: string; email: string };
+  triggeredByRound?: { id: string; roundNumber: number } | null;
+  files: ManuscriptFile[];
+}
+
+export interface ReviewRound {
+  id: string;
+  paperId: string;
+  roundNumber: number;
+  createdAt: Date;
+  createdById: string;
+  createdBy?: { id: string; name: string; email: string };
+  reviews?: PaperReviewWithReviewer[];
+  revisions?: ManuscriptRevision[];
+}
+
+export interface ManuscriptAuditLogEntry {
+  id: string;
+  paperId: string;
+  userId: string;
+  action: AuditAction;
+  metadata: Record<string, any> | null;
+  createdAt: Date;
+  user?: { id: string; name: string; email: string; userType: string };
+}
+
+/** Extended paper type with all new relations */
+export interface PaperWithFullWorkflow extends PaperWithRelations {
+  revisions: ManuscriptRevision[];
+  reviewRounds: ReviewRound[];
+  files: ManuscriptFile[];
+  auditLogs?: ManuscriptAuditLogEntry[];
+  canPublish?: boolean; // from User.canPublish on the session user
 }

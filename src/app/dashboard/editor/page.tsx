@@ -152,6 +152,15 @@ export default function EditorPage() {
       count: stats.readyForDecision,
     },
     {
+      title: "Revisions Inbox",
+      description: "Review author-submitted revisions — accept, reject, or send for another review round",
+      icon: FileSignature,
+      href: "/dashboard/editor/revisions",
+      color: "bg-rose-50 border-rose-200",
+      iconColor: "text-rose-600",
+      count: undefined,
+    },
+    {
       title: "Reviewer Management",
       description: "Manage and assign reviewers to papers",
       icon: Users,
@@ -207,6 +216,10 @@ export default function EditorPage() {
           papersInReview++;
           break;
         case "EDITOR_DECISION":
+          readyForDecision++;
+          break;
+        case "REVISION_REQUESTED":
+        case "REVISION_SUBMITTED":
           readyForDecision++;
           break;
         case "PUBLISH":

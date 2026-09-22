@@ -180,6 +180,20 @@ export async function POST(req: NextRequest) {
       reviewerName:review.reviewer.name
     })
 
+    // Audit log — reviewer submitted review
+    await prisma.manuscriptAuditLog.create({
+      data: {
+        paperId,
+        userId: reviewerId,
+        action: "REVIEWER_SUBMITTED_REVIEW",
+        metadata: {
+          reviewId: review.id,
+          reviewerStatus: reviewerStatus ?? null,
+          rating: rating ?? null,
+        },
+      },
+    }).catch(() => {});
+
     return NextResponse.json({
       success: true,
       message: "Review published successfully.",

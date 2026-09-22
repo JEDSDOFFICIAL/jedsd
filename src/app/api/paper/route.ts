@@ -22,6 +22,11 @@ const uploadPaperSchema = z.object({
     .string()
     .url("Invalid file path URL.")
     .min(1, "File path is required."),
+  sourceZipPath: z
+    .string()
+    .url("Invalid source zip path URL.")
+    .optional()
+    .nullable(),
   keywords: z
     .array(z.string().min(1, "Keyword cannot be empty."))
     .min(1, "At least one keyword is required."),
@@ -85,6 +90,7 @@ export async function POST(req: Request) {
       title,
       abstract,
       filePath,
+      sourceZipPath,
       keywords,
       coverLetterPath,
       authorId,
@@ -111,6 +117,7 @@ export async function POST(req: Request) {
         title,
         abstract,
         filePath,
+        correspondingFile: sourceZipPath,
         keywords,
         coverLetterPath,
         authorId,
@@ -157,8 +164,12 @@ export async function POST(req: Request) {
 // GET /api/research-papers - Fetch all research papers
 
 export async function GET(request: Request) {
- 
   try {
+    const session = await getServerSession(authOptions);
+    const userRole = session?.user?.variableUserType;
+    const userId = session?.user?.id;
+    const isAdminOrEditor = userRole === "ADMIN" || userRole === "EDITOR";
+
     const { searchParams } = new URL(request.url);
 
     // Build the dynamic 'where' clause
@@ -202,16 +213,19 @@ export async function GET(request: Request) {
       if (statuses.length === 1) {
         where.status = statuses[0];
       } else {
-        // Multiple statuses - use OR condition
         where.status = {
           in: statuses
         };
       }
+    } else if (!isAdminOrEditor && !authorId && !reviewerId) {
+      // If public request, only allow public statuses
+      where.status = {
+        in: ["ACCEPTED", "PRE_PUBLICATION", "FINAL_FILES_REQUESTED", "FINAL_FILES_RECEIVED", "DOI_ASSIGNED", "PUBLISHED"]
+      };
     }
 
     const reviewerStatus = searchParams.get("reviewerStatus");
     if (reviewerStatus && reviewerId) {
-      // Filter papers where the specific reviewer has this status
       where.reviews = {
         some: {
           reviewerId: reviewerId,
@@ -219,7 +233,6 @@ export async function GET(request: Request) {
         },
       };
     } else if (reviewerStatus) {
-      // Filter papers where any reviewer has this status
       where.reviews = {
         some: {
           reviewerStatus: reviewerStatus,
@@ -227,19 +240,18 @@ export async function GET(request: Request) {
       };
     }
 
-    // Handle Pagination
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
-    console.log("Where clause for fetching papers:", where);
+    
     const [papers, totalPapers] = await prisma.$transaction([
       prisma.researchPaper.findMany({
         where,
         include: {
           author: {
-            select: { id: true, name: true, email: true, userType: true },
+            select: { id: true, name: true, email: true, userType: true, affiliation: true },
           },
-          reviews: {
+          reviews: isAdminOrEditor || reviewerId || authorId ? {
             select: {
               id: true,
               reviewerId: true,
@@ -259,7 +271,7 @@ export async function GET(request: Request) {
               createdAt: true,
               updatedAt: true,
             },
-          },
+          } : false,
         },
         orderBy: {
           submissionDate: "desc",
@@ -270,10 +282,48 @@ export async function GET(request: Request) {
       prisma.researchPaper.count({ where }),
     ]);
 
+    // Strip private info for public requests or if user is not author/editor
+    const sanitizedPapers = papers.map(paper => {
+      const isOwner = userId === paper.authorId;
+      const isReviewerForPaper = paper.reviews?.some(r => r.reviewerId === userId);
+      const canViewPrivate = isAdminOrEditor || isOwner || isReviewerForPaper;
+
+      if (!canViewPrivate) {
+        // Strip private fields
+        const { coverLetterPath, correspondingFile, editorComments, editorDecisionFile, editorDecision, reviews, ...publicPaper } = paper;
+        return publicPaper;
+      }
+      
+      // If author, remove private reviewText intended for editor only
+      if (isOwner && !isAdminOrEditor) {
+        return {
+          ...paper,
+          reviews: paper.reviews?.map(r => {
+            const { reviewText, ...publicReview } = r;
+            return publicReview;
+          })
+        };
+      }
+      
+      // If reviewer, only see their own review and not cover letter unless granted (handled by files API normally)
+      if (isReviewerForPaper && !isAdminOrEditor && !isOwner) {
+         return {
+           ...paper,
+           coverLetterPath: null,
+           correspondingFile: null,
+           editorDecisionFile: null,
+           editorComments: null,
+           reviews: paper.reviews?.filter(r => r.reviewerId === userId)
+         };
+      }
+
+      return paper;
+    });
+
     return NextResponse.json({
       success: true,
       message: "Research papers fetched successfully.",
-      papers,
+      papers: sanitizedPapers,
       total: totalPapers,
       page,
       totalPages: Math.ceil(totalPapers / limit),

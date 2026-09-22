@@ -311,3 +311,184 @@ export async function submitReview(
     throw error;
   }
 }
+
+// ─── Revision workflow ────────────────────────────────────────────────────────
+
+export interface SubmitRevisionParams {
+  revisedManuscriptUrl: string;
+  revisedManuscriptName: string;
+  revisedManuscriptSize?: number;
+  revisedManuscriptType?: "MANUSCRIPT_PDF" | "MANUSCRIPT_DOCX";
+  coverLetterUrl?: string | null;
+  coverLetterName?: string | null;
+  coverLetterSize?: number | null;
+  sourceZipUrl?: string | null;
+  sourceZipName?: string | null;
+  sourceZipSize?: number | null;
+  responseToReviewers?: string | null;
+  revisionNotes?: string | null;
+}
+
+/**
+ * Author submits a revised manuscript.
+ * paperId = UUID internal id.
+ */
+export async function submitRevision(
+  paperId: string,
+  data: SubmitRevisionParams,
+  onSuccess?: () => void
+): Promise<any> {
+  try {
+    const res = await axios.post(`/api/paper/${paperId}/submit-revision`, data);
+    toast.success("Revision submitted successfully!");
+    onSuccess?.();
+    return res.data;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || "Failed to submit revision.";
+    toast.error(message);
+    throw new Error(message);
+  }
+}
+
+/**
+ * Editor requests a revision from the author.
+ */
+export async function requestRevision(
+  paperId: string,
+  comments: string,
+  decision: "MINOR_REVISION" | "MAJOR_REVISION" = "MINOR_REVISION",
+  onSuccess?: () => void
+): Promise<any> {
+  try {
+    const res = await axios.post(`/api/paper/${paperId}/request-revision`, { comments, decision });
+    toast.success("Revision requested. Author has been notified.");
+    onSuccess?.();
+    return res.data;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || "Failed to request revision.";
+    toast.error(message);
+    throw new Error(message);
+  }
+}
+
+/**
+ * Fetch all revisions for a paper (with files, respecting access level).
+ */
+export async function fetchRevisions(paperId: string): Promise<any> {
+  try {
+    const res = await axios.get(`/api/paper/${paperId}/revisions`);
+    return res.data;
+  } catch (error) {
+    console.error("fetchRevisions error:", error);
+    toast.error("Failed to fetch revisions.");
+    return null;
+  }
+}
+
+/**
+ * Editor accepts the revision (status → ACCEPTED).
+ */
+export async function acceptRevision(
+  paperId: string,
+  comments?: string,
+  onSuccess?: () => void
+): Promise<any> {
+  try {
+    const res = await axios.post(`/api/paper/${paperId}/accept-revision`, { comments });
+    toast.success("Revision accepted. Paper status set to ACCEPTED.");
+    onSuccess?.();
+    return res.data;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || "Failed to accept revision.";
+    toast.error(message);
+    throw new Error(message);
+  }
+}
+
+/**
+ * Editor starts a new review round for the current revision.
+ */
+export async function startReviewRound(
+  paperId: string,
+  reviewerIds: string[],
+  options?: {
+    revisionId?: string;
+    shareManuscript?: boolean;
+    shareCoverLetter?: boolean;
+    shareSourceZip?: boolean;
+  },
+  onSuccess?: () => void
+): Promise<any> {
+  try {
+    const res = await axios.post(`/api/paper/${paperId}/review-rounds`, {
+      reviewerIds,
+      ...options,
+    });
+    toast.success(`Review round started with ${reviewerIds.length} reviewer(s).`);
+    onSuccess?.();
+    return res.data;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || "Failed to start review round.";
+    toast.error(message);
+    throw new Error(message);
+  }
+}
+
+/**
+ * Fetch all review rounds for a paper.
+ */
+export async function fetchReviewRounds(paperId: string): Promise<any> {
+  try {
+    const res = await axios.get(`/api/paper/${paperId}/review-rounds`);
+    return res.data;
+  } catch (error) {
+    console.error("fetchReviewRounds error:", error);
+    toast.error("Failed to fetch review rounds.");
+    return null;
+  }
+}
+
+/**
+ * Fetch the audit log for a paper (Editor/Admin only).
+ */
+export async function fetchAuditLog(paperId: string): Promise<any> {
+  try {
+    const res = await axios.get(`/api/paper/${paperId}/audit-log`);
+    return res.data;
+  } catch (error) {
+    console.error("fetchAuditLog error:", error);
+    return null;
+  }
+}
+
+/**
+ * Assign a DOI (Admin / Publication Editor only).
+ */
+export async function assignDoi(
+  paperId: string,
+  doi: string,
+  onSuccess?: () => void
+): Promise<any> {
+  try {
+    const res = await axios.patch(`/api/paper/${paperId}/assign-doi`, { doi });
+    toast.success("DOI assigned successfully!");
+    onSuccess?.();
+    return res.data;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || "Failed to assign DOI.";
+    toast.error(message);
+    throw new Error(message);
+  }
+}
+
+/**
+ * Request further revision after reviewing a submitted revision.
+ */
+export async function requestFurtherRevision(
+  paperId: string,
+  comments: string,
+  decision: "MINOR_REVISION" | "MAJOR_REVISION" = "MINOR_REVISION",
+  onSuccess?: () => void
+): Promise<any> {
+  return requestRevision(paperId, comments, decision, onSuccess);
+}

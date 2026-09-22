@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {  PaperStatus } from "@prisma/client";
+import { AuditAction, EditorDecision, PaperStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
@@ -68,16 +68,27 @@ export async function PATCH(
     const { rejectionReason } = rejectValidationResult.data;
 
     // 4. Find the paper and update its status to REJECTED
-    const updatedPaper = await prisma.researchPaper.update({
-      where: { id: validatedPaperId },
-      data: {
-        status: PaperStatus.REJECTED,
-      },
-      include: {
-        author: {
-          select: { id: true, name: true, email: true },
+    const updatedPaper = await prisma.$transaction(async (tx) => {
+      const updated = await tx.researchPaper.update({
+        where: { id: validatedPaperId },
+        data: {
+          status: PaperStatus.REJECTED,
+          editorDecision: EditorDecision.REJECT,
+          ...(rejectionReason ? { editorComments: rejectionReason } : {}),
         },
-      },
+        include: { author: { select: { id: true, name: true, email: true } } },
+      });
+
+      await tx.manuscriptAuditLog.create({
+        data: {
+          paperId: validatedPaperId,
+          userId: session.user.id,
+          action: AuditAction.EDITOR_REJECTED_PAPER,
+          metadata: { rejectionReason: rejectionReason ?? null },
+        },
+      });
+
+      return updated;
     });
 
     

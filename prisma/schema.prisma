@@ -21,12 +21,19 @@ model User {
   isVerified             Boolean         @default(false)
   userType               UserType        @default(AUTHOR)
   variableUserType       UserType        @default(AUTHOR)       // Track original type for role switching
+  canPublish             Boolean         @default(false)        // Explicit publication permission — separate from EDITOR role
+  canAssignDoi           Boolean         @default(false)        // Explicit DOI permission
+  canUploadPublicationFiles Boolean      @default(false)        // Explicit publication files permission
   verificationCode       String?
   verificationCodeExpiry DateTime?
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
   reviews                PaperReview[]   @relation("UserToReviews")
   authoredPapers         ResearchPaper[] @relation("PaperAuthor")
+  reviewRoundsCreated    ReviewRound[]   @relation("ReviewRoundCreator")
+  revisionsSubmitted     ManuscriptRevision[] @relation("RevisionSubmitter")
+  manuscriptFiles        ManuscriptFile[]  @relation("FileUploader")
+  auditLogs              ManuscriptAuditLog[] @relation("AuditUser")
 
   @@index([email])
   @@index([resetToken])
@@ -37,6 +44,7 @@ model PaperReview {
   id                  String          @id @default(uuid())
   paperId             String
   reviewerId          String
+  reviewRoundId       String?                                   // links to ReviewRound; null = round 1 (legacy)
   reviewText          String          // Private comments for the editor only
   reviewTextForAuthor String?         // Comments to be shared with the author
   correspondingFile   String?
@@ -46,6 +54,7 @@ model PaperReview {
   reviewerStatus      ReviewerStatus?
   paper               ResearchPaper   @relation("PaperToReviews", fields: [paperId], references: [id], onDelete: Cascade)
   reviewer            User            @relation("UserToReviews", fields: [reviewerId], references: [id])
+  reviewRound         ReviewRound?    @relation("RoundToReviews", fields: [reviewRoundId], references: [id])
 }
 
 model ResearchPaper {
@@ -71,6 +80,10 @@ model ResearchPaper {
   pointOfContact  Json
   reviews         PaperReview[] @relation("PaperToReviews")
   author          User?         @relation("PaperAuthor", fields: [authorId], references: [id])
+  revisions       ManuscriptRevision[] @relation("PaperToRevisions")
+  reviewRounds    ReviewRound[]        @relation("PaperToRounds")
+  files           ManuscriptFile[]     @relation("PaperToFiles")
+  auditLogs       ManuscriptAuditLog[] @relation("PaperAudit")
   @@index([paperId])
 }
 
@@ -80,14 +93,101 @@ model UserDetails {
   userType UserType
 }
 
+// ─── Review Round ─────────────────────────────────────────────────────────────
+// Tracks each distinct round of peer review for a paper.
+model ReviewRound {
+  id          String        @id @default(uuid())
+  paperId     String
+  roundNumber Int                                  // 1, 2, 3 …
+  createdAt   DateTime      @default(now())
+  createdById String
+  paper       ResearchPaper @relation("PaperToRounds", fields: [paperId], references: [id], onDelete: Cascade)
+  createdBy   User          @relation("ReviewRoundCreator", fields: [createdById], references: [id])
+  reviews     PaperReview[] @relation("RoundToReviews")
+  revisions   ManuscriptRevision[] @relation("RoundToRevisions")
+
+  @@unique([paperId, roundNumber])
+  @@index([paperId])
+}
+
+// ─── Manuscript Revision ──────────────────────────────────────────────────────
+// Each time an author submits a revised manuscript it is a new revision record.
+// All revised files initially go ONLY to the editor (visibleToReviewers = false).
+model ManuscriptRevision {
+  id                  String        @id @default(uuid())
+  paperId             String
+  revisionNumber      Int                              // 0 = original, 1 = first revision …
+  submittedById       String
+  submittedAt         DateTime      @default(now())
+  // Author-supplied text
+  responseToReviewers String?       // Response document text or URL
+  revisionNotes       String?       // General notes from author
+  // Access control — editor manually sets to true when sending for review
+  visibleToReviewers  Boolean       @default(false)
+  // Link to the review round that triggered this revision (null for initial submission)
+  triggeredByRoundId  String?
+  // Relations
+  paper               ResearchPaper @relation("PaperToRevisions", fields: [paperId], references: [id], onDelete: Cascade)
+  submittedBy         User          @relation("RevisionSubmitter", fields: [submittedById], references: [id])
+  triggeredByRound    ReviewRound?  @relation("RoundToRevisions", fields: [triggeredByRoundId], references: [id])
+  files               ManuscriptFile[] @relation("RevisionToFiles")
+
+  @@unique([paperId, revisionNumber])
+  @@index([paperId])
+}
+
+// ─── Manuscript File ──────────────────────────────────────────────────────────
+// Immutable file record — never overwritten, new revision = new file records.
+model ManuscriptFile {
+  id           String          @id @default(uuid())
+  paperId      String
+  revisionId   String?                              // null = original submission files
+  fileType     ManuscriptFileType
+  filePath     String                               // Firebase Storage URL
+  fileName     String
+  fileSize     Int?                                 // bytes
+  uploadedAt   DateTime        @default(now())
+  uploadedById String
+  accessLevel  FileAccessLevel @default(EDITOR_ONLY)
+  paper        ResearchPaper   @relation("PaperToFiles", fields: [paperId], references: [id], onDelete: Cascade)
+  revision     ManuscriptRevision? @relation("RevisionToFiles", fields: [revisionId], references: [id])
+  uploadedBy   User            @relation("FileUploader", fields: [uploadedById], references: [id])
+
+  @@index([paperId])
+  @@index([revisionId])
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+// Immutable audit trail — append-only, never updated or deleted.
+model ManuscriptAuditLog {
+  id         String      @id @default(uuid())
+  paperId    String
+  userId     String
+  action     AuditAction
+  metadata   Json?                                  // extra context (roundNumber, revisionNumber, …)
+  createdAt  DateTime    @default(now())
+  paper      ResearchPaper @relation("PaperAudit", fields: [paperId], references: [id], onDelete: Cascade)
+  user       User          @relation("AuditUser", fields: [userId], references: [id])
+
+  @@index([paperId])
+  @@index([userId])
+}
+
 enum PaperStatus {
   UPLOAD
   REVIEWER_ALLOCATION
   ON_REVIEW
   EDITOR_DECISION
+  REVISION_REQUESTED          // Editor has requested revision from author
+  REVISION_SUBMITTED          // Author has submitted revision — awaiting editor review
   PUBLISH
   ACCEPTED
   REJECTED
+  PRE_PUBLICATION
+  FINAL_FILES_REQUESTED
+  FINAL_FILES_RECEIVED
+  DOI_ASSIGNED
+  PUBLISHED
 }
 
 enum ReviewerStatus {
@@ -112,4 +212,46 @@ enum EditorDecision {
   MINOR_REVISION
   MAJOR_REVISION
   REJECT
+}
+
+enum ManuscriptFileType {
+  MANUSCRIPT_PDF
+  MANUSCRIPT_DOCX
+  COVER_LETTER
+  SOURCE_ZIP
+  RESPONSE_TO_REVIEWERS
+  EDITOR_DECISION_FILE
+  FINAL_PUBLICATION_FILE
+  OTHER
+}
+
+enum FileAccessLevel {
+  PUBLIC             // Visible to anyone (published files)
+  AUTHOR_EDITOR      // Author + Editor + Admin only (revisions by default)
+  EDITOR_ONLY        // Editor + Admin only (cover letters, source ZIPs by default)
+  REVIEWER_ASSIGNED  // Editor + assigned reviewer for the specific round
+}
+
+enum AuditAction {
+  AUTHOR_SUBMITTED_MANUSCRIPT
+  EDITOR_ASSIGNED_REVIEWER
+  REVIEWER_ACCEPTED_ASSIGNMENT
+  REVIEWER_REJECTED_ASSIGNMENT
+  REVIEWER_SUBMITTED_REVIEW
+  EDITOR_VIEWED_REVIEW
+  EDITOR_REQUESTED_REVISION
+  AUTHOR_SUBMITTED_REVISION
+  EDITOR_VIEWED_REVISION
+  EDITOR_SENT_REVISION_FOR_REVIEW
+  EDITOR_ACCEPTED_REVISION
+  EDITOR_REQUESTED_FURTHER_REVISION
+  EDITOR_REJECTED_PAPER
+  EDITOR_ACCEPTED_PAPER
+  EDITOR_REQUESTED_FINAL_FILES
+  AUTHOR_SUBMITTED_FINAL_FILES
+  AUTHORIZED_USER_ASSIGNED_DOI
+  AUTHORIZED_USER_UPLOADED_FINAL_FILES
+  PAPER_PUBLISHED
+  REVIEWER_ASSIGNMENT_CREATED
+  REVIEW_ROUND_CREATED
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {  PaperStatus } from "@prisma/client";
+import { AuditAction, EditorDecision, PaperStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
@@ -67,24 +67,31 @@ export async function PATCH(
     const { editorNotes } = acceptValidationResult.data;
 
     // 4. Find the paper and update its status to ACCEPTED
-    const updatedPaper = await prisma.researchPaper.update({
-      where: { id: validatedPaperId },
-      data: {
-        status: PaperStatus.ACCEPTED,
-        acceptedDate: new Date(), // Set the acceptance date
-      },
-      include: {
-        author: {
-          select: { id: true, name: true, email: true },
+    const updatedPaper = await prisma.$transaction(async (tx) => {
+      const updated = await tx.researchPaper.update({
+        where: { id: validatedPaperId },
+        data: {
+          status: PaperStatus.ACCEPTED,
+          acceptedDate: new Date(),
+          editorDecision: EditorDecision.ACCEPT,
+          ...(editorNotes ? { editorComments: editorNotes } : {}),
         },
-        reviews: {
-          include: {
-            reviewer: {
-              select: { id: true, name: true, email: true },
-            },
-          },
+        include: {
+          author: { select: { id: true, name: true, email: true } },
+          reviews: { include: { reviewer: { select: { id: true, name: true, email: true } } } },
         },
-      },
+      });
+
+      await tx.manuscriptAuditLog.create({
+        data: {
+          paperId: validatedPaperId,
+          userId: session.user.id,
+          action: AuditAction.EDITOR_ACCEPTED_PAPER,
+          metadata: { editorNotes: editorNotes ?? null },
+        },
+      });
+
+      return updated;
     });
 
     

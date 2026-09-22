@@ -79,7 +79,8 @@ export default function ReviewerAssignmentDialog({
     if (open) {
       fetchAvailableReviewers(currentReviewers);
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    // fetchAvailableReviewers is defined inside the component and depends on `open` only intentionally
+  }, [open]);
 
   const fetchAvailableReviewers = async (assignedReviewers: PaperReviewWithReviewer[]) => {
     try {

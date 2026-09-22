@@ -24,6 +24,8 @@ import {
   Star,
   Upload,
   XCircle,
+  AlertTriangle,
+  Edit,
 } from "lucide-react";
 
 import {
@@ -50,6 +52,8 @@ interface AuthorStats {
   papersRejected: number;
   papersPublished: number;
   pendingAllocation: number;
+  revisionsRequested: number;
+  revisionsSubmitted: number;
   averageRating: number;
 }
 
@@ -72,6 +76,8 @@ export default function AuthorDashboard() {
     papersRejected: 0,
     papersPublished: 0,
     pendingAllocation: 0,
+    revisionsRequested: 0,
+    revisionsSubmitted: 0,
     averageRating: 0,
   });
 
@@ -85,6 +91,8 @@ export default function AuthorDashboard() {
     let papersRejected = 0;
     let papersPublished = 0;
     let pendingAllocation = 0;
+    let revisionsRequested = 0;
+    let revisionsSubmitted = 0;
 
     let totalRating = 0;
     let ratingsCount = 0;
@@ -111,6 +119,14 @@ export default function AuthorDashboard() {
         case "REVIEWER_ALLOCATION":
           pendingAllocation++;
           break;
+
+        case "REVISION_REQUESTED":
+          revisionsRequested++;
+          break;
+
+        case "REVISION_SUBMITTED":
+          revisionsSubmitted++;
+          break;
       }
 
       if (paper.rating) {
@@ -126,6 +142,8 @@ export default function AuthorDashboard() {
       papersRejected,
       papersPublished,
       pendingAllocation,
+      revisionsRequested,
+      revisionsSubmitted,
       averageRating:
         ratingsCount > 0 ? totalRating / ratingsCount : 0,
     };
@@ -329,6 +347,61 @@ export default function AuthorDashboard() {
         </section>
 
         {/* =========================================================
+            REVISION ACTION BANNER — shown when revision is required
+        ========================================================= */}
+
+        {stats.revisionsRequested > 0 && (
+          <section className="mb-6">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-amber-900">
+                      {stats.revisionsRequested === 1
+                        ? "Revision required for 1 manuscript"
+                        : `Revisions required for ${stats.revisionsRequested} manuscripts`}
+                    </p>
+                    <p className="mt-0.5 text-sm text-amber-700">
+                      The editor has reviewed your submission and requested changes. Please revise and resubmit.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  {papers
+                    .filter(p => (p.status as string) === "REVISION_REQUESTED")
+                    .slice(0, 3)
+                    .map(p => (
+                      <Link key={p.id} href={`/dashboard/author/submit-revision/${p.id}`}>
+                        <button className="flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors">
+                          <Edit className="h-4 w-4" />
+                          {p.paperId.split("-").slice(-2).join("-")}
+                        </button>
+                      </Link>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {stats.revisionsSubmitted > 0 && (
+          <section className="mb-4">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
+              <div className="flex items-center gap-3">
+                <Clock3 className="h-5 w-5 text-blue-600 shrink-0" />
+                <p className="text-sm text-blue-800">
+                  <strong>{stats.revisionsSubmitted} revision{stats.revisionsSubmitted > 1 ? "s" : ""}</strong>{" "}
+                  submitted and awaiting editorial review.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* =========================================================
             METRICS
         ========================================================= */}
 
@@ -401,9 +474,7 @@ export default function AuthorDashboard() {
                 total={stats.totalPapers}
                 percentage={
                   stats.totalPapers
-                    ? (stats.pendingAllocation /
-                        stats.totalPapers) *
-                      100
+                    ? (stats.pendingAllocation / stats.totalPapers) * 100
                     : 0
                 }
                 indicator="bg-slate-400"
@@ -415,12 +486,34 @@ export default function AuthorDashboard() {
                 total={stats.totalPapers}
                 percentage={
                   stats.totalPapers
-                    ? (stats.papersInReview /
-                        stats.totalPapers) *
-                      100
+                    ? (stats.papersInReview / stats.totalPapers) * 100
                     : 0
                 }
                 indicator="bg-blue-600"
+              />
+
+              <PipelineRow
+                label="Revision requested"
+                value={stats.revisionsRequested}
+                total={stats.totalPapers}
+                percentage={
+                  stats.totalPapers
+                    ? (stats.revisionsRequested / stats.totalPapers) * 100
+                    : 0
+                }
+                indicator="bg-amber-500"
+              />
+
+              <PipelineRow
+                label="Revision under review"
+                value={stats.revisionsSubmitted}
+                total={stats.totalPapers}
+                percentage={
+                  stats.totalPapers
+                    ? (stats.revisionsSubmitted / stats.totalPapers) * 100
+                    : 0
+                }
+                indicator="bg-indigo-500"
               />
 
               <PipelineRow
@@ -429,9 +522,7 @@ export default function AuthorDashboard() {
                 total={stats.totalPapers}
                 percentage={
                   stats.totalPapers
-                    ? (stats.papersAccepted /
-                        stats.totalPapers) *
-                      100
+                    ? (stats.papersAccepted / stats.totalPapers) * 100
                     : 0
                 }
                 indicator="bg-emerald-600"
@@ -443,9 +534,7 @@ export default function AuthorDashboard() {
                 total={stats.totalPapers}
                 percentage={
                   stats.totalPapers
-                    ? (stats.papersPublished /
-                        stats.totalPapers) *
-                      100
+                    ? (stats.papersPublished / stats.totalPapers) * 100
                     : 0
                 }
                 indicator="bg-slate-900"
@@ -457,9 +546,7 @@ export default function AuthorDashboard() {
                 total={stats.totalPapers}
                 percentage={
                   stats.totalPapers
-                    ? (stats.papersRejected /
-                        stats.totalPapers) *
-                      100
+                    ? (stats.papersRejected / stats.totalPapers) * 100
                     : 0
                 }
                 indicator="bg-red-500"
