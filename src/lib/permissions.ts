@@ -40,21 +40,20 @@ export async function canAcceptManuscript(user: SessionUser): Promise<boolean> {
 
 export async function canPublish(user: SessionUser): Promise<boolean> {
   if (user.variableUserType === UserType.ADMIN) return true;
-  if (user.variableUserType === UserType.EDITOR) return true;
+ 
   const dbUser = await getDbUser(user.id);
   return !!dbUser?.canPublish;
 }
 
 export async function canAssignDOI(user: SessionUser): Promise<boolean> {
   if (user.variableUserType === UserType.ADMIN) return true;
-  if (user.variableUserType === UserType.EDITOR) return true;
+ 
   const dbUser = await getDbUser(user.id);
   return !!dbUser?.canAssignDoi;
 }
 
 export async function canUploadPublicationFiles(user: SessionUser): Promise<boolean> {
   if (user.variableUserType === UserType.ADMIN) return true;
-  if (user.variableUserType === UserType.EDITOR) return true;
   const dbUser = await getDbUser(user.id);
   return !!dbUser?.canUploadPublicationFiles;
 }
