@@ -31,7 +31,7 @@ export async function GET( req: NextRequest,
     }
 
     const paper = await prisma.researchPaper.findUnique({
-      where: { id:paperId },
+      where: { paperId:paperId },
       include: {
         author: {
           select: { id:  true, name: true, email: true, userType: true },
