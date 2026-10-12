@@ -165,10 +165,7 @@ function HomePage() {
 
           {/* Quick Metrics / Highlights Grid */}
           <div className="flex items-start gap-4 pt-4 border-t border-slate-200/60 w-full max-w-2xl">
-            <div className="flex-1 flex flex-col gap-1">
-              <span className="text-xl sm:text-2xl font-bold text-slate-800 bg-clip-text">4.8</span>
-              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Impact Factor</span>
-            </div>
+           
             <div className="flex-1 flex flex-col gap-1 border-l border-slate-200/80 pl-4">
               <span className="text-xl sm:text-2xl font-bold text-slate-800">30d</span>
               <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg. Review Time</span>
@@ -279,10 +276,7 @@ function HomePage() {
               <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                 <Award className="size-4" />
               </div>
-              <div>
-                <div className="text-xs font-bold text-slate-800">Indexed</div>
-                <div className="text-[9px] text-slate-400 font-medium">Scopus / Web of Science</div>
-              </div>
+             
             </div>
 
             {/* Floating Badge 2 - Rapid decision */}

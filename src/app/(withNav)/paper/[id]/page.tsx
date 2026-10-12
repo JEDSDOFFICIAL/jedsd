@@ -150,7 +150,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         'citation_author': authorsNames,
         'citation_publication_date': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
         'citation_journal_title': 'JEDSD - Journal of Embedded and Digital System Design',
-        'citation_issn': '2940-3383', // Add your actual ISSN if available
         'citation_volume': new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
         'citation_issue': (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
         'citation_firstpage': '1',
@@ -175,7 +174,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         
         // Additional academic meta tags
         'prism.publicationName': 'Journal of Embedded and Digital System Design',
-        'prism.issn': '2940-3383',
         'prism.publicationDate': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
         'prism.volume': new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
         'prism.number': (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
@@ -288,16 +286,7 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
         url: `${baseUrl}/logo.png`, // Add your logo URL
       },
     },
-    isPartOf: {
-      '@type': ['PublicationIssue', 'PublicationVolume'],
-      issueNumber: (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
-      volumeNumber: new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
-      isPartOf: {
-        '@type': 'Periodical',
-        name: 'JEDSD - Journal of Embedded and Digital System Design',
-        issn: '2940-3383',
-      },
-    },
+    
     inLanguage: 'en',
     keywords: Array.isArray(paper.keywords) ? paper.keywords.join(', ') : paper.keywords,
     isAccessibleForFree: true,

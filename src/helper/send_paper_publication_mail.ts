@@ -48,8 +48,6 @@ export const sendPaperPublicationMail = async ({
 
             <p style="color: #334155;">Your article is now publicly accessible and indexed. We thank you for your contribution to the JEDSD journal.</p>
 
-            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-            <p style="color: #94a3b8; font-size: 12px;">JEDSD Editorial Management System. ISSN: 2940-3383</p>
           </div>
         </div>
       `,

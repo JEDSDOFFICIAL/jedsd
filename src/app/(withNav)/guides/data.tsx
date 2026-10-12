@@ -55,16 +55,19 @@ const members = [
     role: "Editorial Member",
     name: "Dr. Ardhendu Sarkar",
     position: "Director, Addauto Technology Pvt. Ltd.",
+    email: "ardhendu.iiest@gmail.com"
   },
   {
     role: "Editorial Member",
     name: "Dr. Avik K Das",
     position: "Assistant Professor, UEM Kolkata",
+    email:"avikdas005@gmail.com"
   },
   {
     role: "Editorial Member",
     name: "Dr. Priyajit Biswas",
     position: "Assistant Professor, NSEC, Kolkata",
+    email: "priyajit.biswas@yahoo.com"
   },
   {
     role: "Faculty Advisor",
@@ -128,7 +131,7 @@ export const data: GuideData[] = [
               { icon: BookOpen, value: '2024', label: 'Established' },
               { icon: Globe, value: 'Open Access', label: 'Publication Model' },
               { icon: Shield, value: 'Double-Blind', label: 'Peer Review' },
-              { icon: Award, value: 'DOI + ISSN', label: 'Every Article' },
+              { icon: Award, value: 'DOI ', label: 'Every Article' },
             ].map(({ icon: Icon, value, label }) => (
               <div key={label} className="flex flex-col items-center justify-center py-6 px-4 text-center">
                 <Icon className="w-5 h-5 text-blue-600 mb-2" />
@@ -201,7 +204,7 @@ export const data: GuideData[] = [
                 { icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-100', title: 'Innovation Focus', items: ['Emerging design techniques', 'Novel hardware platforms', 'Innovative system architectures', 'Advanced optimization methods'] },
                 { icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', title: 'Quality Assurance', items: ['Expert reviewer network', 'Ethical publication standards', 'Open access model', 'Global research impact'] },
                 { icon: Globe, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', title: 'Global Reach', items: ['Worldwide author community', 'International editorial board', 'Indexed and discoverable', 'Free-to-access articles'] },
-                { icon: Award, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', title: 'Credibility', items: ['DOI assigned per article', 'ISSN registered journal', 'Double-blind review', 'Transparent process'] },
+                { icon: Award, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', title: 'Credibility', items: ['DOI assigned per article', 'Double-blind review', 'Transparent process'] },
               ].map(({ icon: Icon, color, bg, border, title, items }) => (
                 <div key={title} className={`${bg} ${border} border rounded-xl p-5`}>
                   <div className="flex items-center gap-3 mb-4">
@@ -302,7 +305,7 @@ export const data: GuideData[] = [
                       <div className="flex justify-center mb-2">
                         <Globe className="w-6 h-6 text-blue-600" />
                       </div>
-                      <div className="text-lg md:text-xl font-bold text-gray-900">SCOPUS</div>
+                  
                       <div className="text-xs text-gray-600">Indexing Goal</div>
                     </div>
                   </div>
@@ -360,7 +363,7 @@ export const data: GuideData[] = [
                     <div className="flex justify-center mb-2">
                       <Star className="w-6 h-6 text-green-600" />
                     </div>
-                    <div className="text-lg md:text-xl font-bold text-gray-900">ISSN</div>
+                   
                     <div className="text-xs text-gray-600">Serial Number</div>
                   </div>
                 </div>
@@ -1628,10 +1631,7 @@ export const data: GuideData[] = [
                         Current Status
                       </h4>
                       <ul className="space-y-1 text-sm text-gray-700">
-                        <li className="flex items-start">
-                          <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
-                          Applying for ISSN number
-                        </li>
+                       
                         <li className="flex items-start">
                           <CheckCircle className="w-3 h-3 mr-2 text-green-600 mt-1 flex-shrink-0" />
                           Planning for index systems
@@ -1743,14 +1743,7 @@ export const data: GuideData[] = [
                   <p className="text-2xl font-bold text-blue-600">Targeted Growth</p>
                   <p className="text-xs text-gray-600">Quality over quantity approach</p>
                 </div>
-                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Star className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-900">Impact Factor</h4>
-                  <p className="text-2xl font-bold text-purple-600">Building</p>
-                  <p className="text-xs text-gray-600">Through quality citations</p>
-                </div>
+               
                 <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Globe className="w-6 h-6 text-green-600" />
