@@ -56,9 +56,7 @@ export const metadata: Metadata = {
     site: '@JEDSD',
   },
   verification: {
-    google: 'P2Y8X-_uCxmaPSyTZKfeZsv6tULWuEao05ezrbrwsGk', // Replace with actual verification code
-    // yandex: 'your-yandex-verification-code', // If needed
-    // bing: 'your-bing-verification-code', // If needed
+    google: 'P2Y8X-_uCxmaPSyTZKfeZsv6tULWuEao05ezrbrwsGk',
   },
   alternates: {
     canonical: '/',

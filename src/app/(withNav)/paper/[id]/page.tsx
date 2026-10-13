@@ -76,6 +76,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const data = await response.json();
     const paper = data.paper;
 
+    // Check if paper is published - index only published papers
+    const isPublished = paper.status === 'PUBLISH' || paper.status === 'PUBLISHED';
+
     const authors = paper.contributors 
       ? (typeof paper.contributors === 'string' ? JSON.parse(paper.contributors) : paper.contributors)
       : [];
@@ -96,6 +99,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         : [];
 
     const canonicalUrl = `${baseUrl}/paper/${id}`;
+    const paperId = paper.paperId || id;
+    const publicationDate = paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0];
+    const year = new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString();
+    const month = (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString().padStart(2, '0');
 
     return {
       title: `${paper.title} | ${firstAuthor} | JEDSD`,
@@ -116,10 +123,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         canonical: canonicalUrl,
       },
       robots: {
-        index: paper.status === 'PUBLISH',
+        index: isPublished,
         follow: true,
         googleBot: {
-          index: paper.status === 'PUBLISH',
+          index: isPublished,
           follow: true,
           'max-image-preview': 'large',
           'max-snippet': -1,
@@ -145,40 +152,61 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         site: '@JEDSD',
       },
       other: {
-        // Google Scholar meta tags
+        // === GOOGLE SCHOLAR META TAGS (CRITICAL FOR INDEXING) ===
         'citation_title': paper.title,
-        'citation_author': authorsNames,
-        'citation_publication_date': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
+        'citation_author': authorsNames || firstAuthor,
+        'citation_publication_date': publicationDate,
         'citation_journal_title': 'JEDSD - Journal of Embedded and Digital System Design',
-        'citation_volume': new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
-        'citation_issue': (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
+        'citation_journal_abbreviation': 'JEDSD',
+        'citation_issn': '2582-0605', // Update with your actual ISSN if available
+        'citation_volume': year,
+        'citation_issue': month,
         'citation_firstpage': '1',
-        'citation_pdf_url': paper.filePath ? `${baseUrl}${paper.filePath}` : '',
+        'citation_lastpage': '100', // Update based on page count
+        'citation_pdf_url': paper.filePath ? (paper.filePath.startsWith('http') ? paper.filePath : `${baseUrl}${paper.filePath}`) : '',
         'citation_doi': paper.doi || '',
         'citation_abstract_html_url': canonicalUrl,
         'citation_language': 'en',
         'citation_keywords': keywords.join(', '),
+        'citation_online_date': publicationDate,
+        'citation_publisher': 'JEDSD',
         
-        // Highwire Press tags (alternative format for Google Scholar)
+        // === HIGHWIRE PRESS TAGS (ALTERNATIVE GOOGLE SCHOLAR FORMAT) ===
         'DC.title': paper.title,
-        'DC.creator': authorsNames,
+        'DC.creator': authorsNames || firstAuthor,
         'DC.subject': keywords.join('; '),
         'DC.description': description,
         'DC.publisher': 'JEDSD - Journal of Embedded and Digital System Design',
-        'DC.contributor': authorsNames,
-        'DC.date': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
-        'DC.type': 'Text',
+        'DC.contributor': authorsNames || firstAuthor,
+        'DC.date': publicationDate,
+        'DC.type': 'Text.Journal.Article',
         'DC.format': 'application/pdf',
         'DC.identifier': paper.doi || canonicalUrl,
+        'DC.identifier.URI': canonicalUrl,
         'DC.language': 'en',
+        'DC.issued': publicationDate,
         
-        // Additional academic meta tags
+        // === PRISM TAGS (PUBLISHING INDUSTRY STANDARD) ===
         'prism.publicationName': 'Journal of Embedded and Digital System Design',
-        'prism.publicationDate': paper.acceptedDate ? new Date(paper.acceptedDate).toISOString().split('T')[0] : new Date(paper.submissionDate).toISOString().split('T')[0],
-        'prism.volume': new Date(paper.acceptedDate || paper.submissionDate).getFullYear().toString(),
-        'prism.number': (new Date(paper.acceptedDate || paper.submissionDate).getMonth() + 1).toString(),
+        'prism.publicationDate': publicationDate,
+        'prism.volume': year,
+        'prism.number': month,
         'prism.section': 'Research Article',
         'prism.startingPage': '1',
+        'prism.endingPage': '100',
+        'prism.issn': '2582-0605',
+        'prism.doi': paper.doi || '',
+        'prism.url': canonicalUrl,
+        
+        // === CITATION META TAGS (BIBTEX & SCHOLARLY CITATION) ===
+        'citation_inbook_title': 'JEDSD - Journal of Embedded and Digital System Design',
+        'citation_reference': `${authorsNames}. "${paper.title}." JEDSD - Journal of Embedded and Digital System Design, vol. ${year}, no. ${month}, ${publicationDate}.`,
+        
+        // === ADDITIONAL OPEN GRAPH ARTICLE PROPERTIES ===
+        'article:published_time': paper.acceptedDate || paper.submissionDate,
+        'article:modified_time': paper.acceptedDate || paper.submissionDate,
+        'article:author': authorsNames || firstAuthor,
+        'article:section': 'Research Article',
       },
     };
   } catch (error) {
@@ -258,70 +286,135 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
 
   // Generate comprehensive JSON-LD structured data for Google Scholar and search engines
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const publicationDate = new Date(paper.acceptedDate || paper.submissionDate);
+  const year = publicationDate.getFullYear().toString();
+  const month = (publicationDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = publicationDate.getDate().toString().padStart(2, '0');
+  const isoDate = `${year}-${month}-${day}`;
+  
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ScholarlyArticle',
-    '@id': paper.doi || `${baseUrl}/paper/${paper.paperId}`,
+    '@id': paper.doi ? `https://doi.org/${paper.doi}` : `${baseUrl}/paper/${paper.paperId}`,
     headline: paper.title,
     name: paper.title,
     abstract: paper.abstract,
     description: paper.abstract,
-    author: contributors.map((author: any) => ({
+    alternativeHeadline: paper.title,
+    author: contributors.length > 0 ? contributors.map((author: any) => ({
       '@type': 'Person',
       name: author.fullName,
       email: author.email,
+      givenName: author.fullName?.split(' ')[0],
+      familyName: author.fullName?.split(' ').slice(1).join(' '),
       affiliation: author.affiliation ? {
         '@type': 'Organization',
         name: author.affiliation,
       } : undefined,
-    })),
-    datePublished: paper.acceptedDate || paper.submissionDate,
-    dateModified: paper.acceptedDate || paper.submissionDate,
+      url: author.email ? `mailto:${author.email}` : undefined,
+    })) : [{
+      '@type': 'Person',
+      name: paper.author?.name || 'Unknown Author',
+    }],
+    editor: contributors.length > 0 ? {
+      '@type': 'Person',
+      name: 'Editorial Team',
+    } : undefined,
+    datePublished: isoDate,
+    dateCreated: new Date(paper.submissionDate).toISOString().split('T')[0],
+    dateModified: isoDate,
+    inLanguage: 'en',
+    language: 'en',
+    keywords: Array.isArray(paper.keywords) ? paper.keywords.join(', ') : paper.keywords,
+    about: Array.isArray(paper.keywords) ? paper.keywords.map(k => ({
+      '@type': 'Thing',
+      name: k,
+    })) : [],
+    isAccessibleForFree: true,
+    isPartOf: {
+      '@type': 'PublicationIssue',
+      name: `Volume ${year}, Issue ${month}`,
+      datePublished: isoDate,
+      isPartOf: {
+        '@type': 'Periodical',
+        name: 'JEDSD - Journal of Embedded and Digital System Design',
+        issn: '2582-0605',
+        volumeNumber: year,
+        issueNumber: month,
+      },
+    },
+    license: 'https://creativecommons.org/licenses/by/4.0/',
+    copyrightYear: year,
+    copyrightHolder: {
+      '@type': 'Organization',
+      name: 'JEDSD - Journal of Embedded and Digital System Design',
+    },
     publisher: {
       '@type': 'Organization',
       name: 'JEDSD - Journal of Embedded and Digital System Design',
       url: baseUrl,
       logo: {
         '@type': 'ImageObject',
-        url: `${baseUrl}/logo.png`, // Add your logo URL
+        url: `${baseUrl}/logored.jpg`,
+        width: 250,
+        height: 60,
       },
+      sameAs: [baseUrl],
     },
-    
-    inLanguage: 'en',
-    keywords: Array.isArray(paper.keywords) ? paper.keywords.join(', ') : paper.keywords,
-    isAccessibleForFree: true,
-    license: 'https://creativecommons.org/licenses/by/4.0/', // Update with your actual license
     url: `${baseUrl}/paper/${paper.paperId}`,
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': `${baseUrl}/paper/${paper.paperId}`,
     },
+    pageStart: '1',
+    pageEnd: '100',
+    pagination: '1-100',
+    spatialCoverage: {
+      '@type': 'Place',
+      name: 'Global',
+    },
     ...(paper.doi && { 
-      identifier: [
-        {
-          '@type': 'PropertyValue',
-          propertyID: 'DOI',
-          value: paper.doi,
-        },
+      identifier: {
+        '@type': 'PropertyValue',
+        propertyID: 'DOI',
+        value: paper.doi,
+        url: `https://doi.org/${paper.doi}`,
+      },
+      sameAs: [
+        `https://doi.org/${paper.doi}`,
+        `${baseUrl}/paper/${paper.paperId}`,
       ],
-      sameAs: `https://doi.org/${paper.doi}`,
+      doi: paper.doi,
     }),
     ...(paper.filePath && { 
+      hasVersion: {
+        '@type': 'Thing',
+        name: 'Full Text PDF',
+      },
       encoding: {
         '@type': 'MediaObject',
-        contentUrl: `${baseUrl}${paper.filePath}`,
+        contentUrl: paper.filePath.startsWith('http') ? paper.filePath : `${baseUrl}${paper.filePath}`,
         encodingFormat: 'application/pdf',
         name: `${paper.title} - Full Text PDF`,
+        description: 'PDF version of the published research paper',
       },
       associatedMedia: {
         '@type': 'MediaObject',
-        contentUrl: `${baseUrl}${paper.filePath}`,
+        contentUrl: paper.filePath.startsWith('http') ? paper.filePath : `${baseUrl}${paper.filePath}`,
         encodingFormat: 'application/pdf',
       },
     }),
-    citation: {
+    hasPart: [],
+    mentions: contributors.length > 0 ? contributors.map((a: any) => ({
+      '@type': 'Person',
+      name: a.fullName,
+    })) : [],
+    citation: contributors.length > 0 ? {
       '@type': 'CreativeWork',
-      text: `${contributors.map((a: any) => a.fullName).join(', ')}. "${paper.title}." JEDSD - Journal of Embedded and Digital System Design, ${new Date(paper.acceptedDate || paper.submissionDate).getFullYear()}.`,
+      text: `${contributors.map((a: any) => a.fullName).join(', ')}. "${paper.title}." JEDSD - Journal of Embedded and Digital System Design, Volume ${year}, Issue ${month}, ${isoDate}${paper.doi ? `, https://doi.org/${paper.doi}` : ''}.`,
+    } : undefined,
+    scholarlyArticle: {
+      '@type': 'ScholarlyArticle',
     },
   };
 

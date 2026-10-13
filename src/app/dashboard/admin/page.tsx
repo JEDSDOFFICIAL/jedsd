@@ -15,6 +15,7 @@ import {
   Activity,
   TrendingUp,
   BarChart3,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,6 +44,14 @@ export default function AdminPage() {
       href: "/dashboard/admin/papers",
       color: "bg-green-50 border-green-200",
       iconColor: "text-green-600",
+    },
+    {
+      title: "Metadata Audit",
+      description: "Monitor Google Scholar indexing compliance for all published papers",
+      icon: Eye,
+      href: "/dashboard/admin/metadata-audit",
+      color: "bg-indigo-50 border-indigo-200",
+      iconColor: "text-indigo-600",
     },
     {
       title: "System Settings",
@@ -167,6 +176,13 @@ export default function AdminPage() {
               <Button variant="outline" className="w-full justify-start" size="lg">
                 <FileText className="h-4 w-4 mr-2" />
                 View All Papers
+              </Button>
+            </Link>
+
+            <Link href="/dashboard/admin/metadata-audit">
+              <Button variant="outline" className="w-full justify-start" size="lg">
+                <Eye className="h-4 w-4 mr-2" />
+                Metadata Audit
               </Button>
             </Link>
 
