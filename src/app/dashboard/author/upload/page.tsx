@@ -71,10 +71,6 @@ const formSchema = z.object({
     .instanceof(File, { message: "Paper PDF is required" })
     .refine((file) => file.type === "application/pdf", "Only PDF files are allowed")
     .refine((file) => file.size <= 10 * 1024 * 1024, "PDF must be smaller than 10 MB"),
-  sourceZip: z
-    .instanceof(File, { message: "Source ZIP is required" })
-    .refine((file) => file.name.endsWith(".zip") || file.type === "application/zip" || file.type === "application/x-zip-compressed", "Only ZIP files are allowed")
-    .refine((file) => file.size <= 50 * 1024 * 1024, "ZIP must be smaller than 50 MB"),
 
   coverLetter: z
     .instanceof(File, { message: "Invalid cover letter" })
@@ -114,18 +110,12 @@ const STEPS = [
   
   {
     id: 5,
-    label: "Source ZIP",
-    description: "Required LaTeX code",
-    icon: CloudUpload,
-  },
-  {
-    id: 6,
     label: "Cover Letter",
     description: "Optional document",
     icon: Mail,
   },
   {
-    id: 7,
+    id: 6,
     label: "Review",
     description: "Confirm & submit",
     icon: CheckCircle2,
@@ -255,7 +245,6 @@ export default function MultiPagePaperUpload() {
         affiliation: "",
       },
       file: undefined,
-      sourceZip: undefined,
       coverLetter: undefined,
     },
   });
@@ -275,7 +264,6 @@ export default function MultiPagePaperUpload() {
   const contributors = watch("contributors");
   const pocDetails = watch("pocDetails");
   const paperFile = watch("file");
-  const sourceZip = watch("sourceZip");
   const coverLetter = watch("coverLetter");
 
   const progress = (step / STEPS.length) * 100;
@@ -306,19 +294,6 @@ export default function MultiPagePaperUpload() {
 
       
       let coverLetterPath: string | null = null;
-      let sourceZipPath: string | null = null;
-
-      sourceZipPath = await uploadFileToFirebase(
-          data.sourceZip,
-          "source-zips"
-      );
-
-      if (!sourceZipPath) {
-        toast.error("Source ZIP upload failed.");
-        setLoading(false);
-        return;
-      }
-
 
       if (data.coverLetter) {
         coverLetterPath = await uploadFileToFirebase(
@@ -341,7 +316,6 @@ export default function MultiPagePaperUpload() {
         contributors: data.contributors,
         pointOfContact: data.pocDetails,
         filePath,
-        sourceZipPath,
         coverLetterPath,
         authorId: session?.user?.id || null,
       };
@@ -386,8 +360,6 @@ export default function MultiPagePaperUpload() {
     } else if (step === 4) {
       valid = await trigger("file");
     } else if (step === 5) {
-      valid = await trigger("sourceZip");
-    } else if (step === 6) {
       valid = true;
     }
 
@@ -566,9 +538,8 @@ export default function MultiPagePaperUpload() {
                     {step === 2 && "Add your research contributors"}
                     {step === 3 && "Set the point of contact"}
                     {step === 4 && "Upload the manuscript PDF"}
-                    {step === 5 && "Upload the Source ZIP (LaTeX)"}
-                    {step === 6 && "Add a cover letter if you have one"}
-                    {step === 7 && "Everything looks ready"}
+                    {step === 5 && "Add a cover letter if you have one"}
+                    {step === 6 && "Everything looks ready"}
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
                     {currentStep.description}
@@ -943,8 +914,8 @@ export default function MultiPagePaperUpload() {
                 </div>
               )}
 
-              {/* STEP 7 */}
-              {step === 7 && (
+              {/* STEP 5 */}
+              {step === 5 && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                   <SectionHeading
                     eyebrow="Step 05"
@@ -1025,8 +996,8 @@ export default function MultiPagePaperUpload() {
                 </div>
               )}
 
-              {/* STEP 7 */}
-              {step === 7 && (
+              {/* STEP 6 */}
+              {step === 6 && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                   <SectionHeading
                     eyebrow="Step 06"

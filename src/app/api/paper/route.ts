@@ -22,11 +22,7 @@ const uploadPaperSchema = z.object({
     .string()
     .url("Invalid file path URL.")
     .min(1, "File path is required."),
-  sourceZipPath: z
-    .string()
-    .url("Invalid source zip path URL.")
-    .optional()
-    .nullable(),
+ 
   keywords: z
     .array(z.string().min(1, "Keyword cannot be empty."))
     .min(1, "At least one keyword is required."),
@@ -90,7 +86,6 @@ export async function POST(req: Request) {
       title,
       abstract,
       filePath,
-      sourceZipPath,
       keywords,
       coverLetterPath,
       authorId,
@@ -117,7 +112,6 @@ export async function POST(req: Request) {
         title,
         abstract,
         filePath,
-        correspondingFile: sourceZipPath,
         keywords,
         coverLetterPath,
         authorId,
