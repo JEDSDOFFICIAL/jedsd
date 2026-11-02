@@ -1,49 +1,6 @@
-# JEDSD Journal - Google Scholar and Search Engine Crawling
-# Allow all search engines to index published papers
-# Block unnecessary resource crawling to optimize bot budget
-
 User-agent: *
-Allow: /
-Allow: /paper/
-Allow: /guides/
-Allow: /search
-Disallow: /api/
-Disallow: /*.json$
-Disallow: /admin/
-Disallow: /_next/
-Disallow: /node_modules/
-
-# Specific directives for Google
-User-agent: Googlebot
-Allow: /
-Allow: /paper/
-Allow: /guides/
-Allow: /search
-Allow: /*.pdf$
-Disallow: /api/
-Crawl-delay: 0
-
-# Google Scholar specific
-User-agent: Googlebot-Scholar
-Allow: /
-Allow: /paper/
-Allow: /*.pdf$
-Disallow: /api/
-
-# Bing
-User-agent: Bingbot
-Allow: /
-Allow: /paper/
-Disallow: /api/
-Crawl-delay: 1
-
-# Other bots
-User-agent: YandexBot
-User-agent: AhrefsBot
-User-agent: SemrushBot
-Allow: /paper/
 Disallow: /api/
 Disallow: /admin/
+Disallow: /dashboard/
 
-# Sitemap
-Sitemap: https://jedsd.com/sitemap.xml
+Sitemap: https://www.jedsd.com/sitemap.xml

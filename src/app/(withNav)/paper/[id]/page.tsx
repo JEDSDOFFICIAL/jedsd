@@ -1,18 +1,18 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { SITE_URL } from "@/lib/site";
+import { cleanText } from "@/lib/text";
 import {
   Calendar,
   User,
   Tag,
   FileText,
   ExternalLink,
-  Download,
-  Mail,
-  Building,
   Eye,
-  Share,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,405 +30,366 @@ import Link from "next/link";
 import PaperDetailsClient from "./PaperDetailsClient";
 import AuthorBadges from "./AuthorBadges";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Contributor {
+  fullName: string;
+  email?: string;
+  affiliation?: string;
+  contactNumber?: string;
+}
 
 interface ResearchPaper {
   id: string;
   paperId: string;
-  doi?: string;
+  doi?: string | null;
   title: string;
   abstract: string;
   keywords: string[];
   submissionDate: string;
-  acceptedDate?: string;
+  acceptedDate?: string | null;
   status: string;
   filePath: string;
-  coverLetterPath?: string;
-  rating?: number;
+  coverLetterPath?: string | null;
+  rating?: number | null;
   author?: {
     id: string;
     name: string;
     email: string;
-  };
-  contributors?: any[];
-  pointOfContact?: any;
-  reviews?: any[];
+  } | null;
+  contributors?: Contributor[];
+  pointOfContact?: Contributor | null;
 }
 
-// Server-side metadata generation for social sharing and SEO
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const PUBLISHED_STATUSES = ['PUBLISH', 'PUBLISHED'] as const;
+type PublishedStatus = typeof PUBLISHED_STATUSES[number];
+
+function isPublishedStatus(s: string): s is PublishedStatus {
+  return PUBLISHED_STATUSES.includes(s as PublishedStatus);
+}
+
+/** Parse contributors JSON field safely. */
+function parseContributors(raw: unknown): Contributor[] {
+  if (!raw) return [];
   try {
-    const { id } = await params;
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://jedsd.com';
-
-    // Use direct Prisma query — avoids internal HTTP round-trip that breaks when
-    // NEXTAUTH_URL is localhost (common in production misconfiguration)
-    const paper = await prisma.researchPaper.findFirst({
-      where: {
-        OR: [{ paperId: id }, { id }],
-      },
-      include: {
-        author: { select: { id: true, name: true, email: true } },
-      },
-    });
-
-    if (!paper) {
-      return {
-        title: 'Paper Not Found - JEDSD',
-        description: 'The research paper you are looking for does not exist.',
-        robots: { index: false, follow: false },
-      };
-    }
-
-    // Index only published papers
-    const isPublished = paper.status === 'PUBLISH' || paper.status === 'PUBLISHED';
-
-    const authors: any[] = paper.contributors
-      ? (typeof paper.contributors === 'string'
-          ? JSON.parse(paper.contributors as string)
-          : paper.contributors as any[])
-      : [];
-
-    const firstAuthor = authors[0]?.fullName || paper.author?.name || 'Unknown Author';
-
-    const description =
-      paper.abstract.length > 160
-        ? paper.abstract.substring(0, 157) + '...'
-        : paper.abstract;
-
-    const keywords: string[] = Array.isArray(paper.keywords)
-      ? paper.keywords
-      : typeof paper.keywords === 'string'
-      ? (paper.keywords as string).split(',').map((k: string) => k.trim())
-      : [];
-
-    const canonicalUrl = `${baseUrl}/paper/${paper.paperId}`;
-
-    const pubDate = paper.acceptedDate || paper.submissionDate;
-    const publicationDate = new Date(pubDate).toISOString().split('T')[0];
-    const year = new Date(pubDate).getFullYear().toString();
-    const month = (new Date(pubDate).getMonth() + 1).toString().padStart(2, '0');
-
-    // Volume/issue defaults — replace with real values once you add them to the schema
-    // Volume 1 = 2025, Volume 2 = 2026, etc. (relative to journal launch year 2025)
-    const launchYear = 2025;
-    const pubYear = new Date(pubDate).getFullYear();
-    const volumeStr = String(pubYear - launchYear + 1);
-    const issueStr = month; // month as issue number until proper issue tracking is added
-    const pageStartStr = '1';
-    const pageEndStr = ''; // unknown until set manually
-
-    // Strip https://doi.org/ prefix if present — citation_doi needs just the identifier
-    const doiIdentifier = paper.doi
-      ? paper.doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, '')
-      : '';
-
-    // Build individual citation_author entries (one per author — Scholar requirement)
-    const authorMetaTags: Record<string, string> = {};
-    authors.forEach((author: any, index: number) => {
-      if (index === 0) {
-        // First author uses the standard key name
-        authorMetaTags['citation_author'] = author.fullName;
-      } else {
-        // Additional authors use indexed keys — Next.js renders each as a separate <meta> tag
-        authorMetaTags[`citation_author_${index}`] = author.fullName;
-      }
-    });
-    if (authors.length === 0) {
-      authorMetaTags['citation_author'] = paper.author?.name || 'Unknown Author';
-    }
-
-    // Build author affiliation tags
-    const affiliationTags: Record<string, string> = {};
-    authors.forEach((author: any, index: number) => {
-      if (author.affiliation) {
-        const key = index === 0 ? 'citation_author_institution' : `citation_author_institution_${index}`;
-        affiliationTags[key] = author.affiliation;
-      }
-    });
-
-    return {
-      title: `${paper.title} | ${firstAuthor} | JEDSD`,
-      description,
-      keywords: [
-        ...keywords,
-        'research paper',
-        'academic journal',
-        'embedded systems',
-        'digital system design',
-        'JEDSD',
-        'peer-reviewed',
-      ],
-      authors: authors.map((author: any) => ({ name: author.fullName })),
-      creator: firstAuthor,
-      publisher: 'JEDSD - Journal of Embedded and Digital System Design',
-      alternates: { canonical: canonicalUrl },
-      robots: {
-        index: isPublished,
-        follow: true,
-        googleBot: {
-          index: isPublished,
-          follow: true,
-          'max-image-preview': 'large',
-          'max-snippet': -1,
-        },
-      },
-      openGraph: {
-        title: paper.title,
-        description,
-        type: 'article',
-        url: canonicalUrl,
-        siteName: 'JEDSD - Journal of Embedded and Digital System Design',
-        publishedTime: paper.acceptedDate?.toISOString() || paper.submissionDate.toISOString(),
-        modifiedTime: paper.acceptedDate?.toISOString() || paper.submissionDate.toISOString(),
-        authors: authors.map((author: any) => author.fullName),
-        tags: keywords,
-        locale: 'en_US',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: paper.title,
-        description,
-        creator: '@JEDSD',
-        site: '@JEDSD',
-      },
-      other: {
-        // === GOOGLE SCHOLAR / HIGHWIRE PRESS META TAGS ===
-        // Each citation_author must be a separate <meta> tag — Scholar ignores comma lists
-        ...authorMetaTags,
-        ...affiliationTags,
-        'citation_title': paper.title,
-        'citation_publication_date': publicationDate,
-        'citation_journal_title': 'JEDSD - Journal of Embedded and Digital System Design',
-        'citation_journal_abbreviation': 'JEDSD',
-        'citation_issn': '2582-0605',
-        'citation_volume': volumeStr,
-        'citation_issue': issueStr,
-        'citation_firstpage': pageStartStr,
-        // citation_pdf_url is the #1 most important tag for Google Scholar full-text
-        'citation_pdf_url': paper.filePath
-          ? paper.filePath.startsWith('http')
-            ? paper.filePath
-            : `${baseUrl}${paper.filePath}`
-          : '',
-        // DOI must be just the identifier (e.g. 10.5281/zenodo.12345), NOT a URL
-        ...(doiIdentifier && { 'citation_doi': doiIdentifier }),
-        'citation_abstract_html_url': canonicalUrl,
-        'citation_language': 'en',
-        'citation_keywords': keywords.join('; '),
-        'citation_online_date': publicationDate,
-        'citation_publisher': 'JEDSD',
-        'citation_fulltext_html_url': canonicalUrl,
-
-        // === DUBLIN CORE TAGS ===
-        'DC.title': paper.title,
-        'DC.creator': firstAuthor,
-        'DC.subject': keywords.join('; '),
-        'DC.description': description,
-        'DC.publisher': 'JEDSD - Journal of Embedded and Digital System Design',
-        'DC.contributor': authors.map((a: any) => a.fullName).join('; '),
-        'DC.date': publicationDate,
-        'DC.type': 'Text.Journal.Article',
-        'DC.format': 'application/pdf',
-        'DC.identifier': doiIdentifier || canonicalUrl,
-        'DC.identifier.URI': canonicalUrl,
-        'DC.language': 'en',
-        'DC.issued': publicationDate,
-
-        // === PRISM TAGS ===
-        'prism.publicationName': 'Journal of Embedded and Digital System Design',
-        'prism.publicationDate': publicationDate,
-        'prism.volume': volumeStr,
-        'prism.number': issueStr,
-        'prism.section': 'Research Article',
-        'prism.startingPage': pageStartStr,
-        'prism.issn': '2582-0605',
-        ...(doiIdentifier && { 'prism.doi': doiIdentifier }),
-        'prism.url': canonicalUrl,
-
-        // === OG ARTICLE TAGS ===
-        'article:published_time': paper.acceptedDate?.toISOString() || paper.submissionDate.toISOString(),
-        'article:modified_time': paper.acceptedDate?.toISOString() || paper.submissionDate.toISOString(),
-        'article:author': firstAuthor,
-        'article:section': 'Research Article',
-      },
-    };
-  } catch (error) {
-    console.error('Error generating metadata:', error);
-    return {
-      title: 'JEDSD - Research Paper',
-      description: 'View research paper details',
-      robots: { index: false, follow: false },
-    };
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
 }
 
-// Server Component - Fetch data on the server
-export default async function PaperDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+/** Return YYYY/MM/DD — the format Google Scholar expects. */
+function toScholarDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}/${m}/${dd}`;
+}
+
+/** Return YYYY-MM-DD for ISO / JSON-LD dates. */
+function toIsoDate(d: Date): string {
+  return d.toISOString().split('T')[0];
+}
+
+/** Strip https://doi.org/ (or http://dx.doi.org/) prefix → bare identifier. */
+function bareDoiId(doi: string): string {
+  return doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, '');
+}
+
+/** Ensure DOI is a full HTTPS URL. */
+function fullDoiUrl(doi: string): string {
+  if (doi.startsWith('http')) return doi;
+  return `https://doi.org/${doi}`;
+}
+
+// ─── generateMetadata ─────────────────────────────────────────────────────────
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
-  let paper: ResearchPaper | null = null;
-  let contributors: any[] = [];
-  let pointOfContact: any = null;
 
+  // Lookup — match either human-readable paperId or internal UUID
+  let paper: Awaited<ReturnType<typeof prisma.researchPaper.findFirst<{ include: { author: { select: { id: true; name: true; email: true } } } }>>>;
   try {
-    // Use direct Prisma query — avoids HTTP round-trip that fails when NEXTAUTH_URL
-    // is set to localhost (which is common in misconfigured production environments)
-    const dbPaper = await prisma.researchPaper.findFirst({
-      where: {
-        OR: [{ paperId: id }, { id }],
-      },
-      include: {
-        author: { select: { id: true, name: true, email: true, userType: true } },
-        reviews: {
-          select: {
-            id: true,
-            reviewerId: true,
-            // NOTE: reviewText (editor-only) is intentionally excluded here
-            reviewTextForAuthor: true,
-            rating: true,
-            reviewerStatus: true,
-            correspondingFile: true,
-            createdAt: true,
-            updatedAt: true,
-            reviewer: {
-              select: { id: true, name: true, email: true, affiliation: true },
-            },
-          },
-        },
-      },
+    paper = await prisma.researchPaper.findFirst({
+      where: { OR: [{ paperId: id }, { id }] },
+      include: { author: { select: { id: true, name: true, email: true } } },
     });
-
-    if (!dbPaper) {
-      notFound();
-    }
-
-    // Serialize Dates to strings to match the ResearchPaper interface
-    paper = {
-      ...dbPaper,
-      submissionDate: dbPaper.submissionDate.toISOString(),
-      acceptedDate: dbPaper.acceptedDate?.toISOString(),
-    } as unknown as ResearchPaper;
-
-    // Parse JSON fields
-    if (dbPaper.contributors) {
-      try {
-        const contributorsData =
-          typeof dbPaper.contributors === "string"
-            ? JSON.parse(dbPaper.contributors as string)
-            : dbPaper.contributors;
-        contributors = Array.isArray(contributorsData) ? contributorsData : [];
-      } catch (e) {
-        console.error("Error parsing contributors:", e);
-      }
-    }
-
-    if (dbPaper.pointOfContact) {
-      try {
-        const pocData =
-          typeof dbPaper.pointOfContact === "string"
-            ? JSON.parse(dbPaper.pointOfContact as string)
-            : dbPaper.pointOfContact;
-        pointOfContact = pocData;
-      } catch (e) {
-        console.error("Error parsing point of contact:", e);
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching paper details:", error);
-    notFound();
+  } catch (err) {
+    // Rethrow so Next.js surfaces a 500 rather than silently noindex-ing
+    throw err;
   }
 
   if (!paper) {
-    notFound();
+    return {
+      title: 'Paper Not Found — JEDSD',
+      description: 'The requested research paper does not exist.',
+      robots: { index: false, follow: false },
+    };
   }
 
-  // Format date helper
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const isPublished = isPublishedStatus(paper.status);
+  const contributors = parseContributors(paper.contributors);
+  const firstAuthor =
+    contributors[0]?.fullName ?? paper.author?.name ?? 'Unknown Author';
+
+  // Clean text artefacts from abstract
+  const cleanAbstract = cleanText(paper.abstract);
+  const description =
+    cleanAbstract.length > 160
+      ? cleanAbstract.slice(0, 157) + '...'
+      : cleanAbstract;
+
+  // Keywords — clean each one
+  const keywords: string[] = (
+    Array.isArray(paper.keywords)
+      ? paper.keywords
+      : typeof paper.keywords === 'string'
+      ? (paper.keywords as string).split(',')
+      : []
+  ).map((k) => cleanText(k)).filter(Boolean);
+
+  const canonicalUrl = `${SITE_URL}/paper/${paper.paperId}`;
+
+  const pubDate = new Date(paper.acceptedDate ?? paper.submissionDate);
+  const scholarDate = toScholarDate(pubDate); // YYYY/MM/DD
+
+  // DOI
+  const doiIdentifier = paper.doi ? bareDoiId(paper.doi) : '';
+
+  // PDF proxy URL — always same-host so Scholar can find it
+  const proxyPdfUrl = paper.filePath
+    ? `${SITE_URL}/api/pdf/${encodeURIComponent(paper.paperId)}.pdf`
+    : null;
+
+  // ── Build citation_author / citation_author_institution arrays ──────────────
+  // Next.js `other` accepts string | string[] values.
+  // Passing an array causes Next.js to render one <meta> tag per element.
+  const citationAuthors: string[] =
+    contributors.length > 0
+      ? contributors.map((a) => a.fullName)
+      : [paper.author?.name ?? 'Unknown Author'];
+
+  const citationInstitutions: string[] = contributors
+    .map((a) => a.affiliation ?? '')
+    .filter(Boolean);
+
+  return {
+    title: `${paper.title} | ${firstAuthor} | JEDSD`,
+    description,
+    keywords: [
+      ...keywords,
+      'research paper',
+      'academic journal',
+      'embedded systems',
+      'digital system design',
+      'JEDSD',
+      'peer-reviewed',
+    ],
+    authors: contributors.map((a) => ({ name: a.fullName })),
+    creator: firstAuthor,
+    publisher: 'JEDSD - Journal of Embedded and Digital System Design',
+    alternates: { canonical: canonicalUrl },
+    robots: {
+      index: isPublished,
+      follow: true,
+      googleBot: {
+        index: isPublished,
+        follow: true,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    openGraph: {
+      title: paper.title,
+      description,
+      type: 'article',
+      url: canonicalUrl,
+      siteName: 'JEDSD - Journal of Embedded and Digital System Design',
+      publishedTime: paper.acceptedDate?.toISOString() ?? paper.submissionDate.toISOString(),
+      modifiedTime: paper.acceptedDate?.toISOString() ?? paper.submissionDate.toISOString(),
+      authors: contributors.map((a) => a.fullName),
+      tags: keywords,
+      locale: 'en_US',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: paper.title,
+      description,
+      creator: '@JEDSD',
+      site: '@JEDSD',
+    },
+    other: {
+      // ── Google Scholar / Highwire Press ──────────────────────────────────
+      // Arrays → one <meta name="…"> per element (Next.js App Router behaviour)
+      citation_title: paper.title,
+      citation_author: citationAuthors,
+      ...(citationInstitutions.length > 0 && {
+        citation_author_institution: citationInstitutions,
+      }),
+      citation_journal_title:
+        'JEDSD - Journal of Embedded and Digital System Design',
+      citation_journal_abbreviation: 'JEDSD',
+      citation_issn: '2582-0605',
+      citation_publication_date: scholarDate,
+      citation_online_date: scholarDate,
+      // citation_pdf_url is the single most important tag for Scholar full-text
+      ...(proxyPdfUrl && { citation_pdf_url: proxyPdfUrl }),
+      ...(doiIdentifier && { citation_doi: doiIdentifier }),
+      citation_abstract_html_url: canonicalUrl,
+      citation_fulltext_html_url: canonicalUrl,
+      citation_language: 'en',
+      citation_publisher: 'JEDSD',
+      ...(keywords.length > 0 && {
+        citation_keywords: keywords.join('; '),
+      }),
+
+      // ── Dublin Core ──────────────────────────────────────────────────────
+      'DC.title': paper.title,
+      'DC.creator': firstAuthor,
+      ...(keywords.length > 0 && { 'DC.subject': keywords.join('; ') }),
+      'DC.description': description,
+      'DC.publisher': 'JEDSD - Journal of Embedded and Digital System Design',
+      'DC.date': toIsoDate(pubDate),
+      'DC.type': 'Text.Journal.Article',
+      'DC.format': 'application/pdf',
+      'DC.identifier': doiIdentifier || canonicalUrl,
+      'DC.identifier.URI': canonicalUrl,
+      'DC.language': 'en',
+      'DC.issued': toIsoDate(pubDate),
+
+      // ── PRISM ────────────────────────────────────────────────────────────
+      'prism.publicationName':
+        'Journal of Embedded and Digital System Design',
+      'prism.publicationDate': toIsoDate(pubDate),
+      'prism.section': 'Research Article',
+      'prism.issn': '2582-0605',
+      ...(doiIdentifier && { 'prism.doi': doiIdentifier }),
+      'prism.url': canonicalUrl,
+    },
   };
+}
 
-  // Generate comprehensive JSON-LD structured data for Google Scholar and search engines
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://jedsd.com';
-  const publicationDate = new Date(paper.acceptedDate || paper.submissionDate);
-  const year = publicationDate.getFullYear().toString();
-  const month = (publicationDate.getMonth() + 1).toString().padStart(2, '0');
-  const day = publicationDate.getDate().toString().padStart(2, '0');
-  const isoDate = `${year}-${month}-${day}`;
+// ─── Page component ───────────────────────────────────────────────────────────
 
-  // paper.doi is stored as a full URL (e.g. https://doi.org/10.5281/…) — use directly
-  const doiUrl = paper.doi
-    ? (paper.doi.startsWith('http') ? paper.doi : `https://doi.org/${paper.doi}`)
+export default async function PaperDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  // ── Fetch from DB ──────────────────────────────────────────────────────────
+  const dbPaper = await prisma.researchPaper.findFirst({
+    where: { OR: [{ paperId: id }, { id }] },
+    include: {
+      author: { select: { id: true, name: true, email: true, userType: true } },
+      // reviews excluded — PaperDetailsClient doesn't use them and
+      // reviewer emails/names must not be exposed to public clients
+    },
+  });
+
+  if (!dbPaper) notFound();
+
+  // ── Access control ─────────────────────────────────────────────────────────
+  // Public visitors only see PUBLISH / PUBLISHED papers.
+  // The paper's owner, ADMIN, and EDITOR may view any status.
+  if (!isPublishedStatus(dbPaper.status)) {
+    const session = await getServerSession(authOptions);
+    const role = session?.user?.variableUserType;
+    const isOwner = session?.user?.id === dbPaper.authorId;
+    const isPrivileged = role === 'ADMIN' || role === 'EDITOR';
+
+    if (!isOwner && !isPrivileged) {
+      notFound();
+    }
+  }
+
+  // ── Serialize dates ────────────────────────────────────────────────────────
+  const paper: ResearchPaper = {
+    ...dbPaper,
+    submissionDate: dbPaper.submissionDate.toISOString(),
+    acceptedDate: dbPaper.acceptedDate?.toISOString() ?? null,
+  } as unknown as ResearchPaper;
+
+  // ── Parse JSON fields ──────────────────────────────────────────────────────
+  const contributors = parseContributors(dbPaper.contributors);
+
+  let pointOfContact: Contributor | null = null;
+  if (dbPaper.pointOfContact) {
+    try {
+      const raw =
+        typeof dbPaper.pointOfContact === 'string'
+          ? JSON.parse(dbPaper.pointOfContact as string)
+          : dbPaper.pointOfContact;
+      pointOfContact = raw as Contributor;
+    } catch {
+      // ignore malformed JSON
+    }
+  }
+
+  // ── Date / DOI helpers ─────────────────────────────────────────────────────
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+  const pubDate = new Date(paper.acceptedDate ?? paper.submissionDate);
+  const isoDate = toIsoDate(pubDate);
+
+  const doiUrl = paper.doi ? fullDoiUrl(paper.doi) : null;
+  const doiIdentifier = paper.doi ? bareDoiId(paper.doi) : null;
+
+  // PDF proxy URL for JSON-LD encoding (same host as abstract page)
+  const proxyPdfUrl = paper.filePath
+    ? `${SITE_URL}/api/pdf/${encodeURIComponent(paper.paperId)}.pdf`
     : null;
-  // Just the identifier portion for structured data "value" fields
-  const doiIdentifier = paper.doi
-    ? paper.doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, '')
-    : null;
 
-  // Use stored volume/issue numbers from DB; fall back to year/month
-  const launchYear = 2025;
-  const pubYear = publicationDate.getFullYear();
-  const volumeStr = String(pubYear - launchYear + 1); // Vol 1 = 2025, Vol 2 = 2026 …
-  const issueStr = month;                              // month as issue proxy for now
-  const pageStartStr = '1';
-  const pageEndStr = '';                               // unknown until set manually
-  
+  // ── JSON-LD ────────────────────────────────────────────────────────────────
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ScholarlyArticle',
-    // @id must be the canonical URL or the DOI URL — paper.doi is already a full URL
-    '@id': doiUrl || `${baseUrl}/paper/${paper.paperId}`,
+    '@id': doiUrl ?? `${SITE_URL}/paper/${paper.paperId}`,
     headline: paper.title,
     name: paper.title,
-    abstract: paper.abstract,
-    description: paper.abstract,
-    alternativeHeadline: paper.title,
-    author: contributors.length > 0 ? contributors.map((author: any) => ({
-      '@type': 'Person',
-      name: author.fullName,
-      email: author.email,
-      givenName: author.fullName?.split(' ')[0],
-      familyName: author.fullName?.split(' ').slice(1).join(' '),
-      affiliation: author.affiliation ? {
-        '@type': 'Organization',
-        name: author.affiliation,
-      } : undefined,
-      url: author.email ? `mailto:${author.email}` : undefined,
-    })) : [{
-      '@type': 'Person',
-      name: paper.author?.name || 'Unknown Author',
-    }],
-    editor: contributors.length > 0 ? {
-      '@type': 'Person',
-      name: 'Editorial Team',
-    } : undefined,
+    abstract: cleanText(paper.abstract),
+    description: cleanText(paper.abstract),
     datePublished: isoDate,
-    dateCreated: new Date(paper.submissionDate).toISOString().split('T')[0],
+    dateCreated: toIsoDate(new Date(paper.submissionDate)),
     dateModified: isoDate,
     inLanguage: 'en',
-    language: 'en',
-    keywords: Array.isArray(paper.keywords) ? paper.keywords.join(', ') : paper.keywords,
-    about: Array.isArray(paper.keywords) ? paper.keywords.map(k => ({
-      '@type': 'Thing',
-      name: k,
-    })) : [],
     isAccessibleForFree: true,
+    ...(paper.keywords?.length > 0 && {
+      keywords: paper.keywords.map(cleanText).join(', '),
+      about: paper.keywords.map((k) => ({ '@type': 'Thing', name: cleanText(k) })),
+    }),
+    author:
+      contributors.length > 0
+        ? contributors.map((a) => ({
+            '@type': 'Person',
+            name: a.fullName,
+            givenName: a.fullName.split(' ')[0],
+            familyName: a.fullName.split(' ').slice(1).join(' '),
+            ...(a.affiliation && {
+              affiliation: { '@type': 'Organization', name: a.affiliation },
+            }),
+          }))
+        : [{ '@type': 'Person', name: paper.author?.name ?? 'Unknown Author' }],
     isPartOf: {
-      '@type': 'PublicationIssue',
-      name: `Volume ${volumeStr}, Issue ${issueStr}`,
-      datePublished: isoDate,
-      isPartOf: {
-        '@type': 'Periodical',
-        name: 'JEDSD - Journal of Embedded and Digital System Design',
-        issn: '2582-0605',
-        volumeNumber: volumeStr,
-        issueNumber: issueStr,
-      },
+      '@type': 'Periodical',
+      name: 'JEDSD - Journal of Embedded and Digital System Design',
+      issn: '2582-0605',
     },
     license: 'https://creativecommons.org/licenses/by/4.0/',
-    copyrightYear: year,
+    copyrightYear: pubDate.getFullYear(),
     copyrightHolder: {
       '@type': 'Organization',
       name: 'JEDSD - Journal of Embedded and Digital System Design',
@@ -436,72 +397,41 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
     publisher: {
       '@type': 'Organization',
       name: 'JEDSD - Journal of Embedded and Digital System Design',
-      url: baseUrl,
+      url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${baseUrl}/logored.jpg`,
+        url: `${SITE_URL}/logored.jpg`,
         width: 250,
         height: 60,
       },
-      sameAs: [baseUrl],
     },
-    url: `${baseUrl}/paper/${paper.paperId}`,
+    url: `${SITE_URL}/paper/${paper.paperId}`,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `${baseUrl}/paper/${paper.paperId}`,
+      '@id': `${SITE_URL}/paper/${paper.paperId}`,
     },
-    pageStart: pageStartStr,
-    spatialCoverage: {
-      '@type': 'Place',
-      name: 'Global',
-    },
-    ...(doiUrl && doiIdentifier && {
-      identifier: {
-        '@type': 'PropertyValue',
-        propertyID: 'DOI',
-        // value = just the identifier portion (e.g. 10.5281/zenodo.12345)
-        value: doiIdentifier,
-        // url = full resolvable DOI link
-        url: doiUrl,
-      },
-      sameAs: [
-        doiUrl,
-        `${baseUrl}/paper/${paper.paperId}`,
-      ],
-      doi: doiIdentifier,
-    }),
-    ...(paper.filePath && { 
-      hasVersion: {
-        '@type': 'Thing',
-        name: 'Full Text PDF',
-      },
+    ...(doiUrl &&
+      doiIdentifier && {
+        identifier: {
+          '@type': 'PropertyValue',
+          propertyID: 'DOI',
+          value: doiIdentifier,
+          url: doiUrl,
+        },
+        sameAs: [doiUrl, `${SITE_URL}/paper/${paper.paperId}`],
+        doi: doiIdentifier,
+      }),
+    ...(proxyPdfUrl && {
       encoding: {
         '@type': 'MediaObject',
-        contentUrl: paper.filePath.startsWith('http') ? paper.filePath : `${baseUrl}${paper.filePath}`,
+        contentUrl: proxyPdfUrl,
         encodingFormat: 'application/pdf',
-        name: `${paper.title} - Full Text PDF`,
-        description: 'PDF version of the published research paper',
-      },
-      associatedMedia: {
-        '@type': 'MediaObject',
-        contentUrl: paper.filePath.startsWith('http') ? paper.filePath : `${baseUrl}${paper.filePath}`,
-        encodingFormat: 'application/pdf',
+        name: `${paper.title} — Full Text PDF`,
       },
     }),
-    hasPart: [],
-    mentions: contributors.length > 0 ? contributors.map((a: any) => ({
-      '@type': 'Person',
-      name: a.fullName,
-    })) : [],
-    citation: contributors.length > 0 ? {
-      '@type': 'CreativeWork',
-      text: `${contributors.map((a: any) => a.fullName).join(', ')}. "${paper.title}." JEDSD - Journal of Embedded and Digital System Design, Volume ${volumeStr}, Issue ${issueStr}, ${isoDate}${doiUrl ? `, ${doiUrl}` : ''}.`,
-    } : undefined,
-    scholarlyArticle: {
-      '@type': 'ScholarlyArticle',
-    },
   };
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
       {/* Structured Data for SEO */}
@@ -509,206 +439,217 @@ export default async function PaperDetailsPage({ params }: { params: Promise<{ i
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      
+
       <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
         <div className="container mx-auto px-4 w-full">
           {/* Header */}
           <div className="my-6">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-4 leading-tight">
-                {paper.title}
-              </h1>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold mb-4 leading-tight">
+                  {paper.title}
+                </h1>
 
-              {/* Paper Meta Info */}
-              <div className="flex flex-wrap items-center gap-3 mb-6">
-                {paper.author && (
+                {/* Paper Meta Info */}
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                  {paper.author && (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 text-base"
+                    >
+                      <User className="h-3 w-3" />
+                      {paper.author.name}
+                    </Badge>
+                  )}
+
                   <Badge
-                    variant="secondary"
+                    variant="outline"
                     className="flex items-center gap-1 text-base"
                   >
-                    <User className="h-3 w-3" />
-                    {paper.author.name}
-                  </Badge>
-                )}
-
-                <Badge variant="outline" className="flex items-center gap-1 text-base">
-                  <Calendar className="h-3 w-3" />
-                  Submitted: {formatDate(paper.submissionDate)}
-                </Badge>
-
-                {paper.acceptedDate && (
-                  <Badge variant="default" className="flex items-center gap-1 text-base">
                     <Calendar className="h-3 w-3" />
-                    Published: {formatDate(paper.acceptedDate)}
+                    Submitted: {formatDate(paper.submissionDate)}
                   </Badge>
-                )}
+
+                  {paper.acceptedDate && (
+                    <Badge
+                      variant="default"
+                      className="flex items-center gap-1 text-base"
+                    >
+                      <Calendar className="h-3 w-3" />
+                      Published: {formatDate(paper.acceptedDate)}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
-
-            
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Authors Badges - Before Abstract */}
-            {contributors.length > 0 && (
-              <AuthorBadges contributors={contributors} />
-            )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Authors */}
+              {contributors.length > 0 && (
+                <AuthorBadges contributors={contributors} />
+              )}
 
-            {/* Abstract */}
-            <Card>
+              {/* Abstract */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                    <FileText className="h-5 w-5" />
+                    Abstract
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-lg leading-relaxed text-justify">
+                    {cleanText(paper.abstract)}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button className="w-full" asChild>
+                    <Link href={paper.filePath} target="_blank">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Full Paper
+                    </Link>
+                  </Button>
+
+                  <PaperDetailsClient paper={paper} />
+                </CardContent>
+              </Card>
+
+              {/* Paper Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold">
+                    Paper Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {paper.doi && (
+                    <>
+                      <div className="flex flex-col">
+                        <Label className="text-base font-medium">DOI</Label>
+                        <Link
+                          href={doiUrl ?? paper.doi}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base text-muted-foreground font-mono hover:text-primary hover:underline break-all"
+                        >
+                          {paper.doi}
+                        </Link>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  <div>
+                    <Label className="text-base font-medium">Status</Label>
+                    <p className="text-base text-muted-foreground">
+                      <Badge
+                        variant={
+                          isPublishedStatus(paper.status)
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
+                        {paper.status}
+                      </Badge>
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="text-base font-medium">
+                      Submission Date
+                    </Label>
+                    <p className="text-base text-muted-foreground">
+                      {formatDate(paper.submissionDate)}
+                    </p>
+                  </div>
+
+                  {paper.acceptedDate && (
+                    <>
+                      <Separator />
+                      <div>
+                        <Label className="text-base font-medium">
+                          Publication Date
+                        </Label>
+                        <p className="text-base text-muted-foreground">
+                          {formatDate(paper.acceptedDate)}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Keywords */}
+          {paper.keywords && paper.keywords.length > 0 && (
+            <Card className="w-full my-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                  <FileText className="h-5 w-5" />
-                  Abstract
+                  <Tag className="h-5 w-5" />
+                  Keywords
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg leading-relaxed text-justify">
-                  {paper.abstract}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full" asChild>
-                  <Link href={paper.filePath} target="_blank">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Full Paper
-                  </Link>
-                </Button>
-
-                <PaperDetailsClient paper={paper} />
-              </CardContent>
-            </Card>
-
-            {/* Paper Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold">Paper Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {paper.doi && (
-                  <>
-                    <div className="flex flex-col">
-                      <Label className="text-base font-medium">DOI</Label>
-                      <Link
-                        href={paper.doi}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-base text-muted-foreground font-mono hover:text-primary hover:underline break-all"
-                      >
-                        {paper.doi}
-                      </Link>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                <div>
-                  <Label className="text-base font-medium">Status</Label>
-                  <p className="text-base text-muted-foreground">
-                    <Badge
-                      variant={
-                        paper.status === "PUBLISH" ? "default" : "secondary"
-                      }
-                    >
-                      {paper.status}
+                <div className="flex flex-wrap gap-2 justify-between w-full">
+                  {paper.keywords.map((keyword, index) => (
+                    <Badge key={index} variant="outline" className="text-lg">
+                      {cleanText(keyword)}
                     </Badge>
-                  </p>
+                  ))}
                 </div>
-
-                <Separator />
-
-                <div>
-                  <Label className="text-base font-medium">Submission Date</Label>
-                  <p className="text-base text-muted-foreground">
-                    {formatDate(paper.submissionDate)}
-                  </p>
-                </div>
-
-                {paper.acceptedDate && (
-                  <>
-                    <Separator />
-                    <div>
-                      <Label className="text-base font-medium">
-                        Publication Date
-                      </Label>
-                      <p className="text-base text-muted-foreground">
-                        {formatDate(paper.acceptedDate)}
-                      </p>
-                    </div>
-                  </>
-                )}
               </CardContent>
             </Card>
-          </div>
-        </div>
+          )}
 
-        {/* Keywords - Full Width */}
-        {paper.keywords && paper.keywords.length > 0 && (
-          <Card className="w-full my-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                <Tag className="h-5 w-5" />
-                Keywords
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2 justify-between w-full">
-                {paper.keywords.map((keyword, index) => (
-                  <Badge key={index} variant="outline" className="text-lg">
-                    {keyword}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {paper.filePath && (
-          <Card className="w-full my-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                <FileText className="h-5 w-5" />
-                Paper Preview
-              </CardTitle>
-              <CardDescription>
-                Viewing first 3 pages - Open full paper to see all pages
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full">
-                <iframe
-                  src={`${paper.filePath}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
-                  className="w-full md:h-[600px] lg:h-[800px] h-[400px] border rounded-lg"
-                  title="PDF Preview"
-                />
-                <div className="mt-4 flex justify-center">
-                  <Link href={paper.filePath} target="_blank">
-                    <Button size="lg" className="w-full sm:w-auto">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Open Full Paper
-                    </Button>
-                  </Link>
+          {/* PDF Preview */}
+          {paper.filePath && (
+            <Card className="w-full my-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                  <FileText className="h-5 w-5" />
+                  Paper Preview
+                </CardTitle>
+                <CardDescription>
+                  Viewing first 3 pages — open full paper to see all pages
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="w-full">
+                  <iframe
+                    src={`${paper.filePath}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                    className="w-full md:h-[600px] lg:h-[800px] h-[400px] border rounded-lg"
+                    title="PDF Preview"
+                  />
+                  <div className="mt-4 flex justify-center">
+                    <Link href={paper.filePath} target="_blank">
+                      <Button size="lg" className="w-full sm:w-auto">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Full Paper
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

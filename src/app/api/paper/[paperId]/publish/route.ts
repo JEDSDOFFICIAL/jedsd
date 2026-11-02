@@ -11,6 +11,7 @@
 
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { AuditAction, PaperStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
@@ -118,6 +119,13 @@ export async function PATCH(
       if (emails.length > 0) {
         sendPaperPublicationMail({ paper: updatedPaper, recipientEmails: emails }).catch(() => {});
       }
+
+      // Invalidate the paper detail page and the sitemap so the next request
+      // gets fresh HTML with updated metadata and the paper appears in the
+      // sitemap immediately (without waiting for the 1-hour revalidate window).
+      revalidatePath(`/paper/${updatedPaper.paperId}`);
+      revalidatePath('/sitemap.xml');
+      revalidatePath('/archive');
     }
 
     return NextResponse.json({

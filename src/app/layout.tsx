@@ -3,12 +3,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/lib/Provider";
-import Head from "next/head";
+import { SITE_URL } from "@/lib/site";
 
 
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://jedsd.com'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'JEDSD | Journal of Embedded and Digital System Design',
     template: '%s | JEDSD',

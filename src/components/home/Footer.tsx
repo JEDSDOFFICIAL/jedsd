@@ -12,6 +12,7 @@ import {
 const NAVIGATE_LINKS = [
   { href: "/", label: "Home" },
   { href: "/paper", label: "Papers" },
+  { href: "/archive", label: "Archive" },
   { href: "/pre-publish", label: "Pre-Publish" },
   { href: "/dashboard", label: "Dashboard" },
 ];

@@ -22,7 +22,6 @@ const uploadPaperSchema = z.object({
     .string()
     .url("Invalid file path URL.")
     .min(1, "File path is required."),
- 
   keywords: z
     .array(z.string().min(1, "Keyword cannot be empty."))
     .min(1, "At least one keyword is required."),
@@ -31,9 +30,9 @@ const uploadPaperSchema = z.object({
     .url("Invalid cover letter path URL.")
     .optional()
     .nullable(),
-  authorId: z.string().uuid("Invalid authorId format."),
-  contributors: z.array(contactInfoSchema), // Zod's .json() or more specific schema if structure is known
-  pointOfContact: contactInfoSchema, // Zod's .json() or more specific schema if structure is known
+  // authorId intentionally omitted — set server-side from session
+  contributors: z.array(contactInfoSchema),
+  pointOfContact: contactInfoSchema,
 });
 
 // Schema for deleting multiple research papers (DELETE request)
@@ -88,12 +87,14 @@ export async function POST(req: Request) {
       filePath,
       keywords,
       coverLetterPath,
-      authorId,
       contributors,
       pointOfContact,
     } = validationResult.data;
-    console.log("backend data is ,", validationResult.data);
-    // Verify author exists and is a USER (or AUTHOR, depending on your UserType definition for authors)
+
+    // Always use the authenticated user's ID — never trust authorId from the body
+    const authorId = session.user.id;
+
+    // Verify the session user exists
     const author = await prisma.user.findUnique({
       where: { id: authorId },
     });
@@ -204,18 +205,22 @@ export async function GET(request: Request) {
 
     const statuses = searchParams.getAll("status");
     if (statuses.length > 0) {
-      if (statuses.length === 1) {
-        where.status = statuses[0];
+      if (isAdminOrEditor) {
+        // Admins/editors can filter by any status
+        where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
+      } else if (authorId && authorId === userId) {
+        // Authors can see their own papers in any status
+        where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
+      } else if (reviewerId && reviewerId === userId) {
+        // Reviewers can filter their assigned papers by any status
+        where.status = statuses.length === 1 ? statuses[0] : { in: statuses };
       } else {
-        where.status = {
-          in: statuses
-        };
+        // Public callers: ignore any requested status and force the public list
+        where.status = { in: ["PUBLISH", "PUBLISHED"] };
       }
     } else if (!isAdminOrEditor && !authorId && !reviewerId) {
-      // If public request, only allow public statuses
-      where.status = {
-        in: ["ACCEPTED", "PRE_PUBLICATION", "FINAL_FILES_REQUESTED", "FINAL_FILES_RECEIVED", "DOI_ASSIGNED", "PUBLISHED"]
-      };
+      // No status param and no privileged context → public default
+      where.status = { in: ["PUBLISH", "PUBLISHED"] };
     }
 
     const reviewerStatus = searchParams.get("reviewerStatus");
@@ -340,6 +345,10 @@ export async function DELETE(req: Request) {
       { status: 401 }
     );
   }
+
+  const userRole = session.user.variableUserType;
+  const isAdmin = userRole === "ADMIN";
+
   try {
     const body = await req.json();
     const validationResult = deletePapersSchema.safeParse(body);
@@ -357,20 +366,39 @@ export async function DELETE(req: Request) {
 
     const { paperIds } = validationResult.data;
 
+    if (!isAdmin) {
+      // Non-admins can only delete their own papers that are still in UPLOAD status
+      const papers = await prisma.researchPaper.findMany({
+        where: { id: { in: paperIds } },
+        select: { id: true, authorId: true, status: true },
+      });
+
+      const unauthorised = papers.filter(
+        (p) => p.authorId !== session.user.id || p.status !== "UPLOAD"
+      );
+
+      if (unauthorised.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Forbidden: you can only delete your own papers while they are in UPLOAD status. " +
+              "Contact an administrator to delete submitted papers.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     const deleteResult = await prisma.researchPaper.deleteMany({
-      where: {
-        id: {
-          in: paperIds,
-        },
-      },
+      where: { id: { in: paperIds } },
     });
 
     if (deleteResult.count === 0) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "No research papers found with the provided IDs for deletion.",
+          message: "No research papers found with the provided IDs for deletion.",
         },
         { status: 404 }
       );
@@ -391,6 +419,8 @@ export async function DELETE(req: Request) {
 }
 
 // Schema for updating a research paper (PUT request)
+// Privileged fields (status, doi, acceptedDate, editorDecision*) are handled
+// separately — they are stripped for non-ADMIN/EDITOR callers below.
 const updatePaperSchema = z.object({
   paperId: z.string().uuid("Invalid paperId format."),
   title: z.string().min(1, "Title is required.").optional(),
@@ -398,16 +428,22 @@ const updatePaperSchema = z.object({
   filePath: z.string().url("Invalid file path URL.").optional(),
   keywords: z.array(z.string().min(1, "Keyword cannot be empty.")).optional(),
   coverLetterPath: z.string().url("Invalid cover letter path URL.").optional().nullable(),
-  doi: z.string().optional().nullable(),
   contributors: z.array(contactInfoSchema).optional(),
   pointOfContact: contactInfoSchema.optional(),
+  // Privileged fields — accepted in schema so validation passes, but
+  // stripped below unless the caller is ADMIN or EDITOR
+  doi: z.string().optional().nullable(),
   rating: z.number().min(0).max(5).optional().nullable(),
   submissionDate: z.coerce.date().optional(),
   acceptedDate: z.coerce.date().optional().nullable(),
   editorDecision: z.enum(["ACCEPT", "MINOR_REVISION", "MAJOR_REVISION", "REJECT"]).optional().nullable(),
   editorComments: z.string().optional().nullable(),
   editorDecisionFile: z.string().url("Invalid decision file URL.").optional().nullable(),
+  status: z.nativeEnum(PaperStatus).optional(),
 });
+
+// Statuses in which the paper owner is allowed to edit content fields
+const AUTHOR_EDITABLE_STATUSES = new Set(["UPLOAD", "REVISION_SUBMITTED"]);
 
 export async function PUT(req: Request) {
   const session = await getServerSession(authOptions);
@@ -417,6 +453,10 @@ export async function PUT(req: Request) {
       { status: 401 }
     );
   }
+
+  const userRole = session.user.variableUserType;
+  const isAdminOrEditor = userRole === "ADMIN" || userRole === "EDITOR";
+
   try {
     const url = new URL(req.url);
     const paperId = url.searchParams.get("paperId");
@@ -433,10 +473,10 @@ export async function PUT(req: Request) {
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: "Invalid request data.", 
-          errors: validationResult.error.errors 
+        {
+          success: false,
+          message: "Invalid request data.",
+          errors: validationResult.error.errors,
         },
         { status: 400 }
       );
@@ -444,9 +484,10 @@ export async function PUT(req: Request) {
 
     const { paperId: validatedPaperId, ...updateData } = validationResult.data;
 
-    // Check if paper exists
+    // Fetch the paper to check ownership and current status
     const existingPaper = await prisma.researchPaper.findUnique({
-      where: { id: validatedPaperId }
+      where: { id: validatedPaperId },
+      select: { id: true, authorId: true, status: true },
     });
 
     if (!existingPaper) {
@@ -456,41 +497,55 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Update the paper
+    const isOwner = existingPaper.authorId === session.user.id;
+
+    // Only the owner, ADMIN, or EDITOR may update at all
+    if (!isOwner && !isAdminOrEditor) {
+      return NextResponse.json(
+        { success: false, message: "Forbidden: you do not have permission to edit this paper." },
+        { status: 403 }
+      );
+    }
+
+    // Non-privileged owners can only edit while in an editable status
+    if (isOwner && !isAdminOrEditor && !AUTHOR_EDITABLE_STATUSES.has(existingPaper.status)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Forbidden: papers in status "${existingPaper.status}" cannot be edited by authors. ` +
+            `Contact an editor to request changes.`,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Strip privileged fields from non-ADMIN/EDITOR callers
+    if (!isAdminOrEditor) {
+      delete (updateData as any).status;
+      delete (updateData as any).doi;
+      delete (updateData as any).acceptedDate;
+      delete (updateData as any).editorDecision;
+      delete (updateData as any).editorComments;
+      delete (updateData as any).editorDecisionFile;
+      delete (updateData as any).rating;
+      delete (updateData as any).submissionDate;
+    }
+
     const updatedPaper = await prisma.researchPaper.update({
       where: { id: validatedPaperId },
-      data: {
-        ...updateData
-      },
+      data: { ...updateData },
       include: {
         author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            affiliation: true
-          }
+          select: { id: true, name: true, email: true, affiliation: true },
         },
-        reviews: {
-          include: {
-            reviewer: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            }
-          }
-        }
-      }
+      },
     });
 
     return NextResponse.json({
       success: true,
       message: "Research paper updated successfully.",
-      data: updatedPaper
+      data: updatedPaper,
     });
-
   } catch (error: any) {
     console.error("Error updating research paper:", error);
     return NextResponse.json(

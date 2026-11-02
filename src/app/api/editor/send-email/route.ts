@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { resend } from "@/lib/mailer";
+import { SITE_URL } from "@/lib/site";
 import { z } from "zod";
 import EditorDecisionEmail from "../../../../../emails/EditorDecisionMail";
 
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
     const { recipients, subject, message, paperInfo, reviewerName, reviewerStatus } =
       validation.data;
 
-    const baseUrl = process.env.NEXTAUTH_URL || "https://jedsd.com";
+    const baseUrl = SITE_URL;
     const paperUrl = paperInfo
       ? `${baseUrl}/paper/${paperInfo.paperId}`
       : `${baseUrl}/dashboard`;
