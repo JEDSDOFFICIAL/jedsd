@@ -168,6 +168,9 @@ const updatePaperSchema = z.object({
   editorDecisionFile: z.string().optional().nullable(),
   editorDecision: z.enum(["ACCEPT", "MINOR_REVISION", "MAJOR_REVISION", "REJECT"]).optional().nullable(),
   editorComments: z.string().optional().nullable(),
+  volume: z.number().int().positive().optional().nullable(),
+  issueNumber: z.number().int().positive().optional().nullable(),
+  publishedDate: z.coerce.date().optional().nullable(),
   contributors: z.array(z.object({
     fullName: z.string().min(1, "Full Name is required"),
     email: z.string().email("Invalid email address").min(1, "Email is required"),

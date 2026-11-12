@@ -77,11 +77,13 @@ import {
   Download,
   Mail,
   Lock,
+  BookOpen,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 import { ResearchPaper, PaperReview, User } from "@prisma/client";
 import {
   fetchPapers,
@@ -115,6 +117,9 @@ interface PaperWithRelations {
   submissionDate: Date;
   lastUpdated: Date;
   acceptedDate: Date | null;
+  publishedDate?: Date | null;
+  volume?: number | null;
+  issueNumber?: number | null;
   status: string;
   authorId: string | null;
   contributors: AuthorOrContact[];
@@ -124,6 +129,9 @@ interface PaperWithRelations {
 }
 
 export default function FinalDecisionPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.variableUserType === "ADMIN" || session?.user?.userType === "ADMIN";
+
   const [finalPapers, setFinalPapers] = useState<PaperWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -155,6 +163,9 @@ export default function FinalDecisionPage() {
     filePath: "",
     coverLetterPath: "",
     doi: "",
+    volume: "" as string,
+    issueNumber: "" as string,
+    publishedDate: "",
     contributors: [] as AuthorOrContact[],
     pointOfContact: {
       fullName: "",
@@ -231,6 +242,9 @@ export default function FinalDecisionPage() {
       filePath: paper.filePath,
       coverLetterPath: paper.coverLetterPath || "",
       doi: paper.doi || "",
+      volume: paper.volume != null ? String(paper.volume) : "",
+      issueNumber: paper.issueNumber != null ? String(paper.issueNumber) : "",
+      publishedDate: paper.publishedDate ? new Date(paper.publishedDate).toISOString().split('T')[0] : "",
       contributors: paper.contributors || [],
       pointOfContact: paper.pointOfContact || {
         fullName: "",
@@ -258,6 +272,9 @@ export default function FinalDecisionPage() {
           filePath: "",
           coverLetterPath: "",
           doi: "",
+          volume: "",
+          issueNumber: "",
+          publishedDate: "",
           contributors: [],
           pointOfContact: {
             fullName: "",
@@ -287,6 +304,9 @@ export default function FinalDecisionPage() {
         filePath: "",
         coverLetterPath: "",
         doi: "",
+        volume: "",
+        issueNumber: "",
+        publishedDate: "",
         contributors: [],
         pointOfContact: {
           fullName: "",
@@ -395,6 +415,9 @@ export default function FinalDecisionPage() {
         filePath: uploadedPaperUrl,
         coverLetterPath: uploadedCoverLetterUrl || null,
         doi: editFormData.doi || null,
+        volume: editFormData.volume ? parseInt(editFormData.volume, 10) : null,
+        issueNumber: editFormData.issueNumber ? parseInt(editFormData.issueNumber, 10) : null,
+        publishedDate: editFormData.publishedDate ? new Date(editFormData.publishedDate) : null,
         contributors: editFormData.contributors,
         pointOfContact: editFormData.pointOfContact,
         submissionDate: editFormData.submissionDate ? new Date(editFormData.submissionDate) : undefined,
@@ -768,7 +791,7 @@ export default function FinalDecisionPage() {
                   </>
                 )}
                 
-                {status === "ACCEPTED" && (
+                {status === "ACCEPTED" && isAdmin && (
                   <DropdownMenuItem
                     onClick={() => {
                       setSelectedPaper(paper);
@@ -1038,7 +1061,40 @@ export default function FinalDecisionPage() {
                 )}
               </div>
 
-              <Separator />
+              {/* Volume / Issue / Publication Date */}
+              {(selectedPaper.volume != null || selectedPaper.issueNumber != null || selectedPaper.publishedDate) && (
+                <div className="grid grid-cols-3 gap-4">
+                  {selectedPaper.volume != null && (
+                    <div>
+                      <Label className="text-sm font-semibold flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        Volume
+                      </Label>
+                      <p className="mt-2 text-sm font-medium">{selectedPaper.volume}</p>
+                    </div>
+                  )}
+                  {selectedPaper.issueNumber != null && (
+                    <div>
+                      <Label className="text-sm font-semibold flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Issue
+                      </Label>
+                      <p className="mt-2 text-sm font-medium">{selectedPaper.issueNumber}</p>
+                    </div>
+                  )}
+                  {selectedPaper.publishedDate && (
+                    <div>
+                      <Label className="text-sm font-semibold flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Published
+                      </Label>
+                      <p className="mt-2 text-sm">
+                        {new Date(selectedPaper.publishedDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <Label className="text-sm font-semibold flex items-center gap-2">
@@ -1209,6 +1265,62 @@ export default function FinalDecisionPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Example: 10.1234/example.2024.001
                 </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="edit-volume" className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Volume
+                  </Label>
+                  <Input
+                    id="edit-volume"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={editFormData.volume}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, volume: e.target.value }))}
+                    placeholder="e.g. 1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-issue" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Issue Number
+                  </Label>
+                  <Input
+                    id="edit-issue"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={editFormData.issueNumber}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, issueNumber: e.target.value }))}
+                    placeholder="e.g. 2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-published-date" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Publication Date
+                  </Label>
+                  <Input
+                    id="edit-published-date"
+                    type="date"
+                    value={editFormData.publishedDate}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, publishedDate: e.target.value }))}
+                  />
+                  {editFormData.publishedDate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditFormData(prev => ({ ...prev, publishedDate: "" }))}
+                      className="mt-1 h-6 text-xs"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -1648,32 +1760,34 @@ export default function FinalDecisionPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Publish Paper Confirmation */}
-      <AlertDialog open={publishDialogOpen} onOpenChange={handleClosePublishDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Send className="h-5 w-5 text-blue-600" />
-              Publish Paper
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to publish <strong>{selectedPaper?.title}</strong>?
-              This will make the paper publicly available and notify the author.
-              This is the final step in the publication process.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handlePublishPaper}
-              disabled={actionLoading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {actionLoading ? "Publishing..." : "Publish Paper"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Publish Paper Confirmation — admin only */}
+      {isAdmin && (
+        <AlertDialog open={publishDialogOpen} onOpenChange={handleClosePublishDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Send className="h-5 w-5 text-blue-600" />
+                Publish Paper
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to publish <strong>{selectedPaper?.title}</strong>?
+                This will make the paper publicly available and notify the author.
+                This is the final step in the publication process.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handlePublishPaper}
+                disabled={actionLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {actionLoading ? "Publishing..." : "Publish Paper"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {/* Delete Paper Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={handleCloseDeleteDialog}>

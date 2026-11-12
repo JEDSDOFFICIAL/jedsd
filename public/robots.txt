@@ -1,5 +1,6 @@
 User-agent: *
-Disallow: /api/
+allow: /api/pdf/
+disallow: /api/
 Disallow: /admin/
 Disallow: /dashboard/
 

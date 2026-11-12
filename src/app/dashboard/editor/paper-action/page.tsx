@@ -1,7 +1,9 @@
 "use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +94,8 @@ interface Paper {
 export default function PaperActionPage() {
   const searchParams = useSearchParams();
   const paperId = searchParams.get("paperId");
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.variableUserType === "ADMIN" || session?.user?.userType === "ADMIN";
   
   const [paper, setPaper] = useState<Paper | null>(null);
   const [loading, setLoading] = useState(true);
@@ -210,9 +214,12 @@ export default function PaperActionPage() {
         );
         break;
       case "ACCEPTED":
-        actions.push(
-          { id: "PUBLISH", label: "Publish Paper", icon: Globe }
-        );
+        // Only admins can publish papers
+        if (isAdmin) {
+          actions.push(
+            { id: "PUBLISH", label: "Publish Paper", icon: Globe }
+          );
+        }
         break;
     }
 

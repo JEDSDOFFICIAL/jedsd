@@ -33,6 +33,7 @@ import {
   Tag,
   User,
   X,
+  BookOpen,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -76,6 +77,9 @@ interface ResearchPaperWithRelations {
   rating: number | null;
   submissionDate: Date;
   acceptedDate: Date | null;
+  publishedDate?: Date | null;
+  volume?: number | null;
+  issueNumber?: number | null;
   status: string;
   contributors: AuthorOrContact[];
   pointOfContact: AuthorOrContact;
@@ -95,6 +99,8 @@ interface SearchFilters {
   sortBy: "submissionDate" | "acceptedDate" | "title";
   sortOrder: "asc" | "desc";
   yearFilter: string;
+  volumeFilter: string;
+  issueFilter: string;
 }
 
 const DEFAULT_FILTERS: SearchFilters = {
@@ -105,6 +111,8 @@ const DEFAULT_FILTERS: SearchFilters = {
   sortBy: "submissionDate",
   sortOrder: "desc",
   yearFilter: "",
+  volumeFilter: "",
+  issueFilter: "",
 };
 
 const PAPERS_PER_PAGE = 5;
@@ -144,7 +152,9 @@ function filtersHaveSearch(filters: SearchFilters) {
     filters.titleQuery.trim() ||
       filters.keywordQuery.trim() ||
       filters.authorQuery.trim() ||
-      filters.abstractQuery.trim()
+      filters.abstractQuery.trim() ||
+      filters.volumeFilter ||
+      filters.issueFilter
   );
 }
 
@@ -159,7 +169,9 @@ function filtersAreEqual(
     a.abstractQuery === b.abstractQuery &&
     a.sortBy === b.sortBy &&
     a.sortOrder === b.sortOrder &&
-    a.yearFilter === b.yearFilter
+    a.yearFilter === b.yearFilter &&
+    a.volumeFilter === b.volumeFilter &&
+    a.issueFilter === b.issueFilter
   );
 }
 
@@ -267,6 +279,24 @@ function paperMatchesFilters(
     }
   }
 
+  /* ------------------------------ VOLUME -------------------------------- */
+
+  if (filters.volumeFilter) {
+    const vol = parseInt(filters.volumeFilter, 10);
+    if (!isNaN(vol) && paper.volume !== vol) {
+      return false;
+    }
+  }
+
+  /* ------------------------------- ISSUE -------------------------------- */
+
+  if (filters.issueFilter) {
+    const iss = parseInt(filters.issueFilter, 10);
+    if (!isNaN(iss) && paper.issueNumber !== iss) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -327,24 +357,15 @@ function filtersToParams(filters: SearchFilters) {
   }
 
   if (filters.keywordQuery.trim()) {
-    params.set(
-      "keywords",
-      filters.keywordQuery.trim()
-    );
+    params.set("keywords", filters.keywordQuery.trim());
   }
 
   if (filters.authorQuery.trim()) {
-    params.set(
-      "author",
-      filters.authorQuery.trim()
-    );
+    params.set("author", filters.authorQuery.trim());
   }
 
   if (filters.abstractQuery.trim()) {
-    params.set(
-      "abstract",
-      filters.abstractQuery.trim()
-    );
+    params.set("abstract", filters.abstractQuery.trim());
   }
 
   if (filters.sortBy !== "submissionDate") {
@@ -359,6 +380,14 @@ function filtersToParams(filters: SearchFilters) {
     params.set("year", filters.yearFilter);
   }
 
+  if (filters.volumeFilter) {
+    params.set("volume", filters.volumeFilter);
+  }
+
+  if (filters.issueFilter) {
+    params.set("issue", filters.issueFilter);
+  }
+
   return params;
 }
 
@@ -366,26 +395,21 @@ function paramsToFilters(
   searchParams: URLSearchParams
 ): SearchFilters {
   const sortBy = searchParams.get("sortBy");
-
   const sortOrder = searchParams.get("order");
 
   return {
-    titleQuery: searchParams.get("q") ?? "",
-    keywordQuery:
-      searchParams.get("keywords") ?? "",
-    authorQuery:
-      searchParams.get("author") ?? "",
-    abstractQuery:
-      searchParams.get("abstract") ?? "",
+    titleQuery:    searchParams.get("q")        ?? "",
+    keywordQuery:  searchParams.get("keywords") ?? "",
+    authorQuery:   searchParams.get("author")   ?? "",
+    abstractQuery: searchParams.get("abstract") ?? "",
     sortBy:
-      sortBy === "acceptedDate" ||
-      sortBy === "title"
+      sortBy === "acceptedDate" || sortBy === "title"
         ? sortBy
         : "submissionDate",
-    sortOrder:
-      sortOrder === "asc" ? "asc" : "desc",
-    yearFilter:
-      searchParams.get("year") ?? "",
+    sortOrder: sortOrder === "asc" ? "asc" : "desc",
+    yearFilter:   searchParams.get("year")   ?? "",
+    volumeFilter: searchParams.get("volume") ?? "",
+    issueFilter:  searchParams.get("issue")  ?? "",
   };
 }
 
@@ -434,12 +458,11 @@ interface FilterDrawerProps {
   open: boolean;
   filters: SearchFilters;
   availableYears: string[];
+  availableVolumes: number[];
+  availableIssues: number[];
   loading: boolean;
   onClose: () => void;
-  onChange: (
-    key: keyof SearchFilters,
-    value: string
-  ) => void;
+  onChange: (key: keyof SearchFilters, value: string) => void;
   onApply: () => void;
   onClear: () => void;
 }
@@ -448,6 +471,8 @@ function FilterDrawer({
   open,
   filters,
   availableYears,
+  availableVolumes,
+  availableIssues,
   loading,
   onClose,
   onChange,
@@ -634,14 +659,9 @@ function FilterDrawer({
               </Label>
 
               <Select
-                value={
-                  filters.yearFilter || "all"
-                }
+                value={filters.yearFilter || "all"}
                 onValueChange={(value) =>
-                  onChange(
-                    "yearFilter",
-                    value === "all" ? "" : value
-                  )
+                  onChange("yearFilter", value === "all" ? "" : value)
                 }
               >
                 <SelectTrigger className="h-11 rounded-xl">
@@ -649,21 +669,73 @@ function FilterDrawer({
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="all">
-                    All years
-                  </SelectItem>
-
+                  <SelectItem value="all">All years</SelectItem>
                   {availableYears.map((year) => (
-                    <SelectItem
-                      key={year}
-                      value={year}
-                    >
-                      {year}
-                    </SelectItem>
+                    <SelectItem key={year} value={year}>{year}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Volume */}
+            {availableVolumes.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Volume
+                </Label>
+
+                <Select
+                  value={filters.volumeFilter || "all"}
+                  onValueChange={(value) =>
+                    onChange("volumeFilter", value === "all" ? "" : value)
+                  }
+                >
+                  <SelectTrigger className="h-11 rounded-xl">
+                    <SelectValue placeholder="All volumes" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">All volumes</SelectItem>
+                    {availableVolumes.map((vol) => (
+                      <SelectItem key={vol} value={String(vol)}>
+                        Vol. {vol}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Issue */}
+            {availableIssues.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <FileText className="h-3.5 w-3.5" />
+                  Issue
+                </Label>
+
+                <Select
+                  value={filters.issueFilter || "all"}
+                  onValueChange={(value) =>
+                    onChange("issueFilter", value === "all" ? "" : value)
+                  }
+                >
+                  <SelectTrigger className="h-11 rounded-xl">
+                    <SelectValue placeholder="All issues" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">All issues</SelectItem>
+                    {availableIssues.map((iss) => (
+                      <SelectItem key={iss} value={String(iss)}>
+                        No. {iss}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Sort */}
             <div className="space-y-2">
@@ -783,30 +855,20 @@ function ActiveFilterChips({
   ) => void;
 }) {
   const items = [
+    { key: "titleQuery"    as const, label: "Title",    value: filters.titleQuery    },
+    { key: "keywordQuery"  as const, label: "Keywords", value: filters.keywordQuery  },
+    { key: "authorQuery"   as const, label: "Author",   value: filters.authorQuery   },
+    { key: "abstractQuery" as const, label: "Abstract", value: filters.abstractQuery },
+    { key: "yearFilter"    as const, label: "Year",     value: filters.yearFilter    },
     {
-      key: "titleQuery" as const,
-      label: "Title",
-      value: filters.titleQuery,
+      key: "volumeFilter" as const,
+      label: "Volume",
+      value: filters.volumeFilter ? `Vol. ${filters.volumeFilter}` : "",
     },
     {
-      key: "keywordQuery" as const,
-      label: "Keywords",
-      value: filters.keywordQuery,
-    },
-    {
-      key: "authorQuery" as const,
-      label: "Author",
-      value: filters.authorQuery,
-    },
-    {
-      key: "abstractQuery" as const,
-      label: "Abstract",
-      value: filters.abstractQuery,
-    },
-    {
-      key: "yearFilter" as const,
-      label: "Year",
-      value: filters.yearFilter,
+      key: "issueFilter" as const,
+      label: "Issue",
+      value: filters.issueFilter ? `No. ${filters.issueFilter}` : "",
     },
   ].filter((item) => item.value);
 
@@ -902,10 +964,21 @@ function PaperCard({
           {paper.acceptedDate && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
-              {formatDate(
-                paper.acceptedDate
-              )}
+              {formatDate(paper.acceptedDate)}
             </span>
+          )}
+
+          {paper.volume != null && (
+            <Badge variant="outline" className="rounded-full text-[10px]">
+              <BookOpen className="h-3 w-3 mr-1" />
+              Vol. {paper.volume}
+            </Badge>
+          )}
+
+          {paper.issueNumber != null && (
+            <Badge variant="outline" className="rounded-full text-[10px]">
+              No. {paper.issueNumber}
+            </Badge>
           )}
         </div>
 
@@ -1184,30 +1257,44 @@ function PaperSearchContent() {
     papers.forEach((paper) => {
       if (paper.submissionDate) {
         years.add(
-          new Date(
-            paper.submissionDate
-          )
-            .getFullYear()
-            .toString()
+          new Date(paper.submissionDate).getFullYear().toString()
         );
       }
-
       if (paper.acceptedDate) {
         years.add(
-          new Date(
-            paper.acceptedDate
-          )
-            .getFullYear()
-            .toString()
+          new Date(paper.acceptedDate).getFullYear().toString()
         );
       }
     });
 
-    return Array.from(years).sort(
-      (a, b) =>
-        Number(b) - Number(a)
-    );
+    return Array.from(years).sort((a, b) => Number(b) - Number(a));
   }, [papers]);
+
+  // We fetch all published papers (up to 100) so we can derive filter options
+  // from the full corpus rather than just the current page.
+  const [allPapers, setAllPapers] = useState<ResearchPaperWithRelations[]>([]);
+
+  useEffect(() => {
+    if (!initialized) return;
+    axios
+      .get('/api/paper?status=PUBLISH&limit=200')
+      .then((r) => setAllPapers(r.data?.papers ?? []))
+      .catch(() => {/* non-critical */});
+  }, [initialized]);
+
+  const availableVolumes = useMemo(() => {
+    const vols = new Set<number>();
+    allPapers.forEach((p) => { if (p.volume != null) vols.add(p.volume); });
+    return Array.from(vols).sort((a, b) => a - b);
+  }, [allPapers]);
+
+  const availableIssues = useMemo(() => {
+    const iss = new Set<number>();
+    allPapers
+      .filter((p) => !filters.volumeFilter || p.volume === parseInt(filters.volumeFilter, 10))
+      .forEach((p) => { if (p.issueNumber != null) iss.add(p.issueNumber); });
+    return Array.from(iss).sort((a, b) => a - b);
+  }, [allPapers, filters.volumeFilter]);
 
   /* ---------------------------------------------------------------------- */
   /*                           UPDATE URL                                   */
@@ -1330,6 +1417,14 @@ function PaperSearchContent() {
             "year",
             activeFilters.yearFilter
           );
+        }
+
+        if (activeFilters.volumeFilter) {
+          params.set("volume", activeFilters.volumeFilter);
+        }
+
+        if (activeFilters.issueFilter) {
+          params.set("issue", activeFilters.issueFilter);
         }
 
         console.log(
@@ -1733,8 +1828,9 @@ function PaperSearchContent() {
                         filters.authorQuery,
                         filters.abstractQuery,
                         filters.yearFilter,
-                      ].filter(Boolean)
-                        .length
+                        filters.volumeFilter,
+                        filters.issueFilter,
+                      ].filter(Boolean).length
                     }
                   </span>
                 )}
@@ -1969,24 +2065,14 @@ function PaperSearchContent() {
       <FilterDrawer
         open={filterDrawerOpen}
         filters={filters}
-        availableYears={
-          availableYears
-        }
+        availableYears={availableYears}
+        availableVolumes={availableVolumes}
+        availableIssues={availableIssues}
         loading={loading}
-        onClose={() =>
-          setFilterDrawerOpen(
-            false
-          )
-        }
-        onChange={
-          handleFilterChange
-        }
-        onApply={() =>
-          applyFilters()
-        }
-        onClear={
-          clearFilters
-        }
+        onClose={() => setFilterDrawerOpen(false)}
+        onChange={handleFilterChange}
+        onApply={() => applyFilters()}
+        onClear={clearFilters}
       />
     </main>
   );

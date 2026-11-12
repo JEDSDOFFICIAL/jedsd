@@ -39,10 +39,8 @@ export async function canAcceptManuscript(user: SessionUser): Promise<boolean> {
 }
 
 export async function canPublish(user: SessionUser): Promise<boolean> {
-  if (user.variableUserType === UserType.ADMIN) return true;
- 
-  const dbUser = await getDbUser(user.id);
-  return !!dbUser?.canPublish;
+  // Only ADMIN can publish papers — no delegation via canPublish flag.
+  return user.variableUserType === UserType.ADMIN;
 }
 
 export async function canAssignDOI(user: SessionUser): Promise<boolean> {

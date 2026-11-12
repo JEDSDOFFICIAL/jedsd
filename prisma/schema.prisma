@@ -74,6 +74,9 @@ model ResearchPaper {
   submissionDate  DateTime      @default(now())
   lastUpdated     DateTime      @updatedAt
   acceptedDate    DateTime?
+  publishedDate   DateTime?
+  volume          Int?
+  issueNumber     Int?
   status          PaperStatus   @default(UPLOAD)
   authorId        String?
   contributors    Json

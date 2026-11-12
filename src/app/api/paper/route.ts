@@ -191,7 +191,7 @@ export async function GET(request: Request) {
     const keywords = searchParams.get("keywords");
     if (keywords) {
       where.keywords = {
-        has: keywords, // assuming keywords is a list or array
+        has: keywords,
       };
     }
 
@@ -199,8 +199,21 @@ export async function GET(request: Request) {
     if (title) {
       where.title = {
         contains: title,
-        mode: "insensitive", // Case-insensitive search
+        mode: "insensitive",
       };
+    }
+
+    // Volume / issue number filtering (public + privileged)
+    const volumeParam = searchParams.get("volume");
+    if (volumeParam) {
+      const vol = parseInt(volumeParam, 10);
+      if (!isNaN(vol)) where.volume = vol;
+    }
+
+    const issueParam = searchParams.get("issue");
+    if (issueParam) {
+      const issue = parseInt(issueParam, 10);
+      if (!isNaN(issue)) where.issueNumber = issue;
     }
 
     const statuses = searchParams.getAll("status");

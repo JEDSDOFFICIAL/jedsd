@@ -3,8 +3,8 @@
  *
  * Publishes a paper (sets status → PUBLISH / ACCEPTED / REJECTED).
  *
- * SECURITY: Only ADMIN or users with canPublish = true are allowed.
- *   Normal EDITOR, REVIEWER, AUTHOR → 403 Forbidden.
+ * SECURITY: ADMIN only.
+ *   EDITOR, REVIEWER, AUTHOR → 403 Forbidden.
  *
  * Body: { status: "ACCEPTED" | "REJECTED" | "PUBLISH", doi?: string }
  */
@@ -26,6 +26,9 @@ const paperIdParamSchema = z.object({
 const updatePaperStatusSchema = z.object({
   status: z.enum(["ACCEPTED", "REJECTED", "PUBLISH"] as const),
   doi: z.string().optional().nullable(),
+  volume: z.number().int().positive().optional().nullable(),
+  issueNumber: z.number().int().positive().optional().nullable(),
+  publishedDate: z.coerce.date().optional().nullable(),
 });
 
 export async function PATCH(
@@ -54,9 +57,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Forbidden: Publishing requires explicit publication permission. " +
-            "Contact an administrator to grant this permission.",
+          message: "Forbidden: only administrators can publish papers.",
         },
         { status: 403 }
       );
@@ -81,7 +82,7 @@ export async function PATCH(
       );
     }
 
-    const { status, doi } = bodyResult.data;
+    const { status, doi, volume, issueNumber, publishedDate } = bodyResult.data;
 
     // ── Update ────────────────────────────────────────────────────────────────
     const updatedPaper = await prisma.$transaction(async (tx) => {
@@ -92,6 +93,13 @@ export async function PATCH(
           acceptedDate:
             status === "ACCEPTED" || status === "PUBLISH" ? new Date() : null,
           ...(doi !== undefined ? { doi: doi ?? undefined } : {}),
+          ...(volume !== undefined ? { volume: volume ?? null } : {}),
+          ...(issueNumber !== undefined ? { issueNumber: issueNumber ?? null } : {}),
+          ...(publishedDate !== undefined
+            ? { publishedDate: publishedDate ?? null }
+            : status === "PUBLISH"
+            ? { publishedDate: new Date() }
+            : {}),
         },
         include: {
           author: { select: { name: true, email: true } },
