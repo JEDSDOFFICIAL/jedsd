@@ -1,6 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* Font CSS Variables - loaded via next/font in layout.tsx */
+/* --font-heading: Instrument Serif (fallback: Georgia, serif) */
+/* --font-body: Space Grotesk (fallback: Inter, system-ui, sans-serif) */
 
 
 html, body {
@@ -18,11 +21,11 @@ html, body {
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-body), 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
 }
 
 h1,h2,h3,h4,h5,h6,.chicle-regular {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-heading), 'Playfair Display', Georgia, serif;
 }
 
 /* Prevent horizontal scroll on all elements */

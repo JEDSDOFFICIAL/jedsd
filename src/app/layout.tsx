@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/lib/Provider";
 import { SITE_URL } from "@/lib/site";
+import { instrumentSerif, spaceGrotesk } from "./fonts";
 
 
 
@@ -76,7 +77,7 @@ export default function RootLayout({
 }>) {
   
   return (
-    <html lang="en">
+    <html lang="en" className={`${instrumentSerif.variable} ${spaceGrotesk.variable}`}>
       <body
         className={`antialiased overflow-x-clip w-full max-w-full`}
       >
