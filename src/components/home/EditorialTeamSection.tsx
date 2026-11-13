@@ -18,7 +18,7 @@ interface PersonCardProps {
 function PersonCard({ person, isChief = false }: PersonCardProps) {
   return (
     <Card
-      className={`h-full transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${
+      className={`h-full transition-all duration-300 hover:shadow-lg  ${
         isChief ? "border-primary/50 bg-primary/5" : ""
       }`}
     >
@@ -86,7 +86,7 @@ function PersonCard({ person, isChief = false }: PersonCardProps) {
 export default function EditorialTeamSection() {
   return (
     <section className="w-full py-16 bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 max-w-7xl">
+      <div className="container  mx-auto px-4 max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-12 space-y-3">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">

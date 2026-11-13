@@ -31,6 +31,7 @@ import PaperDetailsClient from "./PaperDetailsClient";
 import AuthorBadges from "./AuthorBadges";
 import PaperBreadcrumb from "@/components/paper/PaperBreadcrumb";
 import CitationActions from "@/components/paper/CitationActions";
+import BibtexCopyButton from "@/components/paper/BibtexCopyButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -544,22 +545,40 @@ export default async function PaperDetailsPage({
 
                   <PaperDetailsClient paper={paper} />
 
-                  {/* Citation Button */}
+                  {/* Citation Buttons */}
                   {isPublishedStatus(paper.status) && paper.acceptedDate && (
-                    <CitationActions
-                      title={paper.title}
-                      authors={
-                        contributors.length > 0
-                          ? contributors.map((c) => c.fullName).join(", ")
-                          : paper.author?.name ?? "Unknown Author"
-                      }
-                      year={pubDate.getFullYear()}
-                      journal="JEDSD - Journal of Embedded and Digital System Design"
-                      volume={paper.volume}
-                      issue={paper.issueNumber}
-                      doi={doiIdentifier ?? undefined}
-                      url={`${SITE_URL}/paper/${paper.paperId}`}
-                    />
+                    <>
+                      <CitationActions
+                        title={paper.title}
+                        authors={
+                          contributors.length > 0
+                            ? contributors.map((c) => c.fullName).join(", ")
+                            : paper.author?.name ?? "Unknown Author"
+                        }
+                        year={pubDate.getFullYear()}
+                        journal="JEDSD - Journal of Embedded and Digital System Design"
+                        volume={paper.volume}
+                        issue={paper.issueNumber}
+                        doi={doiIdentifier ?? undefined}
+                        url={`${SITE_URL}/paper/${paper.paperId}`}
+                      />
+                      
+                      <BibtexCopyButton
+                        title={paper.title}
+                        authors={
+                          contributors.length > 0
+                            ? contributors.map((c) => c.fullName).join(", ")
+                            : paper.author?.name ?? "Unknown Author"
+                        }
+                        year={pubDate.getFullYear()}
+                        journal="JEDSD - Journal of Embedded and Digital System Design"
+                        volume={paper.volume}
+                        issue={paper.issueNumber}
+                        doi={doiIdentifier ?? undefined}
+                        url={`${SITE_URL}/paper/${paper.paperId}`}
+                        variant="default"
+                      />
+                    </>
                   )}
                 </CardContent>
               </Card>

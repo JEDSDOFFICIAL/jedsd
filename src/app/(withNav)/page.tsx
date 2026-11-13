@@ -4,7 +4,6 @@ import FeaturesSection from "@/components/home/FeaturesSection";
 import SubmissionFlowchart from "@/components/home/SubmissionFlowchart";
 import CallForPapers from "@/components/home/CallForPapers";
 import EditorialTeamSection from "@/components/home/EditorialTeamSection";
-import PublicationArchiveSection from "@/components/home/PublicationArchiveSection";
 import LatestArticlesSection from "@/components/home/LatestArticlesSection";
 
 export default function Home() {
@@ -13,7 +12,6 @@ export default function Home() {
       <HomePage />
       <AboutUs />
       <LatestArticlesSection />
-      <PublicationArchiveSection />
       <EditorialTeamSection />
       <FeaturesSection />
       <SubmissionFlowchart />

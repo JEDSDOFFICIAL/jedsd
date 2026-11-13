@@ -199,11 +199,11 @@ function Navbar() {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
 
-                  {/* Publications */}
+                  {/* Papers */}
                   <NavigationMenuItem>
                     <NavigationMenuLink
                       className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
-                      render={<Link href="/publications">Publications</Link>}
+                      render={<Link href="/paper">Papers</Link>}
                     />
                   </NavigationMenuItem>
 
@@ -212,6 +212,14 @@ function Navbar() {
                     <NavigationMenuLink
                       className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
                       render={<Link href="/archive">Archive</Link>}
+                    />
+                  </NavigationMenuItem>
+
+                  {/* Team */}
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      render={<Link href="/guides/our-team">Team</Link>}
                     />
                   </NavigationMenuItem>
 
@@ -462,8 +470,9 @@ function DropdownMenuProfile({
 
 const MOBILE_LINKS = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/publications", label: "Publications", icon: BookOpen },
-  { href: "/archive", label: "Archive", icon: FileText },
+  { href: "/paper", label: "Papers", icon: FileText },
+  { href: "/archive", label: "Archive", icon: BookOpen },
+  { href: "/guides/our-team", label: "Team", icon: User },
   { href: "/pre-publish", label: "Pre-Publish", icon: Clock3 },
 ];
 
