@@ -14,7 +14,7 @@ export default function WithNavLayout({
       </header>
 
       {/* Main Content - takes remaining space */}
-      <main className="flex-1 w-full max-w-full">
+      <main className="flex-1 w-full max-w-full ">
         {children}
       </main>
 

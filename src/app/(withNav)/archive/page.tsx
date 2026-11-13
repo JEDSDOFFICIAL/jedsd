@@ -99,7 +99,7 @@ export default async function ArchivePage({ searchParams }: PageProps) {
 
   const volumes = Array.from(
     new Set(allPapers.map((p) => p.volume).filter((v): v is number => v !== null))
-  ).sort((a, b) => a - b);
+  ).sort((a, b) => b - a);
 
   const issues = Array.from(
     new Set(allPapers.map((p) => p.issueNumber).filter((i): i is number => i !== null))
@@ -108,12 +108,25 @@ export default async function ArchivePage({ searchParams }: PageProps) {
   const isFiltered = volumeFilter !== null || issueFilter !== null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
+    <div className="max-w-7xl mx-auto px-4 py-10 bg-gradient-to-b from-background to-muted/20 min-h-screen">
+      {/* Breadcrumb */}
+      <nav className="mb-6">
+        <ol className="flex items-center gap-2 text-sm text-muted-foreground">
+          <li>
+            <Link href="/" className="hover:text-primary">
+              Home
+            </Link>
+          </li>
+          <li>/</li>
+          <li className="text-foreground font-medium">Archive</li>
+        </ol>
+      </nav>
+
       <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Published Papers Archive</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl md:text-4xl font-bold mb-3">Research Archive</h1>
+        <p className="text-lg text-muted-foreground">
           {papers.length} peer-reviewed paper{papers.length !== 1 ? 's' : ''}
-          {isFiltered ? ' matching your filter' : ' published in JEDSD'}.
+          {isFiltered ? ' matching your filter' : ' published in JEDSD'}
         </p>
       </header>
 

@@ -29,6 +29,8 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import PaperDetailsClient from "./PaperDetailsClient";
 import AuthorBadges from "./AuthorBadges";
+import PaperBreadcrumb from "@/components/paper/PaperBreadcrumb";
+import CitationActions from "@/components/paper/CitationActions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,6 +54,8 @@ interface ResearchPaper {
   filePath: string;
   coverLetterPath?: string | null;
   rating?: number | null;
+  volume?: number | null;
+  issueNumber?: number | null;
   author?: {
     id: string;
     name: string;
@@ -440,44 +444,59 @@ export default async function PaperDetailsPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="w-full min-h-screen overflow-x-hidden scroll-smooth">
-        <div className="container mx-auto px-4 w-full">
+      <div className="w-full min-h-screen overflow-x-hidden scroll-smooth bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto px-4 w-full max-w-7xl">
+          {/* Breadcrumb */}
+          <div className="pt-6">
+            <PaperBreadcrumb
+              volume={paper.volume}
+              issueNumber={paper.issueNumber}
+              paperId={paper.paperId}
+              title={paper.title}
+            />
+          </div>
+
           {/* Header */}
           <div className="my-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-4 leading-tight">
+                {/* Publication Info Badges */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  {paper.volume && (
+                    <Badge variant="secondary" className="text-xs">
+                      Volume {paper.volume}
+                    </Badge>
+                  )}
+                  {paper.issueNumber && (
+                    <Badge variant="outline" className="text-xs">
+                      Issue {paper.issueNumber}
+                    </Badge>
+                  )}
+                  <Badge
+                    variant={isPublishedStatus(paper.status) ? "default" : "secondary"}
+                    className="text-xs"
+                  >
+                    {paper.status}
+                  </Badge>
+                </div>
+
+                <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
                   {paper.title}
                 </h1>
 
                 {/* Paper Meta Info */}
                 <div className="flex flex-wrap items-center gap-3 mb-6">
-                  {paper.author && (
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 text-base"
-                    >
-                      <User className="h-3 w-3" />
-                      {paper.author.name}
-                    </Badge>
-                  )}
-
-                  <Badge
-                    variant="outline"
-                    className="flex items-center gap-1 text-base"
-                  >
-                    <Calendar className="h-3 w-3" />
-                    Submitted: {formatDate(paper.submissionDate)}
-                  </Badge>
-
                   {paper.acceptedDate && (
-                    <Badge
-                      variant="default"
-                      className="flex items-center gap-1 text-base"
-                    >
-                      <Calendar className="h-3 w-3" />
-                      Published: {formatDate(paper.acceptedDate)}
-                    </Badge>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Published: {formatDate(paper.acceptedDate)}</span>
+                    </div>
+                  )}
+                  {!paper.acceptedDate && (
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Submitted: {formatDate(paper.submissionDate)}</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -511,12 +530,12 @@ export default async function PaperDetailsPage({
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Quick Actions */}
-              <Card>
+              <Card className="border-primary/20">
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+                  <CardTitle className="text-lg">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full" asChild>
+                  <Button className="w-full" asChild size="lg">
                     <Link href={paper.filePath} target="_blank">
                       <Eye className="h-4 w-4 mr-2" />
                       View Full Paper
@@ -524,26 +543,77 @@ export default async function PaperDetailsPage({
                   </Button>
 
                   <PaperDetailsClient paper={paper} />
+
+                  {/* Citation Button */}
+                  {isPublishedStatus(paper.status) && paper.acceptedDate && (
+                    <CitationActions
+                      title={paper.title}
+                      authors={
+                        contributors.length > 0
+                          ? contributors.map((c) => c.fullName).join(", ")
+                          : paper.author?.name ?? "Unknown Author"
+                      }
+                      year={pubDate.getFullYear()}
+                      journal="JEDSD - Journal of Embedded and Digital System Design"
+                      volume={paper.volume}
+                      issue={paper.issueNumber}
+                      doi={doiIdentifier ?? undefined}
+                      url={`${SITE_URL}/paper/${paper.paperId}`}
+                    />
+                  )}
                 </CardContent>
               </Card>
 
               {/* Paper Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-xl font-semibold">
-                    Paper Information
+                  <CardTitle className="text-lg">
+                    Publication Details
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
+                  {/* Journal */}
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium text-muted-foreground">Journal</Label>
+                    <p className="text-sm font-medium">
+                      Journal of Embedded & Digital System Design
+                    </p>
+                    <p className="text-xs text-muted-foreground">ISSN: 2582-0605</p>
+                  </div>
+
+                  <Separator />
+
+                  {/* Volume & Issue */}
+                  {(paper.volume || paper.issueNumber) && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        {paper.volume && (
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium text-muted-foreground">Volume</Label>
+                            <p className="text-lg font-bold">{paper.volume}</p>
+                          </div>
+                        )}
+                        {paper.issueNumber && (
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium text-muted-foreground">Issue</Label>
+                            <p className="text-lg font-bold">{paper.issueNumber}</p>
+                          </div>
+                        )}
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* DOI */}
                   {paper.doi && (
                     <>
-                      <div className="flex flex-col">
-                        <Label className="text-base font-medium">DOI</Label>
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-muted-foreground">DOI</Label>
                         <Link
                           href={doiUrl ?? paper.doi}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-base text-muted-foreground font-mono hover:text-primary hover:underline break-all"
+                          className="text-sm text-primary font-mono hover:underline break-all block"
                         >
                           {paper.doi}
                         </Link>
@@ -552,47 +622,54 @@ export default async function PaperDetailsPage({
                     </>
                   )}
 
-                  <div>
-                    <Label className="text-base font-medium">Status</Label>
-                    <p className="text-base text-muted-foreground">
-                      <Badge
-                        variant={
-                          isPublishedStatus(paper.status)
-                            ? 'default'
-                            : 'secondary'
-                        }
-                      >
-                        {paper.status}
-                      </Badge>
-                    </p>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <Label className="text-base font-medium">
-                      Submission Date
-                    </Label>
-                    <p className="text-base text-muted-foreground">
-                      {formatDate(paper.submissionDate)}
-                    </p>
-                  </div>
-
-                  {paper.acceptedDate && (
-                    <>
-                      <Separator />
-                      <div>
-                        <Label className="text-base font-medium">
-                          Publication Date
+                  {/* Dates */}
+                  <div className="space-y-3">
+                    {paper.acceptedDate && (
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-muted-foreground">
+                          Published
                         </Label>
-                        <p className="text-base text-muted-foreground">
+                        <p className="text-sm">
                           {formatDate(paper.acceptedDate)}
                         </p>
                       </div>
-                    </>
-                  )}
+                    )}
+                    <div className="space-y-1">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Submitted
+                      </Label>
+                      <p className="text-sm">
+                        {formatDate(paper.submissionDate)}
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
+
+              {/* Point of Contact */}
+              {pointOfContact && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Corresponding Author</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="font-medium">{pointOfContact.fullName}</p>
+                    {pointOfContact.affiliation && (
+                      <p className="text-sm text-muted-foreground">
+                        {pointOfContact.affiliation}
+                      </p>
+                    )}
+                    {pointOfContact.email && (
+                      <a
+                        href={`mailto:${pointOfContact.email}`}
+                        className="text-sm text-primary hover:underline block"
+                      >
+                        {pointOfContact.email}
+                      </a>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
 

@@ -199,11 +199,19 @@ function Navbar() {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
 
-                  {/* Papers */}
+                  {/* Publications */}
                   <NavigationMenuItem>
                     <NavigationMenuLink
                       className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
-                      render={<Link href="/paper">Papers</Link>}
+                      render={<Link href="/publications">Publications</Link>}
+                    />
+                  </NavigationMenuItem>
+
+                  {/* Archive */}
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      className="bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors font-semibold text-sm px-3.5 py-1.5 rounded-md block cursor-pointer select-none"
+                      render={<Link href="/archive">Archive</Link>}
                     />
                   </NavigationMenuItem>
 
@@ -454,7 +462,8 @@ function DropdownMenuProfile({
 
 const MOBILE_LINKS = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/paper", label: "Papers", icon: FileText },
+  { href: "/publications", label: "Publications", icon: BookOpen },
+  { href: "/archive", label: "Archive", icon: FileText },
   { href: "/pre-publish", label: "Pre-Publish", icon: Clock3 },
 ];
 
