@@ -5,6 +5,7 @@ import SubmissionFlowchart from "@/components/home/SubmissionFlowchart";
 import CallForPapers from "@/components/home/CallForPapers";
 import EditorialTeamSection from "@/components/home/EditorialTeamSection";
 import LatestArticlesSection from "@/components/home/LatestArticlesSection";
+import LocationSection from "@/components/home/LocationSection";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <FeaturesSection />
       <SubmissionFlowchart />
       <CallForPapers />
+      <LocationSection />
     </div>
   );
 }

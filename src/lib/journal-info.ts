@@ -13,7 +13,7 @@ export const JOURNAL = {
   title: 'Journal of Embedded & Digital System Design',
   shortName: 'JEDSD',
   publisher: 'Digital System Design',
-  address: '246, Library Lane, Panda Para Road, Jalpaiguri, West Bengal, 735101',
+  address: '246, LIBRARY LANE, PANDA PARA ROAD, JALPAIGURI, West Bengal, 735101',
   frequency: 'Half-yearly (2 issues per volume)',
   publicationModel: 'Continuous online publication',
   issn: '2582-0605',
