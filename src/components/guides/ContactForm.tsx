@@ -59,12 +59,12 @@ const contactInfo: ContactInfo[] = [
   },
   {
     icon: MapPin,
-    title: "Official Address",
+    title: "Publisher Address",
     details: [
-      "Das Vila",
-      "17 - Rajani Kanta Chowdhury Lane",
-      "Shibpur, Howrah-711103",
-      "West Bengal, India"
+      "Digital System Design",
+      "246, LIBRARY LANE, PANDA PARA ROAD",
+      "JALPAIGURI, West Bengal, 735101",
+      "India"
     ]
   }
 ];

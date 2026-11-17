@@ -16,7 +16,6 @@ export const JOURNAL = {
   address: '246, LIBRARY LANE, PANDA PARA ROAD, JALPAIGURI, West Bengal, 735101',
   frequency: 'Half-yearly (2 issues per volume)',
   publicationModel: 'Continuous online publication',
-  issn: '2582-0605',
   canonicalUrl: SITE_URL,
 } as const;
 
